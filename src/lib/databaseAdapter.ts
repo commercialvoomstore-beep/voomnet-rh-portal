@@ -1,9 +1,9 @@
 /**
  * VOOMNET TECHNOLOGY — ADAPTATEUR UNIVERSEL DE BASE DE DONNÉES
- * Support Multi-SGBD : Supabase, Firebase, MongoDB, Prisma SQL, SQLite
+ * Support Multi-SGBD : Neon.tech, Supabase, Firebase, MongoDB, Prisma SQL, SQLite
  */
 
-export type DatabaseProvider = 'SUPABASE' | 'FIREBASE' | 'MONGODB' | 'PRISMA_SQL' | 'SQLITE_LOCAL' | 'MOCK_LOCAL';
+export type DatabaseProvider = 'NEON_POSTGRES' | 'SUPABASE' | 'FIREBASE' | 'MONGODB' | 'PRISMA_SQL' | 'SQLITE_LOCAL' | 'MOCK_LOCAL';
 
 export interface DatabaseConfig {
   provider: DatabaseProvider;
@@ -14,18 +14,25 @@ export interface DatabaseConfig {
 
 export const SUPPORTED_PROVIDERS = [
   {
+    id: 'NEON_POSTGRES' as DatabaseProvider,
+    name: 'Neon.tech (PostgreSQL Cloud)',
+    description: 'PostgreSQL Serverless ultra-rapide avec connexion SSL directe.',
+    type: 'PostgreSQL Cloud',
+    recommended: true,
+  },
+  {
     id: 'SUPABASE' as DatabaseProvider,
     name: 'Supabase (PostgreSQL Cloud)',
     description: 'PostgreSQL managé avec API REST, Temps Réel et RLS.',
     type: 'SQL Cloud',
-    recommended: true,
+    recommended: false,
   },
   {
     id: 'PRISMA_SQL' as DatabaseProvider,
-    name: 'Prisma ORM (PostgreSQL / MySQL / MariaDB)',
-    description: 'Connexion directe à un serveur SQL traditionnel (OVH, LWS, AWS RDS).',
+    name: 'Prisma ORM (OVH / AWS / Linux VPS)',
+    description: 'Connexion directe à un serveur SQL traditionnel.',
     type: 'SQL Standard',
-    recommended: true,
+    recommended: false,
   },
   {
     id: 'FIREBASE' as DatabaseProvider,
@@ -39,13 +46,6 @@ export const SUPPORTED_PROVIDERS = [
     name: 'MongoDB Atlas',
     description: 'Base de données NoSQL orientée documents JSON.',
     type: 'NoSQL Document',
-    recommended: false,
-  },
-  {
-    id: 'SQLITE_LOCAL' as DatabaseProvider,
-    name: 'SQLite / Turso LibSQL',
-    description: 'Fichier local .sqlite3 sans dépendance de serveur externe.',
-    type: 'Fichier Local / Edge',
     recommended: false,
   },
 ];

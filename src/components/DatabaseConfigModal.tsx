@@ -16,6 +16,7 @@ import {
   HardDrive,
   ShieldCheck,
   Terminal,
+  Zap,
 } from 'lucide-react';
 import {
   SUPPORTED_PROVIDERS,
@@ -24,9 +25,12 @@ import {
   setActiveProvider,
 } from '@/lib/databaseAdapter';
 import {
+  testNeonConnection,
+  saveNeonConnectionString,
+  getNeonConnectionString,
+} from '@/lib/neonClient';
+import {
   saveSupabaseCredentials,
-  clearSupabaseCredentials,
-  isSupabaseConfigured,
   getSupabase,
 } from '@/lib/supabaseClient';
 
@@ -39,10 +43,10 @@ export const DatabaseConfigModal: React.FC<DatabaseConfigModalProps> = ({
   isOpen,
   onClose,
 }) => {
-  const [selectedProvider, setSelectedProvider] = useState<DatabaseProvider>('SUPABASE');
+  const [selectedProvider, setSelectedProvider] = useState<DatabaseProvider>('NEON_POSTGRES');
+  const [neonConnectionString, setNeonConnectionString] = useState('');
   const [supabaseUrl, setSupabaseUrl] = useState('');
   const [supabaseKey, setSupabaseKey] = useState('');
-  const [prismaConnectionUrl, setPrismaConnectionUrl] = useState('');
 
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<{
@@ -55,9 +59,9 @@ export const DatabaseConfigModal: React.FC<DatabaseConfigModalProps> = ({
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setSelectedProvider(getActiveProvider());
+      setNeonConnectionString(getNeonConnectionString());
       setSupabaseUrl(localStorage.getItem('VOOMNET_SUPABASE_URL') || '');
       setSupabaseKey(localStorage.getItem('VOOMNET_SUPABASE_ANON_KEY') || '');
-      setPrismaConnectionUrl(localStorage.getItem('VOOMNET_PRISMA_URL') || '');
     }
   }, [isOpen]);
 
@@ -70,7 +74,19 @@ export const DatabaseConfigModal: React.FC<DatabaseConfigModalProps> = ({
     try {
       setActiveProvider(selectedProvider);
 
-      if (selectedProvider === 'SUPABASE') {
+      if (selectedProvider === 'NEON_POSTGRES') {
+        if (!neonConnectionString) {
+          throw new Error('Veuillez saisir votre chaîne de connexion PostgreSQL Neon.tech.');
+        }
+        const res = await testNeonConnection(neonConnectionString);
+        if (!res.success) throw new Error(res.message);
+
+        saveNeonConnectionString(neonConnectionString);
+        setTestResult({
+          success: true,
+          message: `Connexion PostgreSQL Neon.tech réussie ! Heure serveur : ${res.time || 'Ok'}`,
+        });
+      } else if (selectedProvider === 'SUPABASE') {
         if (!supabaseUrl || !supabaseKey) {
           throw new Error('Veuillez renseigner l\'URL et la clé Anon Key Supabase.');
         }
@@ -80,14 +96,6 @@ export const DatabaseConfigModal: React.FC<DatabaseConfigModalProps> = ({
         setTestResult({
           success: true,
           message: 'Connexion réussie à la base de données Supabase !',
-        });
-      } else if (selectedProvider === 'PRISMA_SQL') {
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('VOOMNET_PRISMA_URL', prismaConnectionUrl);
-        }
-        setTestResult({
-          success: true,
-          message: 'Chaine de connexion SQL enregistrée pour le serveur Prisma / PostgreSQL.',
         });
       } else {
         setTestResult({
@@ -105,10 +113,10 @@ export const DatabaseConfigModal: React.FC<DatabaseConfigModalProps> = ({
     }
   };
 
-  const sqlScript = `-- SCRIPT DE CRÉATION DE BASE DE DONNÉES UNIVERSEL (PostgreSQL / MySQL / MariaDB)
+  const sqlScriptNeon = `-- SCRIPT POSTGRESQL POUR NEON.TECH
 
-CREATE TABLE employees (
-    id VARCHAR(36) PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS employees (
+    id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid()::text,
     matricule VARCHAR(20) UNIQUE NOT NULL,
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
@@ -118,13 +126,13 @@ CREATE TABLE employees (
     position VARCHAR(150) NOT NULL,
     department VARCHAR(150) NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'ACTIF',
-    base_salary DECIMAL(12, 2) NOT NULL DEFAULT 350000,
-    hire_date DATE NOT NULL,
+    base_salary NUMERIC(12, 2) NOT NULL DEFAULT 350000,
+    hire_date DATE NOT NULL DEFAULT CURRENT_DATE,
     avatar_url TEXT
 );
 
-CREATE TABLE chat_messages (
-    id VARCHAR(36) PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS chat_messages (
+    id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid()::text,
     sender_id VARCHAR(100) NOT NULL,
     sender_name VARCHAR(150) NOT NULL,
     recipient_id VARCHAR(100) NOT NULL,
@@ -132,8 +140,14 @@ CREATE TABLE chat_messages (
     text TEXT NOT NULL,
     delivered BOOLEAN DEFAULT TRUE,
     delivery_status VARCHAR(100) DEFAULT '✓✓ Envoyé & Distribué au Poste',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );`;
+
+  const copySqlToClipboard = () => {
+    navigator.clipboard.writeText(sqlScriptNeon);
+    setCopiedSql(true);
+    setTimeout(() => setCopiedSql(false), 3000);
+  };
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
@@ -142,14 +156,14 @@ CREATE TABLE chat_messages (
         <div className="p-5 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl text-emerald-400">
-              <Database className="w-6 h-6" />
+              <Zap className="w-6 h-6" />
             </div>
             <div>
               <h3 className="text-base font-bold text-white flex items-center gap-2">
-                Connecteur Multi-Base de Données VOOMNET
+                Connexion Base de Données Neon.tech PostgreSQL
               </h3>
               <p className="text-xs text-slate-400">
-                Choisissez et configurez le type de base de données (SQL, NoSQL, ORM ou Fichier local)
+                Configurez la connexion directe vers votre cluster PostgreSQL sur Neon.tech
               </p>
             </div>
           </div>
@@ -181,19 +195,21 @@ CREATE TABLE chat_messages (
                   }`}
                 >
                   <div className="p-2 bg-slate-900 rounded-xl shrink-0 mt-0.5">
+                    {prov.id === 'NEON_POSTGRES' && <Zap className="w-4 h-4 text-emerald-400" />}
                     {prov.id === 'SUPABASE' && <Database className="w-4 h-4 text-emerald-400" />}
                     {prov.id === 'PRISMA_SQL' && <Server className="w-4 h-4 text-blue-400" />}
                     {prov.id === 'FIREBASE' && <Flame className="w-4 h-4 text-amber-400" />}
                     {prov.id === 'MONGODB' && <FileCode2 className="w-4 h-4 text-teal-400" />}
-                    {prov.id === 'SQLITE_LOCAL' && <HardDrive className="w-4 h-4 text-purple-400" />}
                   </div>
 
                   <div>
                     <div className="font-bold text-xs text-white flex items-center gap-2">
                       <span>{prov.name}</span>
-                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">
-                        {prov.type}
-                      </span>
+                      {prov.recommended && (
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">
+                          Recommandé
+                        </span>
+                      )}
                     </div>
                     <p className="text-[10px] text-slate-400 mt-1 leading-snug">
                       {prov.description}
@@ -204,12 +220,49 @@ CREATE TABLE chat_messages (
             </div>
           </div>
 
-          {/* Dynamic Configuration Form based on selected provider */}
+          {/* Form Section */}
           <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-4">
             <h4 className="font-bold text-slate-200 flex items-center gap-2">
               <Key className="w-4 h-4 text-emerald-400" />
-              2. Paramètres de connexion : {selectedProvider}
+              2. Configuration : {selectedProvider === 'NEON_POSTGRES' ? 'Neon.tech PostgreSQL' : selectedProvider}
             </h4>
+
+            {selectedProvider === 'NEON_POSTGRES' && (
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-slate-300 font-semibold mb-1">
+                    Chaîne de Connexion PostgreSQL Neon (Pooled Connection String) :
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="postgresql://user:password@ep-cool-name-1234.us-east-2.aws.neon.tech/neondb?sslmode=require"
+                    value={neonConnectionString}
+                    onChange={(e) => setNeonConnectionString(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white font-mono text-xs focus:outline-none focus:border-emerald-500"
+                  />
+                  <p className="text-[10px] text-slate-500 mt-1">
+                    Copiez cette chaîne depuis la console **Neon.tech -&gt; Dashboard / Connect -&gt; Pooled**.
+                  </p>
+                </div>
+
+                <div className="p-3 bg-slate-900/80 rounded-xl border border-slate-800 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-slate-300">3. Exécuter le Script SQL dans Neon :</span>
+                    <button
+                      type="button"
+                      onClick={copySqlToClipboard}
+                      className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10px] rounded-lg flex items-center gap-1 shadow"
+                    >
+                      <Copy className="w-3 h-3" />
+                      {copiedSql ? 'Copié !' : 'Copier le SQL'}
+                    </button>
+                  </div>
+                  <pre className="p-2.5 bg-slate-950 border border-slate-800 rounded-lg text-[10px] font-mono text-emerald-300 overflow-x-auto max-h-28">
+                    {sqlScriptNeon}
+                  </pre>
+                </div>
+              </div>
+            )}
 
             {selectedProvider === 'SUPABASE' && (
               <div className="space-y-3">
@@ -233,53 +286,6 @@ CREATE TABLE chat_messages (
                     className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-white font-mono text-xs"
                   />
                 </div>
-              </div>
-            )}
-
-            {selectedProvider === 'PRISMA_SQL' && (
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-slate-400 mb-1">Chaîne de Connexion PostgreSQL / MySQL / OVH :</label>
-                  <input
-                    type="text"
-                    placeholder="postgresql://user:password@localhost:5432/voomnet_db"
-                    value={prismaConnectionUrl}
-                    onChange={(e) => setPrismaConnectionUrl(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-white font-mono text-xs"
-                  />
-                </div>
-                <p className="text-[11px] text-slate-400">
-                  Prisma permet de connecter n&apos;importe quel serveur PostgreSQL, MySQL, MariaDB ou MS SQL hébergé chez OVH, LWS, AWS, Render ou sur votre propre serveur Linux VPS.
-                </p>
-              </div>
-            )}
-
-            {selectedProvider === 'FIREBASE' && (
-              <div className="text-[11px] text-slate-400 leading-relaxed space-y-2">
-                <p>
-                  Pour utiliser Google Firebase, collez l&apos;objet de configuration Firebase (`firebaseConfig`) de votre console Google Cloud dans le fichier `.env.local`.
-                </p>
-                <code className="block p-2.5 bg-slate-900 rounded-xl text-amber-300 font-mono">
-                  NEXT_PUBLIC_FIREBASE_API_KEY=&quot;AIzaSy...&quot;<br />
-                  NEXT_PUBLIC_FIREBASE_PROJECT_ID=&quot;voomnet-rh&quot;
-                </code>
-              </div>
-            )}
-
-            {selectedProvider === 'MONGODB' && (
-              <div className="text-[11px] text-slate-400 leading-relaxed space-y-2">
-                <p>
-                  Saisissez l&apos;URI de connexion MongoDB Atlas dans votre fichier d&apos;environnement :
-                </p>
-                <code className="block p-2.5 bg-slate-900 rounded-xl text-teal-300 font-mono">
-                  MONGODB_URI=&quot;mongodb+srv://user:pass@cluster.mongodb.net/voomnet_rh&quot;
-                </code>
-              </div>
-            )}
-
-            {selectedProvider === 'SQLITE_LOCAL' && (
-              <div className="text-[11px] text-slate-400 leading-relaxed">
-                SQLite enregistre l&apos;intégralité des données dans un fichier local `.sqlite3` léger sur le serveur web sans aucun abonnement cloud.
               </div>
             )}
           </div>
@@ -319,7 +325,7 @@ CREATE TABLE chat_messages (
             className="px-5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-600/30 flex items-center gap-2"
           >
             <RefreshCw className={`w-4 h-4 ${testing ? 'animate-spin' : ''}`} />
-            {testing ? 'Test...' : 'Activer & Enregistrer'}
+            {testing ? 'Test en cours...' : 'Tester & Sauvegarder'}
           </button>
         </div>
       </div>
