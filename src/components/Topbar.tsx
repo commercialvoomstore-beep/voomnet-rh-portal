@@ -16,6 +16,9 @@ import {
   Trash2,
 } from 'lucide-react';
 
+import { SupabaseConfigModal } from '@/components/SupabaseConfigModal';
+import { isSupabaseConfigured } from '@/lib/supabaseClient';
+
 export const Topbar: React.FC = () => {
   const {
     activeTab,
@@ -28,6 +31,8 @@ export const Topbar: React.FC = () => {
   } = useApp();
 
   const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
+  const [showSupabaseModal, setShowSupabaseModal] = useState(false);
+  const supabaseConnected = isSupabaseConfigured();
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -120,10 +125,14 @@ export const Topbar: React.FC = () => {
               <span>3CX Connecté</span>
             </div>
             <span className="text-slate-700">|</span>
-            <div className="flex items-center gap-1 text-slate-400">
-              <Database className="w-3.5 h-3.5 text-blue-400" />
-              <span>voomnet_rh</span>
-            </div>
+            <button
+              onClick={() => setShowSupabaseModal(true)}
+              className="flex items-center gap-1 text-slate-300 hover:text-white hover:underline cursor-pointer"
+              title="Configurer la Base Supabase"
+            >
+              <Database className={`w-3.5 h-3.5 ${supabaseConnected ? 'text-emerald-400' : 'text-blue-400'}`} />
+              <span className="font-bold">{supabaseConnected ? 'Supabase (En Ligne)' : 'Supabase SQL'}</span>
+            </button>
           </div>
 
           {/* Date pill */}
@@ -218,6 +227,10 @@ export const Topbar: React.FC = () => {
           )}
         </div>
       </div>
+      <SupabaseConfigModal
+        isOpen={showSupabaseModal}
+        onClose={() => setShowSupabaseModal(false)}
+      />
     </header>
   );
 };
