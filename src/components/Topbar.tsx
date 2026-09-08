@@ -32,9 +32,16 @@ export const Topbar: React.FC = () => {
 
   const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
   const [showDatabaseModal, setShowDatabaseModal] = useState(false);
+  const unreadCount = notifications.filter((n) => !n.read).length;
   const activeDbProvider = getActiveProvider();
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const currentDateStr = new Date().toLocaleDateString('fr-FR', {
+    weekday: 'long',
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  });
+  const formattedDate = currentDateStr.charAt(0).toUpperCase() + currentDateStr.slice(1);
 
   const getTitle = () => {
     switch (activeTab) {
@@ -138,7 +145,7 @@ export const Topbar: React.FC = () => {
           {/* Date pill */}
           <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800 text-xs font-medium text-slate-300 border border-slate-700">
             <Calendar className="w-3.5 h-3.5 text-blue-400" />
-            <span>Lundi 07 Septembre 2026</span>
+            <span>{formattedDate}</span>
           </div>
 
           {/* Bell Notification Button Dropdown */}

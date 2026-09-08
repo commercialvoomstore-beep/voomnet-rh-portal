@@ -30,8 +30,8 @@ export const Sidebar: React.FC = () => {
     (r) => r.matricule === user.matricule && r.statut === 'En attente'
   ).length;
 
-  const myChatMessages = chatMessages.filter(
-    (m) => m.recipientMatricule === user.matricule || m.senderMatricule === user.matricule
+  const unreadChatCount = chatMessages.filter(
+    (m) => m.recipientMatricule === user.matricule && m.status !== 'lu'
   ).length;
 
   const getNavItems = () => {
@@ -58,7 +58,7 @@ export const Sidebar: React.FC = () => {
           id: 'chat',
           label: 'Chat RH Direct',
           icon: MessageSquare,
-          badge: myChatMessages > 0 ? `${myChatMessages}` : null,
+          badge: unreadChatCount > 0 ? `${unreadChatCount}` : null,
           badgeColor: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
         },
         {
@@ -87,7 +87,7 @@ export const Sidebar: React.FC = () => {
         id: 'chat',
         label: 'Chat RH Direct',
         icon: MessageSquare,
-        badge: myChatMessages > 0 ? `${myChatMessages}` : null,
+        badge: unreadChatCount > 0 ? `${unreadChatCount}` : null,
         badgeColor: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
       },
       {

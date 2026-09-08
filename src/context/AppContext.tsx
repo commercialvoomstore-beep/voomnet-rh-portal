@@ -82,6 +82,7 @@ interface AppContextType {
   sendChatMessage: (text: string, recipientMatricule: string) => void;
   markNotificationAsRead: (id: string) => void;
   clearAllNotifications: () => void;
+  markChatMessagesAsRead: (matricule: string) => void;
   createAbsenceRequest: (req: Omit<AbsenceRequest, 'id' | 'codeSuivi' | 'dateDemande'>) => string;
   updateAbsenceStatus: (id: string, statut: 'Approuvé' | 'Refusé', justifiee: boolean, notes?: string) => void;
   simulateUnjustifiedAbsence: (matricule: string, dateAbsence: string) => void;
@@ -187,6 +188,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const clearAllNotifications = () => {
     setNotifications([]);
+  };
+
+  const markChatMessagesAsRead = (matricule: string) => {
+    setChatMessages((prev) =>
+      prev.map((m) =>
+        m.recipientMatricule === matricule ? { ...m, status: 'lu' as const } : m
+      )
+    );
   };
 
   const login = (matricule: string): boolean => {
@@ -598,6 +607,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         sendChatMessage,
         markNotificationAsRead,
         clearAllNotifications,
+        markChatMessagesAsRead,
         createAbsenceRequest,
         updateAbsenceStatus,
         simulateUnjustifiedAbsence,

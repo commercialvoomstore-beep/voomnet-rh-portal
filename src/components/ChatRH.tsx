@@ -16,9 +16,15 @@ import {
 } from 'lucide-react';
 
 export const ChatRH: React.FC = () => {
-  const { user, chatMessages, sendChatMessage, employees } = useApp();
+  const { user, chatMessages, sendChatMessage, employees, markChatMessagesAsRead } = useApp();
   const [text, setText] = useState('');
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (user?.matricule) {
+      markChatMessagesAsRead(user.matricule);
+    }
+  }, [user?.matricule]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
