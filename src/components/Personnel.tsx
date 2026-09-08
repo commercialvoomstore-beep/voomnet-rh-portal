@@ -57,13 +57,21 @@ export const Personnel: React.FC = () => {
   // Edit Employee Form state
   const [editFormState, setEditFormState] = useState<Partial<Employee>>({});
 
-  const filteredEmployees = employees.filter((emp) => {
+  const filteredEmployees = (employees || []).filter((emp) => {
+    if (!emp) return false;
+    const search = (searchTerm || '').toLowerCase();
+    const nom = (emp.nom || '').toLowerCase();
+    const prenom = (emp.prenom || '').toLowerCase();
+    const matricule = (emp.matricule || '').toLowerCase();
+    const poste = (emp.poste || '').toLowerCase();
+    const departement = (emp.departement || '').toLowerCase();
+
     const matchesSearch =
-      emp.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      emp.prenom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      emp.matricule.includes(searchTerm) ||
-      emp.poste.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      emp.departement.toLowerCase().includes(searchTerm.toLowerCase());
+      nom.includes(search) ||
+      prenom.includes(search) ||
+      matricule.includes(search) ||
+      poste.includes(search) ||
+      departement.includes(search);
 
     const matchesStatut = filterStatut === 'Tous' || emp.statut === filterStatut;
     const matchesRole = filterRole === 'Tous' || emp.role === filterRole;
