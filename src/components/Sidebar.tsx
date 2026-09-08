@@ -23,14 +23,16 @@ export const Sidebar: React.FC = () => {
   const isAdminRH = user.role === 'Admin RH';
   const isEmploye = user.role === 'Employé';
 
-  // Badges
+  // Dynamic Badges
   const pendingAbsences = absenceRequests.filter((r) => r.statut === 'En attente').length;
   const canceledPrimes = primes.filter((p) => !p.eligible).length;
   const myPendingRequests = absenceRequests.filter(
     (r) => r.matricule === user.matricule && r.statut === 'En attente'
   ).length;
 
-  const totalChatMessages = chatMessages.length;
+  const myChatMessages = chatMessages.filter(
+    (m) => m.recipientMatricule === user.matricule || m.senderMatricule === user.matricule
+  ).length;
 
   const getNavItems = () => {
     if (isEmploye) {
@@ -56,7 +58,7 @@ export const Sidebar: React.FC = () => {
           id: 'chat',
           label: 'Chat RH Direct',
           icon: MessageSquare,
-          badge: totalChatMessages > 0 ? `${totalChatMessages}` : null,
+          badge: myChatMessages > 0 ? `${myChatMessages}` : null,
           badgeColor: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
         },
         {
@@ -85,7 +87,7 @@ export const Sidebar: React.FC = () => {
         id: 'chat',
         label: 'Chat RH Direct',
         icon: MessageSquare,
-        badge: totalChatMessages > 0 ? `${totalChatMessages}` : null,
+        badge: myChatMessages > 0 ? `${myChatMessages}` : null,
         badgeColor: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
       },
       {

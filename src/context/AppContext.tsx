@@ -113,28 +113,42 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return () => clearTimeout(timer);
   }, []);
 
-  // Hydrate data directly from Neon PostgreSQL when connected
+  // Real-time dynamic polling interval for Chat Messages and Leave Requests on Vercel
   useEffect(() => {
-    const hydrateFromNeon = async () => {
+    const pollInterval = setInterval(async () => {
       try {
         const dbProvider = getActiveProvider();
-        if (dbProvider === 'NEON_POSTGRES' || typeof window !== 'undefined' && localStorage.getItem('VOOMNET_NEON_DATABASE_URL')) {
-          const neonEmps = await fetchNeonEmployees();
-          if (neonEmps && neonEmps.length > 0) {
-            setEmployees(neonEmps);
+        if (
+          dbProvider === 'NEON_POSTGRES' ||
+          (typeof window !== 'undefined' &&
+            (localStorage.getItem('VOOMNET_NEON_DATABASE_URL') || process.env.POSTGRES_URL))
+        ) {
+          const latestChats = await fetchNeonChatMessages();
+          if (latestChats) {
+            setChatMessages((prev) => {
+              if (latestChats.length !== prev.length) {
+                return latestChats;
+              }
+              return prev;
+            });
           }
 
-          const neonChats = await fetchNeonChatMessages();
-          if (neonChats && neonChats.length > 0) {
-            setChatMessages(neonChats);
+          const latestLeaves = await fetchNeonLeaveRequests();
+          if (latestLeaves) {
+            setAbsenceRequests((prev) => {
+              if (latestLeaves.length !== prev.length) {
+                return latestLeaves;
+              }
+              return prev;
+            });
           }
         }
       } catch (err) {
-        console.warn('Fallback local state on hydration error:', err);
+        // Silent polling catch
       }
-    };
+    }, 7000);
 
-    hydrateFromNeon();
+    return () => clearInterval(pollInterval);
   }, []);
 
   const dismissSplash = () => setSplashVisible(false);
