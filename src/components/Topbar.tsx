@@ -16,8 +16,8 @@ import {
   Trash2,
 } from 'lucide-react';
 
-import { SupabaseConfigModal } from '@/components/SupabaseConfigModal';
-import { isSupabaseConfigured } from '@/lib/supabaseClient';
+import { DatabaseConfigModal } from '@/components/DatabaseConfigModal';
+import { getActiveProvider } from '@/lib/databaseAdapter';
 
 export const Topbar: React.FC = () => {
   const {
@@ -31,8 +31,8 @@ export const Topbar: React.FC = () => {
   } = useApp();
 
   const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
-  const [showSupabaseModal, setShowSupabaseModal] = useState(false);
-  const supabaseConnected = isSupabaseConfigured();
+  const [showDatabaseModal, setShowDatabaseModal] = useState(false);
+  const activeDbProvider = getActiveProvider();
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -126,12 +126,12 @@ export const Topbar: React.FC = () => {
             </div>
             <span className="text-slate-700">|</span>
             <button
-              onClick={() => setShowSupabaseModal(true)}
-              className="flex items-center gap-1 text-slate-300 hover:text-white hover:underline cursor-pointer"
-              title="Configurer la Base Supabase"
+              onClick={() => setShowDatabaseModal(true)}
+              className="flex items-center gap-1.5 text-slate-300 hover:text-white hover:underline cursor-pointer"
+              title="Changer de Base de Données"
             >
-              <Database className={`w-3.5 h-3.5 ${supabaseConnected ? 'text-emerald-400' : 'text-blue-400'}`} />
-              <span className="font-bold">{supabaseConnected ? 'Supabase (En Ligne)' : 'Supabase SQL'}</span>
+              <Database className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="font-bold">{activeDbProvider === 'MOCK_LOCAL' ? 'Base SQL / Multi-SGBD' : activeDbProvider}</span>
             </button>
           </div>
 
@@ -227,9 +227,9 @@ export const Topbar: React.FC = () => {
           )}
         </div>
       </div>
-      <SupabaseConfigModal
-        isOpen={showSupabaseModal}
-        onClose={() => setShowSupabaseModal(false)}
+      <DatabaseConfigModal
+        isOpen={showDatabaseModal}
+        onClose={() => setShowDatabaseModal(false)}
       />
     </header>
   );
