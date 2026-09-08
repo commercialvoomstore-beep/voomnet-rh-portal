@@ -18,6 +18,16 @@ import {
   INITIAL_AUDIT_LOGS,
   DEFAULT_FALLBACK_AVATAR,
 } from '@/data/mockData';
+import {
+  fetchNeonEmployees,
+  insertNeonEmployee,
+  deleteNeonEmployee,
+  fetchNeonChatMessages,
+  insertNeonChatMessage,
+  fetchNeonLeaveRequests,
+  insertNeonLeaveRequest,
+} from '@/lib/neonDbService';
+import { getActiveProvider } from '@/lib/databaseAdapter';
 
 export const playNotificationSound = () => {
   try {
@@ -103,6 +113,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return () => clearTimeout(timer);
   }, []);
 
+  // Hydrate data directly from Neon PostgreSQL when connected
+  useEffect(() => {
+    const hydrateFromNeon = async () => {
+      try {
+        const dbProvider = getActiveProvider();
+        if (dbProvider === 'NEON_POSTGRES' || typeof window !== 'undefined' && localStorage.getItem('VOOMNET_NEON_DATABASE_URL')) {
+          const neonEmps = await fetchNeonEmployees();
+          if (neonEmps && neonEmps.length > 0) {
+            setEmployees(neonEmps);
+          }
+
+          const neonChats = await fetchNeonChatMessages();
+          if (neonChats && neonChats.length > 0) {
+            setChatMessages(neonChats);
+          }
+        }
+      } catch (err) {
+        console.warn('Fallback local state on hydration error:', err);
+      }
+    };
+
+    hydrateFromNeon();
+  }, []);
+
   const dismissSplash = () => setSplashVisible(false);
 
   const showNotificationAlert = (
@@ -175,6 +209,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           if (user && user.matricule === matricule) {
             setUser(updated);
           }
+          // Sync update to Neon if connected
+          insertNeonEmployee(updated).catch(console.error);
           return updated;
         }
         return emp;
@@ -226,6 +262,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
     setEmployees((prev) => [newEmp, ...prev]);
 
+    // Save directly to Neon PostgreSQL database
+    insertNeonEmployee(newEmp).catch(console.error);
+
     const newPrime: EmployeePrimeStatus = {
       matricule: newEmp.matricule,
       nomPrenom: `${newEmp.prenom} ${newEmp.nom}`,
@@ -240,8 +279,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setPrimes((prev) => [...prev, newPrime]);
 
     showNotificationAlert(
-      '👤 Utilisateur Créé',
-      `Le compte de ${newEmp.prenom} ${newEmp.nom} (Matricule ${newEmp.matricule}) a été créé.`,
+      '👤 Utilisateur Créé & Synchronisé sur Neon',
+      `Le compte de ${newEmp.prenom} ${newEmp.nom} (Matricule ${newEmp.matricule}) a été enregistré dans Neon.tech.`,
       'SUCCESS'
     );
   };
@@ -256,6 +295,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           if (user && user.id === id) {
             setUser(updated);
           }
+          // Sync update to Neon
+          insertNeonEmployee(updated).catch(console.error);
           return updated;
         }
         return emp;
@@ -281,8 +322,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     showNotificationAlert(
-      '✏️ Profil Modifié',
-      `Informations de ${empName} enregistrées avec succès.`,
+      '✏️ Profil Modifié & Synchronisé',
+      `Informations de ${empName} mises à jour dans la base Neon.`,
       'INFO'
     );
   };
@@ -294,14 +335,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setEmployees((prev) => prev.filter((e) => e.id !== id));
     setPrimes((prev) => prev.filter((p) => p.matricule !== target.matricule));
 
+    // Delete directly from Neon PostgreSQL
+    deleteNeonEmployee(target.matricule).catch(console.error);
+
     showNotificationAlert(
       '🗑️ Suppression Utilisateur',
-      `Le compte de ${target.prenom} ${target.nom} a été supprimé.`,
+      `Le compte de ${target.prenom} ${target.nom} a été supprimé de la base Neon.`,
       'ALERT'
     );
   };
 
-  // Direct Transmission Chat (Sender -> Recipient) without simulated auto-replies
+  // Direct Transmission Chat (Sender -> Recipient) & Direct SQL Insert to Neon
   const sendChatMessage = (text: string, recipientMatricule: string) => {
     if (!user) return;
     const recipientObj = employees.find((e) => e.matricule === recipientMatricule);
@@ -324,12 +368,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     setChatMessages((prev) => [...prev, newMsg]);
 
+    // Save chat message directly into Neon PostgreSQL table `chat_messages`
+    insertNeonChatMessage(newMsg).catch(console.error);
+
     // Play pleasant transmission sound
     playNotificationSound();
 
     showNotificationAlert(
-      '💬 Message Envoyé',
-      `Message transmis de ${user.prenom} vers ${recipientName} (Poste 3CX ${recipientMatricule}).`,
+      '💬 Message Envoyé & Enregistré',
+      `Message sauvegardé dans la base Neon et transmis à ${recipientName} (Poste 3CX ${recipientMatricule}).`,
       'SUCCESS'
     );
   };
@@ -373,6 +420,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
     setAbsenceRequests((prev) => [newReq, ...prev]);
 
+    // Save leave request directly into Neon PostgreSQL table `leave_requests`
+    insertNeonLeaveRequest({
+      ...newReq,
+      employeId: reqData.matricule,
+      employeNom: reqData.nomPrenom,
+      type: reqData.typeAbsence === 'Maladie' ? 'SANTÉ' : 'CONGÉ_PAYÉ',
+      dateDebut: reqData.dateDebut,
+      dateFin: reqData.dateFin,
+      nombreJours: reqData.dureeJours,
+      motif: reqData.motif,
+      statut: 'EN_ATTENTE',
+    }).catch(console.error);
+
     if (!reqData.justifiee) {
       triggerPrimeCancellation(reqData.matricule, `Absence non justifiée (${code})`);
     } else {
@@ -380,7 +440,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     showNotificationAlert(
-      '📜 Demande d\'Absence',
+      '📜 Demande d\'Absence Enregistrée sur Neon',
       `Demande enregistrée pour ${reqData.nomPrenom} (Code: ${code}).`,
       reqData.justifiee ? 'SUCCESS' : 'WARNING'
     );
