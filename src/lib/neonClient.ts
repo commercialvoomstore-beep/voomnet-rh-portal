@@ -5,7 +5,12 @@ export const getNeonConnectionString = (): string => {
     const custom = localStorage.getItem('VOOMNET_NEON_DATABASE_URL');
     if (custom) return custom;
   }
-  return process.env.DATABASE_URL || '';
+  return (
+    process.env.POSTGRES_URL ||
+    process.env.DATABASE_URL ||
+    process.env.NEXT_PUBLIC_NEON_URL ||
+    ''
+  );
 };
 
 export const saveNeonConnectionString = (connectionString: string) => {
