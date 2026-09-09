@@ -91,26 +91,26 @@ export const Topbar: React.FC = () => {
   };
 
   return (
-    <header className="bg-slate-900 border-b border-slate-800 px-6 py-4 flex flex-col gap-3 relative z-30">
+    <header className="bg-white/90 backdrop-blur-md border-b border-indigo-100 px-6 py-4 flex flex-col gap-3 relative z-30 shadow-sm">
       {/* Animated Floating Toast Alert Banner */}
       {activeToast && (
-        <div className="fixed top-4 right-4 z-50 max-w-md bg-slate-900 border-2 border-blue-500/80 text-white p-4 rounded-2xl shadow-2xl flex items-start justify-between gap-3 animate-slideDown">
+        <div className="fixed top-4 right-4 z-50 max-w-md bg-white border-2 border-rose-400 text-slate-800 p-4 rounded-2xl shadow-2xl flex items-start justify-between gap-3 animate-slideDown">
           <div className="flex items-start gap-3">
-            <div className="mt-0.5 p-2 rounded-xl bg-slate-950 border border-slate-800">
+            <div className="mt-0.5 p-2 rounded-xl bg-rose-50 border border-rose-200">
               {getNotifIcon(activeToast.type)}
             </div>
             <div>
-              <div className="text-xs font-bold text-white flex items-center gap-2">
+              <div className="text-xs font-extrabold text-slate-900 flex items-center gap-2">
                 <span>{activeToast.title}</span>
-                <span className="text-[10px] text-slate-400 font-mono">({activeToast.timestamp})</span>
+                <span className="text-[10px] text-slate-500 font-mono">({activeToast.timestamp})</span>
               </div>
-              <p className="text-xs text-slate-300 mt-1 leading-snug">{activeToast.message}</p>
+              <p className="text-xs text-slate-700 mt-1 leading-snug">{activeToast.message}</p>
             </div>
           </div>
 
           <button
             onClick={dismissToast}
-            className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800"
+            className="text-slate-400 hover:text-slate-800 p-1 rounded-lg hover:bg-slate-100"
           >
             <X className="w-4 h-4" />
           </button>
@@ -119,52 +119,58 @@ export const Topbar: React.FC = () => {
 
       <div className="flex items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+          <div className="flex items-center gap-2 text-[10px] font-extrabold text-purple-700 uppercase tracking-wider">
             <span>VOOMNET TECHNOLOGY</span>
             <span>•</span>
-            <span className="text-blue-400">Période : Trimestre 3 - 2026</span>
+            <span className="text-pink-600 font-extrabold">Période : Trimestre 3 - 2026</span>
           </div>
-          <h2 className="text-xl font-bold text-white tracking-tight">{getTitle()}</h2>
+          <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">{getTitle()}</h2>
         </div>
 
         {/* Right tools */}
         <div className="flex items-center gap-3">
           {/* Status info pill */}
-          <div className="hidden lg:flex items-center gap-3 px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-[11px] text-slate-300 font-mono">
-            <div className="flex items-center gap-1.5 text-emerald-400">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+          <div className="hidden lg:flex items-center gap-3 px-3.5 py-1.5 rounded-xl bg-indigo-50/80 border border-indigo-200 text-[11px] text-indigo-950 font-mono shadow-sm">
+            <div className="flex items-center gap-1.5 text-emerald-600 font-bold">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
               <span>3CX Connecté</span>
             </div>
-            <span className="text-slate-700">|</span>
+            <span className="text-indigo-200">|</span>
             <button
               onClick={() => setShowDatabaseModal(true)}
-              className="flex items-center gap-1.5 text-slate-300 hover:text-white hover:underline cursor-pointer"
+              className="flex items-center gap-1.5 text-indigo-900 hover:text-indigo-700 font-bold hover:underline cursor-pointer"
               title="Changer de Base de Données"
             >
-              <Database className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="font-bold">{activeDbProvider === 'MOCK_LOCAL' ? 'Base SQL / Multi-SGBD' : activeDbProvider}</span>
+              <Database className="w-3.5 h-3.5 text-emerald-600" />
+              <span>{activeDbProvider === 'MOCK_LOCAL' ? 'Base SQL / Multi-SGBD' : activeDbProvider}</span>
             </button>
+          </div>
+
+          {/* Date pill */}
+          <div className="hidden md:flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-amber-50 text-xs font-bold text-amber-900 border border-amber-200 shadow-sm">
+            <Calendar className="w-3.5 h-3.5 text-amber-600" />
+            <span>{formattedDate}</span>
           </div>
 
           {/* Palette / Theme Selector Button Dropdown */}
           <div className="relative">
             <button
               onClick={() => setShowThemeDropdown(!showThemeDropdown)}
-              className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition-all flex items-center gap-1.5"
-              title="Changer la couleur / thème de l'application"
+              className="p-2.5 rounded-xl bg-gradient-to-r from-amber-400 via-rose-500 to-pink-500 text-white font-extrabold shadow-md shadow-rose-500/20 hover:opacity-95 transition-all flex items-center gap-1.5"
+              title="Changer les couleurs"
             >
-              <Palette className="w-4 h-4 text-purple-400 animate-pulse" />
-              <span className="hidden sm:inline text-xs font-bold text-slate-200">
-                Couleur
+              <Palette className="w-4 h-4 text-white animate-bounce" />
+              <span className="hidden sm:inline text-xs">
+                Couleurs
               </span>
             </button>
 
             {showThemeDropdown && (
-              <div className="absolute right-0 mt-2 w-64 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-4 z-50 space-y-2 animate-fadeIn">
-                <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
-                  <Palette className="w-4 h-4 text-purple-400" />
-                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">
-                    Thème de l&apos;Application
+              <div className="absolute right-0 mt-2 w-64 bg-white border border-indigo-100 rounded-2xl shadow-2xl p-4 z-50 space-y-2 animate-fadeIn">
+                <div className="flex items-center gap-2 border-b border-indigo-100 pb-2">
+                  <Palette className="w-4 h-4 text-rose-500" />
+                  <h4 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider">
+                    Sélecteur de Thème
                   </h4>
                 </div>
 
@@ -176,15 +182,15 @@ export const Topbar: React.FC = () => {
                     }}
                     className={`w-full p-2.5 rounded-xl text-xs font-bold flex items-center justify-between border transition-all ${
                       appTheme === 'ocean'
-                        ? 'bg-blue-600/30 border-blue-500 text-white'
-                        : 'bg-slate-950 border-slate-800 text-slate-300 hover:bg-slate-800'
+                        ? 'bg-rose-50 border-rose-300 text-rose-900'
+                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
                     }`}
                   >
                     <span className="flex items-center gap-2">
-                      <span className="w-3 h-3 rounded-full bg-blue-500 shadow-sm shadow-blue-500" />
-                      Bleu Océan & Cyan
+                      <span className="w-3.5 h-3.5 rounded-full bg-gradient-to-r from-amber-400 to-rose-500 shadow-sm" />
+                      Gai, Joyeux & Ensoleillé
                     </span>
-                    {appTheme === 'ocean' && <Check className="w-3.5 h-3.5 text-blue-400" />}
+                    {appTheme === 'ocean' && <Check className="w-3.5 h-3.5 text-rose-600" />}
                   </button>
 
                   <button
@@ -194,15 +200,15 @@ export const Topbar: React.FC = () => {
                     }}
                     className={`w-full p-2.5 rounded-xl text-xs font-bold flex items-center justify-between border transition-all ${
                       appTheme === 'emerald'
-                        ? 'bg-emerald-600/30 border-emerald-500 text-white'
-                        : 'bg-slate-950 border-slate-800 text-slate-300 hover:bg-slate-800'
+                        ? 'bg-emerald-50 border-emerald-300 text-emerald-900'
+                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
                     }`}
                   >
                     <span className="flex items-center gap-2">
-                      <span className="w-3 h-3 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500" />
-                      Vert Émeraude & Menthe
+                      <span className="w-3.5 h-3.5 rounded-full bg-gradient-to-r from-teal-400 to-emerald-500 shadow-sm" />
+                      Émeraude & Vert Menthe
                     </span>
-                    {appTheme === 'emerald' && <Check className="w-3.5 h-3.5 text-emerald-400" />}
+                    {appTheme === 'emerald' && <Check className="w-3.5 h-3.5 text-emerald-600" />}
                   </button>
 
                   <button
@@ -212,33 +218,15 @@ export const Topbar: React.FC = () => {
                     }}
                     className={`w-full p-2.5 rounded-xl text-xs font-bold flex items-center justify-between border transition-all ${
                       appTheme === 'violet'
-                        ? 'bg-purple-600/30 border-purple-500 text-white'
-                        : 'bg-slate-950 border-slate-800 text-slate-300 hover:bg-slate-800'
+                        ? 'bg-purple-50 border-purple-300 text-purple-900'
+                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
                     }`}
                   >
                     <span className="flex items-center gap-2">
-                      <span className="w-3 h-3 rounded-full bg-purple-500 shadow-sm shadow-purple-500" />
+                      <span className="w-3.5 h-3.5 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 shadow-sm" />
                       Améthyste & Violet Cyber
                     </span>
-                    {appTheme === 'violet' && <Check className="w-3.5 h-3.5 text-purple-400" />}
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      setAppTheme('light');
-                      setShowThemeDropdown(false);
-                    }}
-                    className={`w-full p-2.5 rounded-xl text-xs font-bold flex items-center justify-between border transition-all ${
-                      appTheme === 'light'
-                        ? 'bg-slate-200 border-slate-400 text-slate-900'
-                        : 'bg-slate-950 border-slate-800 text-slate-300 hover:bg-slate-800'
-                    }`}
-                  >
-                    <span className="flex items-center gap-2">
-                      <span className="w-3 h-3 rounded-full bg-white border border-slate-400 shadow-sm" />
-                      Clair Lumineux Pro
-                    </span>
-                    {appTheme === 'light' && <Check className="w-3.5 h-3.5 text-blue-600" />}
+                    {appTheme === 'violet' && <Check className="w-3.5 h-3.5 text-purple-600" />}
                   </button>
                 </div>
               </div>
@@ -249,12 +237,12 @@ export const Topbar: React.FC = () => {
           <div className="relative">
             <button
               onClick={() => setShowNotificationDropdown(!showNotificationDropdown)}
-              className="relative p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition-all"
+              className="relative p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 transition-all shadow-sm"
               title="Centre de Notifications"
             >
               <Bell className="w-4 h-4" />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white font-bold text-[10px] flex items-center justify-center animate-bounce shadow-lg">
+                <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-rose-500 text-white font-extrabold text-[10px] flex items-center justify-center animate-bounce shadow-lg">
                   {unreadCount}
                 </span>
               )}
@@ -262,18 +250,18 @@ export const Topbar: React.FC = () => {
 
             {/* Notification Dropdown Menu */}
             {showNotificationDropdown && (
-              <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-4 z-50 space-y-3 animate-fadeIn">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+              <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white border border-indigo-100 rounded-2xl shadow-2xl p-4 z-50 space-y-3 animate-fadeIn">
+                <div className="flex items-center justify-between border-b border-indigo-100 pb-2">
                   <div className="flex items-center gap-2">
-                    <Bell className="w-4 h-4 text-blue-400" />
-                    <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                    <Bell className="w-4 h-4 text-purple-600" />
+                    <h4 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider">
                       Centre d&apos;Alertes RH
                     </h4>
                   </div>
                   {notifications.length > 0 && (
                     <button
                       onClick={clearAllNotifications}
-                      className="text-[10px] text-red-400 hover:text-red-300 flex items-center gap-1 font-semibold"
+                      className="text-[10px] text-rose-600 hover:text-rose-700 flex items-center gap-1 font-bold"
                     >
                       <Trash2 className="w-3 h-3" />
                       Tout effacer
@@ -288,24 +276,24 @@ export const Topbar: React.FC = () => {
                       onClick={() => markNotificationAsRead(n.id)}
                       className={`p-3 rounded-xl border text-xs cursor-pointer transition-all ${
                         n.read
-                          ? 'bg-slate-950/50 border-slate-800/80 opacity-60'
-                          : 'bg-slate-950 border-blue-500/40 text-white shadow'
+                          ? 'bg-slate-50 border-slate-200 text-slate-500 opacity-60'
+                          : 'bg-indigo-50/60 border-indigo-200 text-slate-900 shadow-sm'
                       }`}
                     >
                       <div className="flex items-center justify-between font-bold mb-1">
-                        <span className="flex items-center gap-1.5 text-xs text-white">
+                        <span className="flex items-center gap-1.5 text-xs text-slate-900">
                           {getNotifIcon(n.type)}
                           {n.title}
                         </span>
                         <span className="text-[10px] text-slate-500 font-mono">{n.timestamp}</span>
                       </div>
-                      <p className="text-slate-300 text-[11px] leading-snug">{n.message}</p>
+                      <p className="text-slate-700 text-[11px] leading-snug">{n.message}</p>
                     </div>
                   ))}
 
                   {notifications.length === 0 && (
-                    <div className="text-center py-6 text-slate-500 text-xs">
-                      Aucune notification recente.
+                    <div className="text-center py-6 text-slate-400 text-xs font-medium">
+                      Aucune notification récente.
                     </div>
                   )}
                 </div>
@@ -317,12 +305,12 @@ export const Topbar: React.FC = () => {
           {user && (
             <div className="flex items-center gap-2">
               <span
-                className={`px-3 py-1 rounded-full text-xs font-bold border ${
+                className={`px-3 py-1 rounded-full text-xs font-extrabold border shadow-sm ${
                   user.role === 'SuperAdmin'
-                    ? 'bg-purple-500/20 text-purple-300 border-purple-500/40'
+                    ? 'bg-purple-100 text-purple-800 border-purple-300'
                     : user.role === 'Admin' || (user.role as string) === 'Admin RH'
-                    ? 'bg-blue-500/20 text-blue-300 border-blue-500/40'
-                    : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                    ? 'bg-sky-100 text-sky-800 border-sky-300'
+                    : 'bg-emerald-100 text-emerald-800 border-emerald-300'
                 }`}
               >
                 {user.role} ({user.matricule})

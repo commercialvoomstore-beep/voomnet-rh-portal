@@ -111,45 +111,37 @@ export const Sidebar: React.FC = () => {
   const navItems = getNavItems();
 
   return (
-    <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col h-screen shrink-0 select-none">
+    <aside className="w-64 bg-gradient-to-b from-indigo-900 via-purple-950 to-pink-950 border-r border-purple-800/40 flex flex-col h-screen shrink-0 select-none text-white shadow-2xl">
       {/* Brand Header */}
-      <div className="p-5 border-b border-slate-800 flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 via-indigo-500 to-blue-500 flex items-center justify-center text-white shadow-lg shadow-purple-600/30 shrink-0">
-          <Cpu className="w-6 h-6" />
+      <div className="p-5 border-b border-purple-800/40 flex items-center gap-3 bg-black/20">
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-400 via-rose-500 to-pink-500 flex items-center justify-center text-white shadow-lg shadow-rose-500/40 shrink-0">
+          <Cpu className="w-6 h-6 animate-pulse" />
         </div>
         <div className="overflow-hidden">
           <h1 className="font-extrabold text-sm text-white tracking-wide truncate">
             VOOMNET TECH
           </h1>
-          <p className="text-[10px] font-semibold text-blue-400 tracking-widest uppercase">
-            RH PORTAL 2026
+          <p className="text-[10px] font-bold text-amber-300 tracking-widest uppercase">
+            PORTAIL RH JOYEUX
           </p>
         </div>
       </div>
 
       {/* User Info Bar */}
-      <div className="mx-3 mt-4 p-3 bg-slate-950/80 rounded-xl border border-slate-800/80 flex items-center gap-3">
+      <div className="mx-3 mt-4 p-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 flex items-center gap-3 shadow-md">
         <img
           src={user.avatar}
           alt={user.nom}
-          className="w-9 h-9 rounded-lg object-cover ring-2 ring-blue-500/40 shrink-0"
+          className="w-10 h-10 rounded-xl object-cover ring-2 ring-amber-400 shrink-0 shadow"
         />
         <div className="min-w-0 flex-1">
-          <div className="text-xs font-bold text-white truncate">
+          <div className="text-xs font-extrabold text-white truncate">
             {user.prenom} {user.nom}
           </div>
-          <div className="text-[10px] text-slate-400 truncate flex items-center gap-1">
-            <span className="font-mono text-blue-400 font-bold">{user.matricule}</span>
+          <div className="text-[10px] text-purple-200 truncate flex items-center gap-1">
+            <span className="font-mono text-amber-300 font-bold">{user.matricule}</span>
             <span>•</span>
-            <span
-              className={`font-semibold ${
-                isSuperAdmin
-                  ? 'text-purple-400'
-                  : isAdminRH
-                  ? 'text-cyan-400'
-                  : 'text-emerald-400'
-              }`}
-            >
+            <span className="font-bold text-pink-200">
               {user.role} ({user.statut})
             </span>
           </div>
@@ -157,13 +149,13 @@ export const Sidebar: React.FC = () => {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-3 space-y-1.5 overflow-y-auto mt-2">
-        <div className="px-3 py-1.5 text-[10px] font-bold text-slate-500 tracking-wider uppercase flex items-center justify-between">
+      <nav className="flex-1 p-3 space-y-2 overflow-y-auto mt-2">
+        <div className="px-3 py-1 text-[10px] font-extrabold text-amber-300 tracking-wider uppercase flex items-center justify-between">
           <span>
             {isSuperAdmin
               ? 'Menu SuperAdmin'
               : isAdminRH
-              ? 'Menu Admin RH'
+              ? 'Menu Administration'
               : 'Espace Employé'}
           </span>
         </div>
@@ -175,19 +167,19 @@ export const Sidebar: React.FC = () => {
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                 isActive
-                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                  ? 'bg-gradient-to-r from-amber-400 via-rose-500 to-pink-600 text-white shadow-lg shadow-rose-500/40 scale-[1.02]'
+                  : 'text-purple-100 hover:text-white hover:bg-white/15'
               }`}
             >
               <div className="flex items-center gap-3 min-w-0">
-                <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-purple-300'}`} />
                 <span className="truncate">{item.label}</span>
               </div>
               {item.badge && (
                 <span
-                  className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${item.badgeColor}`}
+                  className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full border shadow-sm ${item.badgeColor}`}
                 >
                   {item.badge}
                 </span>
@@ -198,10 +190,10 @@ export const Sidebar: React.FC = () => {
       </nav>
 
       {/* Footer / Logout */}
-      <div className="p-3 border-t border-slate-800">
+      <div className="p-3 border-t border-purple-800/40 bg-black/20">
         <button
           onClick={logout}
-          className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all"
+          className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-extrabold text-rose-300 hover:bg-rose-500/20 hover:text-white transition-all"
         >
           <LogOut className="w-4 h-4" />
           <span>Déconnexion</span>
