@@ -172,6 +172,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return () => clearTimeout(timer);
   }, []);
 
+  // Initial Sync: Fetch employees from Neon or seed initial employees (Admin, SuperAdmin, Employees)
+  useEffect(() => {
+    const syncEmployees = async () => {
+      try {
+        const dbProvider = getActiveProvider();
+        if (
+          dbProvider === 'NEON_POSTGRES' ||
+          (typeof window !== 'undefined' &&
+            (localStorage.getItem('VOOMNET_NEON_DATABASE_URL') || process.env.POSTGRES_URL))
+        ) {
+          const neonEmps = await fetchNeonEmployees();
+          if (neonEmps && Array.isArray(neonEmps) && neonEmps.length > 0) {
+            setEmployees(neonEmps);
+          } else {
+            // Seed initial employees into Neon database
+            for (const emp of INITIAL_EMPLOYEES) {
+              await insertNeonEmployee(emp);
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('Initial Neon employee sync warning:', e);
+      }
+    };
+    syncEmployees();
+  }, []);
+
   // Real-time dynamic polling interval for Chat Messages and Leave Requests on Vercel
   useEffect(() => {
     const pollInterval = setInterval(async () => {
