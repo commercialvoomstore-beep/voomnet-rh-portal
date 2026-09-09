@@ -113,7 +113,9 @@ export const DatabaseConfigModal: React.FC<DatabaseConfigModalProps> = ({
     }
   };
 
-  const sqlScriptNeon = `-- SCRIPT POSTGRESQL POUR NEON.TECH
+  const [showSqlHelper, setShowSqlHelper] = useState(false);
+
+  const sqlScriptNeon = `-- SCRIPT DE CRÉATION DE LA BASE VOOMNET TECH POUR NEON.TECH
 
 CREATE TABLE IF NOT EXISTS employees (
     id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid()::text,
@@ -129,6 +131,21 @@ CREATE TABLE IF NOT EXISTS employees (
     base_salary NUMERIC(12, 2) NOT NULL DEFAULT 350000,
     hire_date DATE NOT NULL DEFAULT CURRENT_DATE,
     avatar_url TEXT
+);
+
+CREATE TABLE IF NOT EXISTS leave_requests (
+    id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid()::text,
+    employee_id VARCHAR(36) NOT NULL,
+    employee_name VARCHAR(200) NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    days_count INT NOT NULL DEFAULT 1,
+    reason TEXT,
+    status VARCHAR(20) DEFAULT 'EN_ATTENTE',
+    approved_by VARCHAR(150),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    CONSTRAINT leave_requests_employee_id_fkey FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS chat_messages (
@@ -247,19 +264,38 @@ CREATE TABLE IF NOT EXISTS chat_messages (
 
                 <div className="p-3 bg-slate-900/80 rounded-xl border border-slate-800 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-slate-300">3. Exécuter le Script SQL dans Neon :</span>
-                    <button
-                      type="button"
-                      onClick={copySqlToClipboard}
-                      className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10px] rounded-lg flex items-center gap-1 shadow"
-                    >
-                      <Copy className="w-3 h-3" />
-                      {copiedSql ? 'Copié !' : 'Copier le SQL'}
-                    </button>
+                    <div>
+                      <span className="font-bold text-slate-300 block">3. Script DDL d&apos;Initialisation SQL (Facultatif)</span>
+                      <span className="text-[10px] text-slate-500">
+                        Nécessaire uniquement si vos tables n&apos;ont pas encore été créées dans Neon.tech.
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowSqlHelper(!showSqlHelper)}
+                        className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-[10px] rounded-lg border border-slate-700 transition-all"
+                      >
+                        {showSqlHelper ? 'Masquer le SQL' : 'Afficher le SQL'}
+                      </button>
+                      {showSqlHelper && (
+                        <button
+                          type="button"
+                          onClick={copySqlToClipboard}
+                          className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10px] rounded-lg flex items-center gap-1 shadow"
+                        >
+                          <Copy className="w-3 h-3" />
+                          {copiedSql ? 'Copié !' : 'Copier'}
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  <pre className="p-2.5 bg-slate-950 border border-slate-800 rounded-lg text-[10px] font-mono text-emerald-300 overflow-x-auto max-h-28">
-                    {sqlScriptNeon}
-                  </pre>
+
+                  {showSqlHelper && (
+                    <pre className="p-2.5 bg-slate-950 border border-slate-800 rounded-lg text-[10px] font-mono text-emerald-300 overflow-x-auto max-h-36 animate-fadeIn">
+                      {sqlScriptNeon}
+                    </pre>
+                  )}
                 </div>
               </div>
             )}
