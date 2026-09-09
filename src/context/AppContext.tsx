@@ -204,7 +204,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               latestLeaves.forEach((r) => {
                 if (r && typeof r === 'object' && r.id) {
                   const existing = reqMap.get(String(r.id));
-                  reqMap.set(String(r.id), existing ? { ...existing, ...r } : r);
+                  // Preserve user's submitted `justifiee` boolean when status is still 'En attente'
+                  const mergedJustifiee =
+                    r.statut === 'En attente' && existing && typeof existing.justifiee === 'boolean'
+                      ? existing.justifiee
+                      : r.justifiee;
+                  reqMap.set(String(r.id), existing ? { ...existing, ...r, justifiee: mergedJustifiee } : r);
                 }
               });
               return Array.from(reqMap.values());
