@@ -135,25 +135,26 @@ export const insertNeonChatMessage = async (msg: ChatMessage) => {
 export const fetchNeonLeaveRequests = async (): Promise<AbsenceRequest[] | null> => {
   return executeNeonQuery(async (sql) => {
     const rows = await sql`
-      SELECT id, employee_id, employee_name, type, start_date, end_date, days_count, reason, status
+      SELECT id, employee_id, employee_name, type, start_date, end_date, days_count, reason, status, approved_by
       FROM leave_requests
       ORDER BY created_at DESC;
     `;
     return rows.map((r: any) => ({
-      id: r.id,
-      codeSuivi: `VN-P-2026-${r.id.substring(0, 6)}`,
-      matricule: r.employee_id,
-      nomPrenom: r.employee_name,
+      id: String(r.id),
+      codeSuivi: `VN-P-2026-${String(r.id).substring(0, 6)}`,
+      matricule: String(r.employee_id || ''),
+      nomPrenom: String(r.employee_name || 'Collaborateur'),
       fonctionService: 'Service VOOMNET',
       dateEmbauche: '2023-01-01',
       typeAbsence: r.type === 'MALADIE' ? 'Maladie' : 'Congé annuel',
-      dateDebut: r.start_date,
-      dateFin: r.end_date,
-      dureeJours: r.days_count,
-      motif: r.reason,
-      justifiee: true,
+      dateDebut: r.start_date ? new Date(r.start_date).toISOString().substring(0, 10) : '2026-09-10',
+      dateFin: r.end_date ? new Date(r.end_date).toISOString().substring(0, 10) : '2026-09-11',
+      dureeJours: Number(r.days_count) || 1,
+      motif: String(r.reason || 'Demande d\'absence'),
+      justifiee: r.status === 'APPROUVE',
       statut: r.status === 'APPROUVE' ? 'Approuvé' : r.status === 'REFUSE' ? 'Refusé' : 'En attente',
       dateDemande: new Date().toISOString().split('T')[0],
+      cadreAdminNotes: r.approved_by || (r.status === 'APPROUVE' ? 'Validé par l\'Administration RH' : r.status === 'REFUSE' ? 'Refusé par l\'Administration RH' : 'En attente de décision RH'),
     }));
   });
 };

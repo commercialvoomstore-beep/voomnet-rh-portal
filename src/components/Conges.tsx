@@ -22,17 +22,24 @@ import {
 export const Conges: React.FC = () => {
   const { absenceRequests, createAbsenceRequest, updateAbsenceStatus, user, employees } = useApp();
   const [showNewForm, setShowShowNewForm] = useState(false);
+  const [filterStatut, setFilterStatut] = useState<string>('Tous');
 
   if (!user) return null;
 
   const isEmploye = user.role === 'Employé';
 
-  // Filter requests based on role confidentiality requirement:
-  // Employé sees ONLY their own requests.
-  // Admin RH and SuperAdmin see ALL requests.
-  const displayedRequests = isEmploye
-    ? absenceRequests.filter((r) => r.matricule === user.matricule)
-    : absenceRequests;
+  // Filter requests based on role confidentiality requirement and status filter
+  const displayedRequests = (
+    isEmploye
+      ? absenceRequests.filter((r) => r.matricule === user.matricule)
+      : absenceRequests
+  ).filter((r) => {
+    if (filterStatut === 'Tous') return true;
+    if (filterStatut === 'En attente') return r.statut === 'En attente';
+    if (filterStatut === 'Approuvé') return r.statut === 'Approuvé';
+    if (filterStatut === 'Refusé') return r.statut === 'Refusé';
+    return true;
+  });
 
   // Form state
   const [selectedMatricule, setSelectedMatricule] = useState(user.matricule);
@@ -72,10 +79,8 @@ export const Conges: React.FC = () => {
       dureeJours: calculateDays(),
       motif,
       justifiee,
-      statut: isEmploye ? 'En attente' : 'Approuvé',
-      cadreAdminNotes: isEmploye
-        ? 'Soumis au pôle Administration RH'
-        : 'Approuvé par la Direction',
+      statut: 'En attente',
+      cadreAdminNotes: 'Soumis pour validation par l\'Administration RH',
     });
 
     setShowShowNewForm(false);
@@ -311,16 +316,36 @@ export const Conges: React.FC = () => {
 
       {/* List of Requests */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
-        <div className="p-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
+        <div className="p-4 bg-slate-950 border-b border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
             <FileText className="w-4 h-4 text-blue-400" />
             {isEmploye
               ? 'Historique de Mes Demandes de Permission'
-              : 'Registre Global des Demandes de Permission'}
+              : 'Registre Global & Validation des Demandes par l\'Admin'}
           </h4>
-          <span className="text-xs text-slate-400">
-            Total : <strong className="text-white">{displayedRequests.length}</strong> demande(s)
-          </span>
+
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800 text-[11px] font-semibold text-slate-400">
+              <span className="px-1.5 text-[10px] uppercase font-bold text-slate-500">Statut :</span>
+              {['Tous', 'En attente', 'Approuvé', 'Refusé'].map((st) => (
+                <button
+                  key={st}
+                  onClick={() => setFilterStatut(st)}
+                  className={`px-2 py-0.5 rounded-lg transition-all ${
+                    filterStatut === st
+                      ? 'bg-blue-600 text-white'
+                      : 'hover:text-white hover:bg-slate-800'
+                  }`}
+                >
+                  {st}
+                </button>
+              ))}
+            </div>
+
+            <span className="text-xs text-slate-400">
+              Total : <strong className="text-white">{displayedRequests.length}</strong>
+            </span>
+          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -401,38 +426,59 @@ export const Conges: React.FC = () => {
                   </td>
 
                   <td className="py-3.5 px-4 text-right">
-                    {!isEmploye && req.statut === 'En attente' ? (
-                      <div className="flex justify-end gap-1.5">
+                    {!isEmploye ? (
+                      <div className="flex items-center justify-end gap-1.5">
                         <button
-                          onClick={() =>
-                            updateAbsenceStatus(
-                              req.id,
-                              'Approuvé',
-                              req.justifiee,
-                              'Validé par l\'Administration RH'
-                            )
-                          }
-                          className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10px] rounded-lg shadow"
+                          onClick={() => {
+                            const note = prompt(
+                              `Valider la demande de ${req.nomPrenom} (${req.codeSuivi}) ?\nRemarque / motif de validation :`,
+                              req.cadreAdminNotes || 'Validé par l\'Administration RH'
+                            );
+                            if (note !== null) {
+                              updateAbsenceStatus(
+                                req.id,
+                                'Approuvé',
+                                req.justifiee,
+                                note || 'Validé par l\'Administration RH'
+                              );
+                            }
+                          }}
+                          className={`px-2.5 py-1 text-white font-bold text-[10px] rounded-lg shadow transition-all ${
+                            req.statut === 'Approuvé'
+                              ? 'bg-emerald-700/80 border border-emerald-500'
+                              : 'bg-emerald-600 hover:bg-emerald-500'
+                          }`}
                         >
-                          Valider
+                          {req.statut === 'Approuvé' ? '✓ Validée' : 'Valider'}
                         </button>
+
                         <button
-                          onClick={() =>
-                            updateAbsenceStatus(
-                              req.id,
-                              'Refusé',
-                              false,
-                              'Refusé par l\'Administration RH - Moteur de primes déclenché'
-                            )
-                          }
-                          className="px-2.5 py-1 bg-red-600 hover:bg-red-500 text-white font-bold text-[10px] rounded-lg shadow"
+                          onClick={() => {
+                            const note = prompt(
+                              `Refuser la demande de ${req.nomPrenom} (${req.codeSuivi}) ?\nMotif du refus :`,
+                              'Refusé par l\'Administration RH'
+                            );
+                            if (note !== null) {
+                              updateAbsenceStatus(
+                                req.id,
+                                'Refusé',
+                                false,
+                                note || 'Refusé par l\'Administration RH'
+                              );
+                            }
+                          }}
+                          className={`px-2.5 py-1 text-white font-bold text-[10px] rounded-lg shadow transition-all ${
+                            req.statut === 'Refusé'
+                              ? 'bg-red-800/80 border border-red-500'
+                              : 'bg-red-600 hover:bg-red-500'
+                          }`}
                         >
-                          Refuser
+                          {req.statut === 'Refusé' ? '✕ Refusée' : 'Refuser'}
                         </button>
                       </div>
                     ) : (
                       <span className="text-[10px] text-slate-400 italic">
-                        {req.cadreAdminNotes || 'En cours de traitement'}
+                        {req.cadreAdminNotes || 'En cours de traitement par l\'Admin'}
                       </span>
                     )}
                   </td>
