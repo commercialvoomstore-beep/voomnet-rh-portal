@@ -172,9 +172,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return () => clearTimeout(timer);
   }, []);
 
-  // Initial Sync: Fetch employees from Neon or seed initial employees (Admin, SuperAdmin, Employees)
+  // Real-time dynamic sync & polling for Employees, Chat Messages and Leave Requests on Vercel
   useEffect(() => {
-    const syncEmployees = async () => {
+    const syncAllNeonData = async () => {
       try {
         const dbProvider = getActiveProvider();
         if (
@@ -182,33 +182,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           (typeof window !== 'undefined' &&
             (localStorage.getItem('VOOMNET_NEON_DATABASE_URL') || process.env.POSTGRES_URL))
         ) {
+          // 1. Sync Employees
           const neonEmps = await fetchNeonEmployees();
           if (neonEmps && Array.isArray(neonEmps) && neonEmps.length > 0) {
             setEmployees(neonEmps);
           } else {
-            // Seed initial employees into Neon database
             for (const emp of INITIAL_EMPLOYEES) {
               await insertNeonEmployee(emp);
             }
           }
-        }
-      } catch (e) {
-        console.warn('Initial Neon employee sync warning:', e);
-      }
-    };
-    syncEmployees();
-  }, []);
 
-  // Real-time dynamic polling interval for Chat Messages and Leave Requests on Vercel
-  useEffect(() => {
-    const pollInterval = setInterval(async () => {
-      try {
-        const dbProvider = getActiveProvider();
-        if (
-          dbProvider === 'NEON_POSTGRES' ||
-          (typeof window !== 'undefined' &&
-            (localStorage.getItem('VOOMNET_NEON_DATABASE_URL') || process.env.POSTGRES_URL))
-        ) {
+          // 2. Sync Chat Messages
           const latestChats = await fetchNeonChatMessages();
           if (latestChats) {
             setChatMessages((prev) => {
@@ -219,6 +203,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             });
           }
 
+          // 3. Sync Leave Requests
           const latestLeaves = await fetchNeonLeaveRequests();
           if (latestLeaves && Array.isArray(latestLeaves) && latestLeaves.length > 0) {
             setAbsenceRequests((prev) => {
@@ -246,7 +231,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       } catch (err) {
         // Silent polling catch
       }
-    }, 7000);
+    };
+
+    // Run IMMEDIATELY on page mount (0s delay)
+    syncAllNeonData();
+
+    // Re-run periodically every 5 seconds
+    const pollInterval = setInterval(syncAllNeonData, 5000);
 
     return () => clearInterval(pollInterval);
   }, []);

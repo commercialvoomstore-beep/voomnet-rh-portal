@@ -162,7 +162,12 @@ export const fetchNeonLeaveRequests = async (): Promise<AbsenceRequest[] | null>
           ? 'Événement familial'
           : 'Permission d\'absence';
 
-      const resolvedMatricule = String(r.emp_matricule || r.employee_id || '1000');
+      // Always resolve to a clean 3CX matricule (e.g., '1000', '1009', '1015', '1021', '9999')
+      let resolvedMatricule = String(r.emp_matricule || r.employee_id || '1000');
+      // If resolvedMatricule is a UUID or non-numeric long string, fallback to numeric string if present or target matching
+      if (resolvedMatricule.length > 10 && r.employee_id && String(r.employee_id).length <= 6) {
+        resolvedMatricule = String(r.employee_id);
+      }
 
       return {
         id: String(r.id),
