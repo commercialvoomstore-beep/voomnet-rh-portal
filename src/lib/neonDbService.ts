@@ -197,9 +197,11 @@ export const insertNeonLeaveRequest = async (req: any) => {
   return executeNeonQuery(async (sql) => {
     const typeDb = req.typeAbsence || req.type || 'Permission d\'absence';
     const statusDb = req.statut === 'Approuvé' ? 'APPROUVE' : req.statut === 'Refusé' ? 'REFUSE' : 'EN_ATTENTE';
-    const targetMatricule = String(req.employeId || req.matricule || '');
+    const targetMatricule = String(req.employeId || req.matricule || '1000');
+    const targetName = String(req.employeNom || req.nomPrenom || 'Collaborateur');
 
-    // 1. Resolve foreign key `employee_id` referencing `employees(id)`
+    // 1. Resolve foreign key `employee_id` referencing `employees(id)`.
+    // Auto-create employee record in Neon if missing so FK constraint never fails.
     let targetEmployeeUuid: string | null = null;
     try {
       const empMatch = await sql`
@@ -209,9 +211,30 @@ export const insertNeonLeaveRequest = async (req: any) => {
       `;
       if (empMatch && empMatch.length > 0) {
         targetEmployeeUuid = String(empMatch[0].id);
+      } else {
+        const parts = targetName.split(' ');
+        const prenom = parts[0] || 'Prénom';
+        const nom = parts.slice(1).join(' ') || 'Nom';
+        const newEmpRows = await sql`
+          INSERT INTO employees (matricule, first_name, last_name, email, role, position, department, status)
+          VALUES (
+            ${targetMatricule},
+            ${prenom},
+            ${nom},
+            ${`${targetMatricule}@voomnet.com`},
+            'EMPLOYEE',
+            'Employé VOOMNET',
+            'Général',
+            'ACTIF'
+          )
+          RETURNING id;
+        `;
+        if (newEmpRows && newEmpRows.length > 0) {
+          targetEmployeeUuid = String(newEmpRows[0].id);
+        }
       }
     } catch (e) {
-      // Ignore lookup failure
+      console.warn('FK resolution warning:', e);
     }
 
     const fkEmployeeId = targetEmployeeUuid || targetMatricule;
@@ -224,7 +247,7 @@ export const insertNeonLeaveRequest = async (req: any) => {
         VALUES (
           ${reqId},
           ${fkEmployeeId},
-          ${req.employeNom || req.nomPrenom},
+          ${targetName},
           ${typeDb},
           ${req.dateDebut},
           ${req.dateFin},
@@ -248,7 +271,7 @@ export const insertNeonLeaveRequest = async (req: any) => {
         INSERT INTO leave_requests (employee_id, employee_name, type, start_date, end_date, days_count, reason, status)
         VALUES (
           ${fkEmployeeId},
-          ${req.employeNom || req.nomPrenom},
+          ${targetName},
           ${typeDb},
           ${req.dateDebut},
           ${req.dateFin},
