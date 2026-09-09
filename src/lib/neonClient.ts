@@ -3,19 +3,20 @@ import { neon } from '@neondatabase/serverless';
 export const getNeonConnectionString = (): string => {
   if (typeof window !== 'undefined') {
     const custom = localStorage.getItem('VOOMNET_NEON_DATABASE_URL');
-    if (custom) return custom;
+    if (custom && custom.trim() !== '') return custom.trim();
   }
   return (
     process.env.POSTGRES_URL ||
     process.env.DATABASE_URL ||
     process.env.NEXT_PUBLIC_NEON_URL ||
     ''
-  );
+  ).trim();
 };
 
 export const saveNeonConnectionString = (connectionString: string) => {
   if (typeof window !== 'undefined') {
-    localStorage.setItem('VOOMNET_NEON_DATABASE_URL', connectionString.trim());
+    const cleaned = connectionString.trim();
+    localStorage.setItem('VOOMNET_NEON_DATABASE_URL', cleaned);
     localStorage.setItem('VOOMNET_DB_PROVIDER', 'NEON_POSTGRES');
   }
 };

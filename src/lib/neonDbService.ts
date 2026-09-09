@@ -4,8 +4,8 @@ import { Employee, ChatMessage, AbsenceRequest, StatutContrat, RoleType } from '
 
 export const executeNeonQuery = async (queryFn: (sql: any) => Promise<any>) => {
   const connStr = getNeonConnectionString();
-  if (!connStr || !connStr.startsWith('postgres')) {
-    console.warn('Neon Connection String not set. Falling back to local state.');
+  if (!connStr || (!connStr.startsWith('postgres://') && !connStr.startsWith('postgresql://'))) {
+    console.warn('Neon Connection String not set or invalid. Falling back to local state.');
     return null;
   }
   try {
@@ -13,7 +13,7 @@ export const executeNeonQuery = async (queryFn: (sql: any) => Promise<any>) => {
     return await queryFn(sql);
   } catch (err) {
     console.error('Neon SQL Query Error:', err);
-    throw err;
+    return null;
   }
 };
 
