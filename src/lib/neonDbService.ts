@@ -21,6 +21,22 @@ export const executeNeonQuery = async (queryFn: (sql: any) => Promise<any>) => {
 // 1. EMPLOYEES CRUD
 // ==========================================
 export const fetchNeonEmployees = async (): Promise<Employee[] | null> => {
+  if (typeof window !== 'undefined') {
+    try {
+      const customUrl = localStorage.getItem('VOOMNET_NEON_DATABASE_URL') || '';
+      const url = customUrl ? `/api/employees?customUrl=${encodeURIComponent(customUrl)}` : '/api/employees';
+      const res = await fetch(url, { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.success && Array.isArray(data.employees) && data.employees.length > 0) {
+          return data.employees;
+        }
+      }
+    } catch (err) {
+      console.warn('API fetch employees failed, attempting direct query:', err);
+    }
+  }
+
   return executeNeonQuery(async (sql) => {
     const rows = await sql`
       SELECT id, matricule, first_name, last_name, email, phone, role, position, department, status, base_salary, hire_date, avatar_url, password
@@ -49,6 +65,19 @@ export const fetchNeonEmployees = async (): Promise<Employee[] | null> => {
 };
 
 export const insertNeonEmployee = async (emp: Employee) => {
+  if (typeof window !== 'undefined') {
+    try {
+      const customUrl = localStorage.getItem('VOOMNET_NEON_DATABASE_URL') || '';
+      await fetch('/api/employees', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...emp, customUrl }),
+      });
+    } catch (err) {
+      console.warn('API insert employee failed:', err);
+    }
+  }
+
   return executeNeonQuery(async (sql) => {
     const roleDb = emp.role === 'SuperAdmin' ? 'SUPERADMIN' : (emp.role === 'Admin' || (emp.role as string) === 'Admin RH') ? 'ADMIN' : 'EMPLOYEE';
     const statutDb = emp.statut || 'ACTIF';
