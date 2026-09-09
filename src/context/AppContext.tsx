@@ -497,9 +497,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     reqData: Omit<AbsenceRequest, 'id' | 'codeSuivi' | 'dateDemande'>
   ): string => {
     const code = generateTrackingCode();
+    const tempId = `abs-${Date.now()}`;
     const newReq: AbsenceRequest = {
       ...reqData,
-      id: `abs-${Date.now()}`,
+      id: tempId,
       codeSuivi: code,
       dateDemande: new Date().toISOString().split('T')[0],
       statut: 'En attente',
@@ -526,7 +527,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       nombreJours: reqData.dureeJours,
       motif: reqData.motif,
       statut: 'EN_ATTENTE',
-    }).catch(console.error);
+    })
+      .then((dbRow) => {
+        if (dbRow && dbRow.id) {
+          const actualDbId = String(dbRow.id);
+          setAbsenceRequests((prev) => {
+            const updated = prev.map((r) =>
+              r.id === tempId ? { ...r, id: actualDbId } : r
+            );
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('VOOMNET_ABSENCE_REQUESTS', JSON.stringify(updated));
+            }
+            return updated;
+          });
+        }
+      })
+      .catch((err) => {
+        console.error('Neon DB Insertion error:', err);
+      });
 
     if (!reqData.justifiee) {
       triggerPrimeCancellation(reqData.matricule, `Absence non justifiée (${code})`);

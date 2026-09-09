@@ -183,29 +183,50 @@ export const insertNeonLeaveRequest = async (req: any) => {
   return executeNeonQuery(async (sql) => {
     const typeDb = req.typeAbsence || req.type || 'Permission d\'absence';
     const statusDb = req.statut === 'Approuvé' ? 'APPROUVE' : req.statut === 'Refusé' ? 'REFUSE' : 'EN_ATTENTE';
-    const reqId = req.id || `abs-${Date.now()}`;
 
-    await sql`
-      INSERT INTO leave_requests (id, employee_id, employee_name, type, start_date, end_date, days_count, reason, status)
-      VALUES (
-        ${reqId},
-        ${req.employeId || req.matricule},
-        ${req.employeNom || req.nomPrenom},
-        ${typeDb},
-        ${req.dateDebut},
-        ${req.dateFin},
-        ${req.nombreJours || req.dureeJours || 1},
-        ${req.motif},
-        ${statusDb}
-      )
-      ON CONFLICT (id) DO UPDATE SET
-        type = EXCLUDED.type,
-        start_date = EXCLUDED.start_date,
-        end_date = EXCLUDED.end_date,
-        days_count = EXCLUDED.days_count,
-        reason = EXCLUDED.reason,
-        status = EXCLUDED.status;
-    `;
+    try {
+      const reqId = req.id || `abs-${Date.now()}`;
+      const rows = await sql`
+        INSERT INTO leave_requests (id, employee_id, employee_name, type, start_date, end_date, days_count, reason, status)
+        VALUES (
+          ${reqId},
+          ${req.employeId || req.matricule},
+          ${req.employeNom || req.nomPrenom},
+          ${typeDb},
+          ${req.dateDebut},
+          ${req.dateFin},
+          ${req.nombreJours || req.dureeJours || 1},
+          ${req.motif},
+          ${statusDb}
+        )
+        ON CONFLICT (id) DO UPDATE SET
+          type = EXCLUDED.type,
+          start_date = EXCLUDED.start_date,
+          end_date = EXCLUDED.end_date,
+          days_count = EXCLUDED.days_count,
+          reason = EXCLUDED.reason,
+          status = EXCLUDED.status
+        RETURNING id, employee_id, employee_name, type, start_date, end_date, days_count, reason, status;
+      `;
+      return rows[0];
+    } catch (err) {
+      // Fallback if table `leave_requests` has auto-generated UUID/SERIAL id
+      const rows = await sql`
+        INSERT INTO leave_requests (employee_id, employee_name, type, start_date, end_date, days_count, reason, status)
+        VALUES (
+          ${req.employeId || req.matricule},
+          ${req.employeNom || req.nomPrenom},
+          ${typeDb},
+          ${req.dateDebut},
+          ${req.dateFin},
+          ${req.nombreJours || req.dureeJours || 1},
+          ${req.motif},
+          ${statusDb}
+        )
+        RETURNING id, employee_id, employee_name, type, start_date, end_date, days_count, reason, status;
+      `;
+      return rows[0];
+    }
   });
 };
 
