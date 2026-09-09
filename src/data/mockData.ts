@@ -1,4 +1,4 @@
-export type RoleType = 'SuperAdmin' | 'Admin RH' | 'Employé';
+export type RoleType = 'SuperAdmin' | 'Admin' | 'Employé';
 export type StatutContrat = 'CDI' | 'CDD' | 'STAGIAIRE';
 
 export interface Employee {
@@ -15,6 +15,7 @@ export interface Employee {
   dateEmbauche: string;
   soldeConges: number;
   avatar: string; // Base64 Data URI or Image URL
+  motDePasse?: string; // Password created by admin or employee
   adresse?: string;
   telephonePerso?: string;
   contactUrgence?: string;
@@ -137,10 +138,11 @@ export const INITIAL_EMPLOYEES: Employee[] = [
     departement: 'Ressources Humaines',
     poste: 'Administrateur RH',
     statut: 'CDI',
-    role: 'Admin RH',
+    role: 'Admin',
     dateEmbauche: '2021-03-15',
     soldeConges: 24,
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    motDePasse: 'voomnet2026',
     adresse: 'Marcory Zone 4, Abidjan',
     telephonePerso: '+225 05 44 55 66 77',
     contactUrgence: 'Frère (+225 01 22 33 44 55)',
@@ -280,7 +282,7 @@ export const INITIAL_PRIMES: EmployeePrimeStatus[] = [
     nomPrenom: 'Marc KOUASSI',
     dateEmbauche: '2021-03-15',
     statutCollaborateur: 'CDI',
-    roleCollaborateur: 'Admin RH',
+    roleCollaborateur: 'Admin',
     periodeNom: 'Trimestre 3 - 2026 (1er Juil - 30 Sept)',
     eligible: true,
     montantCalcule: 150000,
@@ -339,7 +341,7 @@ export const INITIAL_CHAT_MESSAGES: ChatMessage[] = [
     id: 'chat-2',
     senderMatricule: '1000',
     senderName: 'Marc KOUASSI',
-    senderRole: 'Admin RH',
+    senderRole: 'Admin',
     senderAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
     recipientMatricule: '9999',
     recipientName: 'Alexandre VOHOU',

@@ -25,7 +25,7 @@ export const Dashboard: React.FC = () => {
 
   const isEmploye = user.role === 'Employé';
   const isSuperAdmin = user.role === 'SuperAdmin';
-  const isAdminRH = user.role === 'Admin RH';
+  const isAdminRH = user.role === 'Admin' || (user.role as string) === 'Admin RH';
 
   // If user is regular Employee, show personalized Employee Dashboard
   if (isEmploye) {

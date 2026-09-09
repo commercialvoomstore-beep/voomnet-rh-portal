@@ -33,7 +33,7 @@ export const ChatRH: React.FC = () => {
   if (!user) return null;
 
   const isSuperAdmin = user.role === 'SuperAdmin';
-  const isAdminRH = user.role === 'Admin RH';
+  const isAdminRH = user.role === 'Admin' || (user.role as string) === 'Admin RH';
 
   if (!isSuperAdmin && !isAdminRH) {
     return (

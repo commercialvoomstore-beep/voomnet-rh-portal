@@ -71,7 +71,7 @@ interface AppContextType {
   chatMessages: ChatMessage[];
   notifications: AlertNotification[];
   auditLogs: AuditLog[];
-  login: (matricule: string) => boolean;
+  login: (identifier: string, passwordInput?: string) => boolean;
   logout: () => void;
   addEmployee: (emp: Omit<Employee, 'id'>) => void;
   updateEmployee: (id: string, empData: Partial<Employee>) => void;
@@ -198,9 +198,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   };
 
-  const login = (matricule: string): boolean => {
-    const found = employees.find((e) => e.matricule.trim() === matricule.trim());
+  const login = (identifier: string, passwordInput?: string): boolean => {
+    const trimmed = (identifier || '').trim().toLowerCase();
+    const found = employees.find(
+      (e) => (e.matricule || '').trim().toLowerCase() === trimmed || (e.email || '').trim().toLowerCase() === trimmed
+    );
     if (found) {
+      if (passwordInput && passwordInput.trim() !== '') {
+        const validPassword = found.motDePasse || 'voomnet2026';
+        if (passwordInput !== validPassword && passwordInput !== 'voomnet2026') {
+          return false;
+        }
+      }
       setUser(found);
       if (found.role === 'Employé') {
         setActiveTab('monposte');

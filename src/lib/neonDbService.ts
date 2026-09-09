@@ -23,7 +23,7 @@ export const executeNeonQuery = async (queryFn: (sql: any) => Promise<any>) => {
 export const fetchNeonEmployees = async (): Promise<Employee[] | null> => {
   return executeNeonQuery(async (sql) => {
     const rows = await sql`
-      SELECT id, matricule, first_name, last_name, email, phone, role, position, department, status, base_salary, hire_date, avatar_url
+      SELECT id, matricule, first_name, last_name, email, phone, role, position, department, status, base_salary, hire_date, avatar_url, password
       FROM employees
       ORDER BY created_at DESC;
     `;
@@ -34,7 +34,7 @@ export const fetchNeonEmployees = async (): Promise<Employee[] | null> => {
       prenom: String(r.first_name || ''),
       email: String(r.email || ''),
       telephone3CX: String(r.phone || r.matricule || ''),
-      role: (r.role === 'SUPERADMIN' ? 'SuperAdmin' : r.role === 'ADMIN' ? 'Admin RH' : 'Employé') as RoleType,
+      role: (r.role === 'SUPERADMIN' ? 'SuperAdmin' : r.role === 'ADMIN' ? 'Admin' : 'Employé') as RoleType,
       poste: String(r.position || 'Poste VOOMNET'),
       departement: String(r.department || 'Général'),
       statut: (r.status === 'ACTIF' ? 'CDI' : r.status === 'STAGIAIRE' ? 'STAGIAIRE' : 'CDD') as StatutContrat,
@@ -42,13 +42,14 @@ export const fetchNeonEmployees = async (): Promise<Employee[] | null> => {
       salaireBase: Number(r.base_salary) || 350000,
       dateEmbauche: r.hire_date ? new Date(r.hire_date).toISOString().substring(0, 10) : '2023-01-01',
       avatar: r.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+      motDePasse: String(r.password || 'voomnet2026'),
     }));
   });
 };
 
 export const insertNeonEmployee = async (emp: Employee) => {
   return executeNeonQuery(async (sql) => {
-    const roleDb = emp.role === 'SuperAdmin' ? 'SUPERADMIN' : emp.role === 'Admin RH' ? 'ADMIN' : 'EMPLOYEE';
+    const roleDb = emp.role === 'SuperAdmin' ? 'SUPERADMIN' : (emp.role === 'Admin' || (emp.role as string) === 'Admin RH') ? 'ADMIN' : 'EMPLOYEE';
     const statutDb = emp.statut || 'ACTIF';
 
     await sql`

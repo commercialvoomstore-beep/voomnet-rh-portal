@@ -54,7 +54,7 @@ export const Topbar: React.FC = () => {
           ? 'Gestion des Utilisateurs (CRUD, Rôles & Contrats)'
           : 'Suivi des Employés & Fiches Administratives';
       case 'chat':
-        return 'Chat RH Direct (SuperAdmin <--> Admin RH)';
+        return 'Chat RH Direct (SuperAdmin <--> Admin)';
       case 'conges':
         return user?.role === 'Employé'
           ? 'Mes Demandes de Permission & Congés'
@@ -62,7 +62,7 @@ export const Topbar: React.FC = () => {
       case 'primes':
         return user?.role === 'SuperAdmin'
           ? 'Matrice & Configuration des Primes (SuperAdmin)'
-          : user?.role === 'Admin RH'
+          : user?.role === 'Admin' || (user?.role as string) === 'Admin RH'
           ? 'Suivi & Contrôle des Primes Employés'
           : 'Ma Prime de Ponctualité T3 2026';
       case 'parametres':
@@ -223,7 +223,7 @@ export const Topbar: React.FC = () => {
                 className={`px-3 py-1 rounded-full text-xs font-bold border ${
                   user.role === 'SuperAdmin'
                     ? 'bg-purple-500/20 text-purple-300 border-purple-500/40'
-                    : user.role === 'Admin RH'
+                    : user.role === 'Admin' || (user.role as string) === 'Admin RH'
                     ? 'bg-blue-500/20 text-blue-300 border-blue-500/40'
                     : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
                 }`}

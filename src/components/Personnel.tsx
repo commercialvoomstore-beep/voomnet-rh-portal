@@ -33,7 +33,7 @@ export const Personnel: React.FC = () => {
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
 
   const isSuperAdmin = user?.role === 'SuperAdmin';
-  const isAdminRH = user?.role === 'Admin RH';
+  const isAdminRH = user?.role === 'Admin' || (user?.role as string) === 'Admin RH';
 
   // New Employee Form state
   const [addFormState, setAddFormState] = useState({
@@ -43,11 +43,12 @@ export const Personnel: React.FC = () => {
     email: '',
     telephone3CX: '',
     departement: 'Développement Logiciel',
-    poste: '',
+    poste: 'Ingénieur Informatique',
     statut: 'CDI' as StatutContrat,
     role: 'Employé' as RoleType,
     dateEmbauche: new Date().toISOString().split('T')[0],
     avatar: DEFAULT_FALLBACK_AVATAR,
+    motDePasse: 'voomnet2026',
     adresse: '',
     telephonePerso: '',
     contactUrgence: '',
@@ -86,8 +87,11 @@ export const Personnel: React.FC = () => {
       return;
     }
 
+    const generatedEmail = addFormState.email || `${addFormState.prenom.charAt(0).toLowerCase()}.${addFormState.nom.toLowerCase().replace(/\s+/g, '')}@voomnet.com`;
+
     addEmployee({
       ...addFormState,
+      email: generatedEmail,
       telephone3CX: addFormState.telephone3CX || addFormState.matricule,
       soldeConges: addFormState.statut === 'STAGIAIRE' ? 5 : 24,
       avatar: addFormState.avatar || DEFAULT_FALLBACK_AVATAR,
@@ -168,10 +172,10 @@ export const Personnel: React.FC = () => {
             SuperAdmin
           </span>
         );
-      case 'Admin RH':
+      case 'Admin':
         return (
           <span className="px-2.5 py-0.5 rounded text-[10px] font-extrabold bg-blue-500/20 text-blue-300 border border-blue-500/40">
-            Admin RH
+            Admin
           </span>
         );
       case 'Employé':
@@ -249,7 +253,7 @@ export const Personnel: React.FC = () => {
           {/* Role Filter */}
           <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs font-semibold text-slate-400">
             <span className="px-2 text-[10px] uppercase font-bold text-slate-500">Rôle :</span>
-            {['Tous', 'SuperAdmin', 'Admin RH', 'Employé'].map((r) => (
+            {['Tous', 'SuperAdmin', 'Admin', 'Employé'].map((r) => (
               <button
                 key={r}
                 onClick={() => setFilterRole(r)}
@@ -403,7 +407,7 @@ export const Personnel: React.FC = () => {
                     className="w-full px-3 py-2 bg-slate-950 border border-purple-700 rounded-xl text-purple-300 text-xs font-bold"
                   >
                     <option value="Employé">Employé</option>
-                    <option value="Admin RH">Admin RH</option>
+                    <option value="Admin">Admin</option>
                     <option value="SuperAdmin">SuperAdmin</option>
                   </select>
                 </div>
@@ -437,6 +441,34 @@ export const Personnel: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Poste Occupé *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ex: Ingénieure Réseau / Développeur"
+                    value={addFormState.poste}
+                    onChange={(e) => setAddFormState({ ...addFormState, poste: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Département *</label>
+                  <select
+                    value={addFormState.departement}
+                    onChange={(e) => setAddFormState({ ...addFormState, departement: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs"
+                  >
+                    <option value="Ressources Humaines">Ressources Humaines</option>
+                    <option value="Développement Logiciel">Développement Logiciel</option>
+                    <option value="Infrastructure & Réseau">Infrastructure & Réseau</option>
+                    <option value="Direction Générale">Direction Générale</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1">Statut Contractuel *</label>
                   <select
                     value={addFormState.statut}
@@ -459,6 +491,31 @@ export const Personnel: React.FC = () => {
                     value={addFormState.dateEmbauche}
                     onChange={(e) => setAddFormState({ ...addFormState, dateEmbauche: e.target.value })}
                     className="w-full px-3 py-2 bg-slate-950 border border-blue-600 rounded-xl text-white font-mono font-bold text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Adresse Email *</label>
+                  <input
+                    type="email"
+                    placeholder="c.tanoh@voomnet.com"
+                    value={addFormState.email}
+                    onChange={(e) => setAddFormState({ ...addFormState, email: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Mot de passe de Connexion *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ex: voomnet2026"
+                    value={addFormState.motDePasse}
+                    onChange={(e) => setAddFormState({ ...addFormState, motDePasse: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-950 border border-emerald-600 rounded-xl text-emerald-300 font-mono text-xs font-bold"
                   />
                 </div>
               </div>
@@ -552,7 +609,7 @@ export const Personnel: React.FC = () => {
                       className="w-full px-2 py-1.5 bg-slate-950 border border-purple-700 rounded-xl text-purple-300 text-xs font-bold"
                     >
                       <option value="Employé">Employé</option>
-                      <option value="Admin RH">Admin RH</option>
+                      <option value="Admin">Admin</option>
                       <option value="SuperAdmin">SuperAdmin</option>
                     </select>
                   </div>

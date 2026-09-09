@@ -13,12 +13,12 @@ export const Login: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!matricule) {
-      setError('Veuillez saisir votre numéro de matricule (Poste 3CX).');
+      setError('Veuillez saisir votre numéro de matricule (Poste 3CX) ou votre email.');
       return;
     }
-    const success = login(matricule);
+    const success = login(matricule, password);
     if (!success) {
-      setError('Matricule introuvable. Choisissez un compte de démonstration ci-dessous.');
+      setError('Identifiant ou mot de passe incorrect. Vérifiez vos identifiants.');
     } else {
       setError('');
     }
@@ -155,7 +155,7 @@ export const Login: React.FC = () => {
               </div>
             </div>
             <span className="text-[10px] bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded font-bold border border-blue-500/30">
-              Admin RH
+              Admin
             </span>
           </button>
 
