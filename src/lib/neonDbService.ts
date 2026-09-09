@@ -269,8 +269,8 @@ export const updateNeonLeaveRequestStatus = async (id: string, statut: string, n
     await sql`
       UPDATE leave_requests
       SET status = ${statusDb},
-          approved_by = ${notes || 'Administration'}
-      WHERE id = ${id} OR employee_id = ${id};
+          approved_by = ${notes || 'Administration RH'}
+      WHERE id = ${id};
     `;
   });
 };
