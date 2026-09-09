@@ -14,6 +14,7 @@ import {
   Info,
   Check,
   Trash2,
+  Palette,
 } from 'lucide-react';
 
 import { DatabaseConfigModal } from '@/components/DatabaseConfigModal';
@@ -28,9 +29,12 @@ export const Topbar: React.FC = () => {
     dismissToast,
     markNotificationAsRead,
     clearAllNotifications,
+    appTheme,
+    setAppTheme,
   } = useApp();
 
   const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
+  const [showThemeDropdown, setShowThemeDropdown] = useState(false);
   const [showDatabaseModal, setShowDatabaseModal] = useState(false);
   const unreadCount = notifications.filter((n) => !n.read).length;
   const activeDbProvider = getActiveProvider();
@@ -142,10 +146,103 @@ export const Topbar: React.FC = () => {
             </button>
           </div>
 
-          {/* Date pill */}
-          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800 text-xs font-medium text-slate-300 border border-slate-700">
-            <Calendar className="w-3.5 h-3.5 text-blue-400" />
-            <span>{formattedDate}</span>
+          {/* Palette / Theme Selector Button Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setShowThemeDropdown(!showThemeDropdown)}
+              className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition-all flex items-center gap-1.5"
+              title="Changer la couleur / thème de l'application"
+            >
+              <Palette className="w-4 h-4 text-purple-400 animate-pulse" />
+              <span className="hidden sm:inline text-xs font-bold text-slate-200">
+                Couleur
+              </span>
+            </button>
+
+            {showThemeDropdown && (
+              <div className="absolute right-0 mt-2 w-64 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-4 z-50 space-y-2 animate-fadeIn">
+                <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
+                  <Palette className="w-4 h-4 text-purple-400" />
+                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                    Thème de l&apos;Application
+                  </h4>
+                </div>
+
+                <div className="space-y-1.5 pt-1">
+                  <button
+                    onClick={() => {
+                      setAppTheme('ocean');
+                      setShowThemeDropdown(false);
+                    }}
+                    className={`w-full p-2.5 rounded-xl text-xs font-bold flex items-center justify-between border transition-all ${
+                      appTheme === 'ocean'
+                        ? 'bg-blue-600/30 border-blue-500 text-white'
+                        : 'bg-slate-950 border-slate-800 text-slate-300 hover:bg-slate-800'
+                    }`}
+                  >
+                    <span className="flex items-center gap-2">
+                      <span className="w-3 h-3 rounded-full bg-blue-500 shadow-sm shadow-blue-500" />
+                      Bleu Océan & Cyan
+                    </span>
+                    {appTheme === 'ocean' && <Check className="w-3.5 h-3.5 text-blue-400" />}
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setAppTheme('emerald');
+                      setShowThemeDropdown(false);
+                    }}
+                    className={`w-full p-2.5 rounded-xl text-xs font-bold flex items-center justify-between border transition-all ${
+                      appTheme === 'emerald'
+                        ? 'bg-emerald-600/30 border-emerald-500 text-white'
+                        : 'bg-slate-950 border-slate-800 text-slate-300 hover:bg-slate-800'
+                    }`}
+                  >
+                    <span className="flex items-center gap-2">
+                      <span className="w-3 h-3 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500" />
+                      Vert Émeraude & Menthe
+                    </span>
+                    {appTheme === 'emerald' && <Check className="w-3.5 h-3.5 text-emerald-400" />}
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setAppTheme('violet');
+                      setShowThemeDropdown(false);
+                    }}
+                    className={`w-full p-2.5 rounded-xl text-xs font-bold flex items-center justify-between border transition-all ${
+                      appTheme === 'violet'
+                        ? 'bg-purple-600/30 border-purple-500 text-white'
+                        : 'bg-slate-950 border-slate-800 text-slate-300 hover:bg-slate-800'
+                    }`}
+                  >
+                    <span className="flex items-center gap-2">
+                      <span className="w-3 h-3 rounded-full bg-purple-500 shadow-sm shadow-purple-500" />
+                      Améthyste & Violet Cyber
+                    </span>
+                    {appTheme === 'violet' && <Check className="w-3.5 h-3.5 text-purple-400" />}
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setAppTheme('light');
+                      setShowThemeDropdown(false);
+                    }}
+                    className={`w-full p-2.5 rounded-xl text-xs font-bold flex items-center justify-between border transition-all ${
+                      appTheme === 'light'
+                        ? 'bg-slate-200 border-slate-400 text-slate-900'
+                        : 'bg-slate-950 border-slate-800 text-slate-300 hover:bg-slate-800'
+                    }`}
+                  >
+                    <span className="flex items-center gap-2">
+                      <span className="w-3 h-3 rounded-full bg-white border border-slate-400 shadow-sm" />
+                      Clair Lumineux Pro
+                    </span>
+                    {appTheme === 'light' && <Check className="w-3.5 h-3.5 text-blue-600" />}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Bell Notification Button Dropdown */}

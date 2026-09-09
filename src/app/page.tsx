@@ -15,7 +15,7 @@ import { MonPoste } from '@/components/MonPoste';
 import { ChatRH } from '@/components/ChatRH';
 
 export default function Home() {
-  const { splashVisible, user, activeTab } = useApp();
+  const { splashVisible, user, activeTab, appTheme } = useApp();
 
   if (splashVisible) {
     return <Splash />;
@@ -24,6 +24,20 @@ export default function Home() {
   if (!user) {
     return <Login />;
   }
+
+  const getThemeClass = () => {
+    switch (appTheme) {
+      case 'emerald':
+        return 'theme-emerald bg-zinc-950 text-zinc-100';
+      case 'violet':
+        return 'theme-violet bg-neutral-950 text-neutral-100';
+      case 'light':
+        return 'theme-light bg-slate-100 text-slate-900';
+      case 'ocean':
+      default:
+        return 'theme-ocean bg-slate-950 text-slate-100';
+    }
+  };
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -47,13 +61,13 @@ export default function Home() {
   };
 
   return (
-    <div className="flex h-screen bg-slate-950 text-slate-100 overflow-hidden">
+    <div className={`flex h-screen overflow-hidden ${getThemeClass()}`}>
       <Sidebar />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <Topbar />
 
-        <main className="flex-1 overflow-y-auto p-6 bg-slate-950">
+        <main className="flex-1 overflow-y-auto p-6">
           <div className="max-w-7xl mx-auto">{renderTabContent()}</div>
         </main>
       </div>

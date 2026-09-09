@@ -59,12 +59,16 @@ export const playNotificationSound = () => {
   }
 };
 
+export type AppTheme = 'ocean' | 'emerald' | 'violet' | 'light';
+
 interface AppContextType {
   user: Employee | null;
   splashVisible: boolean;
   dismissSplash: () => void;
   activeTab: string;
   setActiveTab: (tab: string) => void;
+  appTheme: AppTheme;
+  setAppTheme: (theme: AppTheme) => void;
   employees: Employee[];
   absenceRequests: AbsenceRequest[];
   primes: EmployeePrimeStatus[];
@@ -99,6 +103,34 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [splashVisible, setSplashVisible] = useState(true);
   const [user, setUser] = useState<Employee | null>(null);
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [appTheme, setAppThemeState] = useState<AppTheme>('ocean');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('VOOMNET_APP_THEME') as AppTheme;
+      if (saved) setAppThemeState(saved);
+    }
+  }, []);
+
+  const setAppTheme = (newTheme: AppTheme) => {
+    setAppThemeState(newTheme);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('VOOMNET_APP_THEME', newTheme);
+    }
+    showNotificationAlert(
+      '🎨 Thème Mis à Jour',
+      `Couleur appliquée : ${
+        newTheme === 'ocean'
+          ? 'Bleu Océan & Cyan'
+          : newTheme === 'emerald'
+          ? 'Émeraude & Vert Menthe'
+          : newTheme === 'violet'
+          ? 'Améthyste & Violet Cyber'
+          : 'Clair Lumineux Pro'
+      }`,
+      'INFO'
+    );
+  };
   const [employees, setEmployees] = useState<Employee[]>(INITIAL_EMPLOYEES);
   const [absenceRequests, setAbsenceRequests] = useState<AbsenceRequest[]>(INITIAL_ABSENCE_REQUESTS);
   const [primeConfig, setPrimeConfig] = useState<PrimeConfig>(INITIAL_PRIME_CONFIG);
@@ -602,6 +634,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         dismissSplash,
         activeTab,
         setActiveTab,
+        appTheme,
+        setAppTheme,
         employees,
         absenceRequests,
         primes,
