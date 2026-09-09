@@ -16,14 +16,16 @@ import {
   Zap,
   CheckCircle2,
   XCircle,
+  Clock,
 } from 'lucide-react';
 
 export const MonPoste: React.FC = () => {
-  const { user, primes, primeConfig } = useApp();
+  const { user, primes, primeConfig, absenceRequests } = useApp();
 
   if (!user) return null;
 
   const myPrime = primes.find((p) => p.matricule === user.matricule);
+  const myRequests = absenceRequests.filter((r) => r.matricule === user.matricule);
 
   return (
     <div className="space-y-6 max-w-4xl">
@@ -178,6 +180,93 @@ export const MonPoste: React.FC = () => {
             ? 'Règle des 3 mois : Vos assiduités et absences justifiées vous permettent de bénéficier de la totalité de la prime trimestrielle.'
             : `Statut actuel : ${myPrime?.motifStatus || 'Absence non justifiée enregistrée'}. Rapprochez-vous de l'Administration RH en cas de justificatif officiel.`}
         </p>
+      </div>
+
+      {/* Card 4: Suivi de Mes Demandes (Validées / Refusées / En attente par l'Admin) */}
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="flex items-center gap-2">
+            <FileText className="w-5 h-5 text-blue-400" />
+            <h3 className="text-sm font-bold text-white">
+              Historique de Mes Demandes de Permission & Congés
+            </h3>
+          </div>
+          <span className="text-xs text-slate-400 font-mono">
+            Total : <strong className="text-white">{myRequests.length}</strong> demande(s)
+          </span>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-slate-950/60 border-b border-slate-800 text-slate-400 text-[11px] font-bold uppercase tracking-wider">
+                <th className="py-3 px-3">Code Suivi</th>
+                <th className="py-3 px-3">Type & Motif</th>
+                <th className="py-3 px-3">Période</th>
+                <th className="py-3 px-3">Statut Administrateur</th>
+                <th className="py-3 px-3">Décision / Remarques Admin</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-800/80 text-xs">
+              {myRequests.map((req) => (
+                <tr key={req.id} className="hover:bg-slate-800/40 transition-colors">
+                  <td className="py-3 px-3 font-mono font-bold text-blue-400">
+                    <span className="px-2 py-0.5 bg-slate-950 rounded border border-slate-700">
+                      {req.codeSuivi}
+                    </span>
+                  </td>
+
+                  <td className="py-3 px-3 max-w-xs">
+                    <div className="font-semibold text-white">{req.typeAbsence}</div>
+                    <div className="text-[11px] text-slate-400 truncate">{req.motif}</div>
+                  </td>
+
+                  <td className="py-3 px-3 font-mono text-[11px]">
+                    <div className="text-slate-200">
+                      {req.dateDebut} au {req.dateFin}
+                    </div>
+                    <div className="text-[10px] text-blue-400 font-bold">
+                      {req.dureeJours} jour(s)
+                    </div>
+                  </td>
+
+                  <td className="py-3 px-3">
+                    {req.statut === 'Approuvé' && (
+                      <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[11px] font-bold flex items-center gap-1 w-max">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        Validée (Approuvée)
+                      </span>
+                    )}
+                    {req.statut === 'Refusé' && (
+                      <span className="px-2.5 py-1 rounded-full bg-red-500/20 text-red-300 border border-red-500/30 text-[11px] font-bold flex items-center gap-1 w-max">
+                        <XCircle className="w-3.5 h-3.5" />
+                        Refusée par Admin
+                      </span>
+                    )}
+                    {req.statut === 'En attente' && (
+                      <span className="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[11px] font-bold flex items-center gap-1 w-max">
+                        <Clock className="w-3.5 h-3.5" />
+                        En attente de l&apos;Admin
+                      </span>
+                    )}
+                  </td>
+
+                  <td className="py-3 px-3 text-slate-300 text-[11px] italic">
+                    {req.cadreAdminNotes || (req.statut === 'En attente' ? 'En cours d\'étude par la direction RH' : 'Aucune remarque')}
+                  </td>
+                </tr>
+              ))}
+
+              {myRequests.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="py-6 text-center text-slate-500 text-xs">
+                    Vous n&apos;avez aucune demande de permission enregistrée pour le moment.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

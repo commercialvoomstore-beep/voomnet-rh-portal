@@ -520,15 +520,28 @@ export const Personnel: React.FC = () => {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Photo de Profil (URL)</label>
-                <input
-                  type="text"
-                  placeholder="https://images.unsplash.com/..."
-                  value={addFormState.avatar}
-                  onChange={(e) => setAddFormState({ ...addFormState, avatar: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs font-mono"
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Contact Urgence</label>
+                  <input
+                    type="text"
+                    placeholder="Ex: Frère (+225 01 22 33 44 55)"
+                    value={addFormState.contactUrgence}
+                    onChange={(e) => setAddFormState({ ...addFormState, contactUrgence: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Photo de Profil (URL)</label>
+                  <input
+                    type="text"
+                    placeholder="https://images.unsplash.com/..."
+                    value={addFormState.avatar}
+                    onChange={(e) => setAddFormState({ ...addFormState, avatar: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs font-mono"
+                  />
+                </div>
               </div>
 
               <div className="pt-4 flex justify-end gap-3 border-t border-slate-800">
@@ -671,6 +684,17 @@ export const Personnel: React.FC = () => {
                     className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Contact Urgence</label>
+                <input
+                  type="text"
+                  placeholder="Ex: Frère (+225 01 22 33 44 55)"
+                  value={editFormState.contactUrgence || ''}
+                  onChange={(e) => setEditFormState({ ...editFormState, contactUrgence: e.target.value })}
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs"
+                />
               </div>
 
               <div>

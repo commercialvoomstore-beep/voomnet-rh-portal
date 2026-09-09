@@ -26,6 +26,7 @@ import {
   insertNeonChatMessage,
   fetchNeonLeaveRequests,
   insertNeonLeaveRequest,
+  updateNeonLeaveRequestStatus,
 } from '@/lib/neonDbService';
 import { getActiveProvider } from '@/lib/databaseAdapter';
 
@@ -529,6 +530,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return r;
       })
     );
+
+    // Sync status update with Neon PostgreSQL
+    updateNeonLeaveRequestStatus(id, statut, notes).catch(console.error);
 
     if (!justifiee || statut === 'Refusé') {
       if (reqMatricule) {

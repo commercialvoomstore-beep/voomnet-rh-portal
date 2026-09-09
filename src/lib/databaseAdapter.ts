@@ -55,7 +55,7 @@ export const getActiveProvider = (): DatabaseProvider => {
     const saved = localStorage.getItem('VOOMNET_DB_PROVIDER') as DatabaseProvider;
     if (saved) return saved;
   }
-  return 'MOCK_LOCAL';
+  return 'NEON_POSTGRES';
 };
 
 export const setActiveProvider = (provider: DatabaseProvider) => {

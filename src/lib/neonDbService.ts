@@ -43,6 +43,7 @@ export const fetchNeonEmployees = async (): Promise<Employee[] | null> => {
       dateEmbauche: r.hire_date ? new Date(r.hire_date).toISOString().substring(0, 10) : '2023-01-01',
       avatar: r.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
       motDePasse: String(r.password || 'voomnet2026'),
+      contactUrgence: String(r.phone || ''),
     }));
   });
 };
@@ -174,6 +175,18 @@ export const insertNeonLeaveRequest = async (req: any) => {
         ${req.motif},
         ${statusDb}
       );
+    `;
+  });
+};
+
+export const updateNeonLeaveRequestStatus = async (id: string, statut: string, notes?: string) => {
+  return executeNeonQuery(async (sql) => {
+    const statusDb = statut === 'Approuvé' ? 'APPROUVE' : statut === 'Refusé' ? 'REFUSE' : 'EN_ATTENTE';
+    await sql`
+      UPDATE leave_requests
+      SET status = ${statusDb},
+          approved_by = ${notes || 'Administration'}
+      WHERE id = ${id} OR employee_id = ${id};
     `;
   });
 };
