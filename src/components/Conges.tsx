@@ -31,9 +31,12 @@ export const Conges: React.FC = () => {
   // Filter requests based on role confidentiality requirement and status filter
   const displayedRequests = (
     isEmploye
-      ? absenceRequests.filter((r) => r.matricule === user.matricule)
-      : absenceRequests
+      ? (absenceRequests || []).filter(
+          (r) => r && r.matricule && String(r.matricule).trim() === String(user.matricule).trim()
+        )
+      : (absenceRequests || []).filter((r) => r && typeof r === 'object')
   ).filter((r) => {
+    if (!r) return false;
     if (filterStatut === 'Tous') return true;
     if (filterStatut === 'En attente') return r.statut === 'En attente';
     if (filterStatut === 'Approuvé') return r.statut === 'Approuvé';

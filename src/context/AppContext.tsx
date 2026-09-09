@@ -138,15 +138,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-        } catch (e) {}
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const valid = parsed.filter(
+              (r) => r && typeof r === 'object' && r.id && r.matricule
+            );
+            if (valid.length > 0) return valid;
+          }
+        } catch (e) {
+          localStorage.removeItem('VOOMNET_ABSENCE_REQUESTS');
+        }
       }
     }
     return INITIAL_ABSENCE_REQUESTS;
   });
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && absenceRequests.length > 0) {
+    if (typeof window !== 'undefined' && Array.isArray(absenceRequests) && absenceRequests.length > 0) {
       localStorage.setItem('VOOMNET_ABSENCE_REQUESTS', JSON.stringify(absenceRequests));
     }
   }, [absenceRequests]);
@@ -185,13 +192,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           }
 
           const latestLeaves = await fetchNeonLeaveRequests();
-          if (latestLeaves && latestLeaves.length > 0) {
+          if (latestLeaves && Array.isArray(latestLeaves) && latestLeaves.length > 0) {
             setAbsenceRequests((prev) => {
               const reqMap = new Map<string, AbsenceRequest>();
-              prev.forEach((r) => reqMap.set(r.id, r));
+              (prev || []).forEach((r) => {
+                if (r && typeof r === 'object' && r.id) {
+                  reqMap.set(String(r.id), r);
+                }
+              });
               latestLeaves.forEach((r) => {
-                const existing = reqMap.get(r.id);
-                reqMap.set(r.id, existing ? { ...existing, ...r } : r);
+                if (r && typeof r === 'object' && r.id) {
+                  const existing = reqMap.get(String(r.id));
+                  reqMap.set(String(r.id), existing ? { ...existing, ...r } : r);
+                }
               });
               return Array.from(reqMap.values());
             });

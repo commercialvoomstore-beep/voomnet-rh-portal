@@ -24,8 +24,10 @@ export const MonPoste: React.FC = () => {
 
   if (!user) return null;
 
-  const myPrime = primes.find((p) => p.matricule === user.matricule);
-  const myRequests = absenceRequests.filter((r) => r.matricule === user.matricule);
+  const myPrime = (primes || []).find((p) => p && p.matricule && String(p.matricule).trim() === String(user.matricule).trim());
+  const myRequests = (absenceRequests || []).filter(
+    (r) => r && r.matricule && String(r.matricule).trim() === String(user.matricule).trim()
+  );
 
   return (
     <div className="space-y-6 max-w-4xl">
