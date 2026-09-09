@@ -253,8 +253,21 @@ export const MonPoste: React.FC = () => {
                     )}
                   </td>
 
-                  <td className="py-3 px-3 text-slate-300 text-[11px] italic">
-                    {req.cadreAdminNotes || (req.statut === 'En attente' ? 'En cours d\'étude par la direction RH' : 'Aucune remarque')}
+                  <td className="py-3 px-3">
+                    {req.cadreAdminNotes ? (
+                      <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-700 text-xs font-semibold text-slate-100 shadow-inner">
+                        <span className="text-[10px] uppercase font-bold text-blue-400 block tracking-wider mb-0.5">
+                          Remarque Admin RH :
+                        </span>
+                        <span className="text-slate-100 text-xs leading-relaxed block">
+                          {req.cadreAdminNotes}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-slate-500 italic">
+                        {req.statut === 'En attente' ? 'En cours d\'étude par la direction RH' : 'Aucune remarque'}
+                      </span>
+                    )}
                   </td>
                 </tr>
               ))}

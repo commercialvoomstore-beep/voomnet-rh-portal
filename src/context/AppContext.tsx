@@ -87,6 +87,7 @@ interface AppContextType {
   sendChatMessage: (text: string, recipientMatricule: string) => void;
   markNotificationAsRead: (id: string) => void;
   clearAllNotifications: () => void;
+  markPrimeNotificationsAsRead: () => void;
   markChatMessagesAsRead: (matricule: string) => void;
   createAbsenceRequest: (req: Omit<AbsenceRequest, 'id' | 'codeSuivi' | 'dateDemande'>) => string;
   updateAbsenceStatus: (id: string, statut: 'Approuvé' | 'Refusé', justifiee: boolean, notes?: string) => void;
@@ -254,6 +255,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const clearAllNotifications = () => {
     setNotifications([]);
+  };
+
+  const markPrimeNotificationsAsRead = () => {
+    setNotifications((prev) =>
+      prev.map((n) =>
+        (n.title && n.title.toLowerCase().includes('prime')) ||
+        (n.message && n.message.toLowerCase().includes('prime')) ||
+        n.type === 'ALERT'
+          ? { ...n, read: true }
+          : n
+      )
+    );
   };
 
   const markChatMessagesAsRead = (matricule: string) => {
@@ -613,11 +626,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     justifiee: boolean,
     notes?: string
   ) => {
+    let reqCode = '';
     let reqMatricule = '';
+    let reqName = '';
+
     setAbsenceRequests((prev) =>
       prev.map((r) => {
-        if (r.id === id) {
+        if (r && r.id === id) {
+          reqCode = r.codeSuivi || r.id;
           reqMatricule = r.matricule;
+          reqName = r.nomPrenom;
           return { ...r, statut, justifiee, cadreAdminNotes: notes || r.cadreAdminNotes };
         }
         return r;
@@ -643,9 +661,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     }
 
+    // 🔔 Notification pour l'employé & l'administrateur
     showNotificationAlert(
-      statut === 'Approuvé' ? '✅ Demande Approuvée' : '❌ Demande Refusée',
-      `La demande a été marquée comme ${statut.toLowerCase()}.`,
+      statut === 'Approuvé' ? `✅ Demande ${reqCode} Validée` : `❌ Demande ${reqCode} Refusée`,
+      `Notification transmise à l'employé ${reqName} (Poste 3CX ${reqMatricule}) : Votre demande ${reqCode} a été ${statut.toLowerCase()} par l'Admin. Remarque : "${notes || 'Aucune'}"`,
       statut === 'Approuvé' ? 'SUCCESS' : 'ALERT'
     );
   };
@@ -715,6 +734,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         sendChatMessage,
         markNotificationAsRead,
         clearAllNotifications,
+        markPrimeNotificationsAsRead,
         markChatMessagesAsRead,
         createAbsenceRequest,
         updateAbsenceStatus,

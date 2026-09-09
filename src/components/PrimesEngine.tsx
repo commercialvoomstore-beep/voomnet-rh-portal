@@ -31,7 +31,14 @@ export const PrimesEngine: React.FC = () => {
     auditLogs,
     employees,
     showNotificationAlert,
+    markPrimeNotificationsAsRead,
   } = useApp();
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      markPrimeNotificationsAsRead();
+    }
+  }, []);
 
   if (!user) return null;
 

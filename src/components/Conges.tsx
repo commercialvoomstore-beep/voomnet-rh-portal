@@ -430,59 +430,99 @@ export const Conges: React.FC = () => {
 
                   <td className="py-3.5 px-4 text-right">
                     {!isEmploye ? (
-                      <div className="flex items-center justify-end gap-1.5">
-                        <button
-                          onClick={() => {
-                            const note = prompt(
-                              `Valider la demande de ${req.nomPrenom} (${req.codeSuivi}) ?\nRemarque / motif de validation :`,
-                              req.cadreAdminNotes || 'Validé par l\'Administration RH'
-                            );
-                            if (note !== null) {
-                              updateAbsenceStatus(
-                                req.id,
-                                'Approuvé',
-                                req.justifiee,
-                                note || 'Validé par l\'Administration RH'
-                              );
-                            }
-                          }}
-                          className={`px-2.5 py-1 text-white font-bold text-[10px] rounded-lg shadow transition-all ${
-                            req.statut === 'Approuvé'
-                              ? 'bg-emerald-700/80 border border-emerald-500'
-                              : 'bg-emerald-600 hover:bg-emerald-500'
-                          }`}
-                        >
-                          {req.statut === 'Approuvé' ? '✓ Validée' : 'Valider'}
-                        </button>
+                      <div className="flex flex-col items-end gap-2">
+                        {req.statut === 'En attente' ? (
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              onClick={() => {
+                                const note = prompt(
+                                  `Valider la demande de ${req.nomPrenom} (${req.codeSuivi}) ?\nRemarque / motif de validation :`,
+                                  req.cadreAdminNotes || 'Validé par l\'Administration RH'
+                                );
+                                if (note !== null) {
+                                  updateAbsenceStatus(
+                                    req.id,
+                                    'Approuvé',
+                                    req.justifiee,
+                                    note || 'Validé par l\'Administration RH'
+                                  );
+                                }
+                              }}
+                              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              Valider
+                            </button>
 
-                        <button
-                          onClick={() => {
-                            const note = prompt(
-                              `Refuser la demande de ${req.nomPrenom} (${req.codeSuivi}) ?\nMotif du refus :`,
-                              'Refusé par l\'Administration RH'
-                            );
-                            if (note !== null) {
-                              updateAbsenceStatus(
-                                req.id,
-                                'Refusé',
-                                false,
-                                note || 'Refusé par l\'Administration RH'
-                              );
-                            }
-                          }}
-                          className={`px-2.5 py-1 text-white font-bold text-[10px] rounded-lg shadow transition-all ${
-                            req.statut === 'Refusé'
-                              ? 'bg-red-800/80 border border-red-500'
-                              : 'bg-red-600 hover:bg-red-500'
-                          }`}
-                        >
-                          {req.statut === 'Refusé' ? '✕ Refusée' : 'Refuser'}
-                        </button>
+                            <button
+                              onClick={() => {
+                                const note = prompt(
+                                  `Refuser la demande de ${req.nomPrenom} (${req.codeSuivi}) ?\nMotif du refus :`,
+                                  'Refusé par l\'Administration RH'
+                                );
+                                if (note !== null) {
+                                  updateAbsenceStatus(
+                                    req.id,
+                                    'Refusé',
+                                    false,
+                                    note || 'Refusé par l\'Administration RH'
+                                  );
+                                }
+                              }}
+                              className="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5"
+                            >
+                              <XCircle className="w-3.5 h-3.5" />
+                              Refuser
+                            </button>
+                          </div>
+                        ) : (
+                          <span
+                            className={`px-3 py-1 rounded-xl text-xs font-bold border flex items-center gap-1.5 ${
+                              req.statut === 'Approuvé'
+                                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                                : 'bg-red-500/20 text-red-300 border-red-500/40'
+                            }`}
+                          >
+                            {req.statut === 'Approuvé' ? (
+                              <>
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                                Décision Finale : Validée
+                              </>
+                            ) : (
+                              <>
+                                <XCircle className="w-3.5 h-3.5 text-red-400" />
+                                Décision Finale : Refusée
+                              </>
+                            )}
+                          </span>
+                        )}
+
+                        {req.cadreAdminNotes && (
+                          <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-700 text-xs font-semibold text-slate-100 text-left max-w-xs shadow-inner mt-1">
+                            <span className="text-[10px] uppercase font-bold text-blue-400 block tracking-wider mb-0.5">
+                              Remarque RH Officielle :
+                            </span>
+                            <span className="text-slate-100 text-xs leading-relaxed block">
+                              {req.cadreAdminNotes}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     ) : (
-                      <span className="text-[10px] text-slate-400 italic">
-                        {req.cadreAdminNotes || 'En cours de traitement par l\'Admin'}
-                      </span>
+                      <div className="space-y-1 text-right">
+                        {req.cadreAdminNotes ? (
+                          <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-700 text-xs text-left max-w-xs ml-auto shadow-inner">
+                            <span className="text-[10px] uppercase font-bold text-blue-400 block tracking-wider mb-0.5">
+                              Remarque Administrateur :
+                            </span>
+                            <span className="text-slate-100 font-semibold text-xs leading-relaxed block">
+                              {req.cadreAdminNotes}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-slate-400 italic">En cours de traitement par l&apos;Admin</span>
+                        )}
+                      </div>
                     )}
                   </td>
                 </tr>
