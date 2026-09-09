@@ -132,7 +132,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   };
   const [employees, setEmployees] = useState<Employee[]>(INITIAL_EMPLOYEES);
-  const [absenceRequests, setAbsenceRequests] = useState<AbsenceRequest[]>(INITIAL_ABSENCE_REQUESTS);
+  const [absenceRequests, setAbsenceRequests] = useState<AbsenceRequest[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('VOOMNET_ABSENCE_REQUESTS');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        } catch (e) {}
+      }
+    }
+    return INITIAL_ABSENCE_REQUESTS;
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && absenceRequests.length > 0) {
+      localStorage.setItem('VOOMNET_ABSENCE_REQUESTS', JSON.stringify(absenceRequests));
+    }
+  }, [absenceRequests]);
   const [primeConfig, setPrimeConfig] = useState<PrimeConfig>(INITIAL_PRIME_CONFIG);
   const [primes, setPrimes] = useState<EmployeePrimeStatus[]>(INITIAL_PRIMES);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>(INITIAL_CHAT_MESSAGES);
@@ -168,12 +185,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           }
 
           const latestLeaves = await fetchNeonLeaveRequests();
-          if (latestLeaves) {
+          if (latestLeaves && latestLeaves.length > 0) {
             setAbsenceRequests((prev) => {
-              if (latestLeaves.length !== prev.length) {
-                return latestLeaves;
-              }
-              return prev;
+              const reqMap = new Map<string, AbsenceRequest>();
+              prev.forEach((r) => reqMap.set(r.id, r));
+              latestLeaves.forEach((r) => {
+                const existing = reqMap.get(r.id);
+                reqMap.set(r.id, existing ? { ...existing, ...r } : r);
+              });
+              return Array.from(reqMap.values());
             });
           }
         }
@@ -482,15 +502,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       id: `abs-${Date.now()}`,
       codeSuivi: code,
       dateDemande: new Date().toISOString().split('T')[0],
+      statut: 'En attente',
+      cadreAdminNotes: 'Soumis pour validation par l\'Administration RH',
     };
-    setAbsenceRequests((prev) => [newReq, ...prev]);
+
+    setAbsenceRequests((prev) => {
+      const updated = [newReq, ...prev];
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('VOOMNET_ABSENCE_REQUESTS', JSON.stringify(updated));
+      }
+      return updated;
+    });
 
     // Save leave request directly into Neon PostgreSQL table `leave_requests`
     insertNeonLeaveRequest({
       ...newReq,
       employeId: reqData.matricule,
       employeNom: reqData.nomPrenom,
-      type: reqData.typeAbsence === 'Maladie' ? 'SANTÉ' : 'CONGÉ_PAYÉ',
+      typeAbsence: reqData.typeAbsence,
+      type: reqData.typeAbsence,
       dateDebut: reqData.dateDebut,
       dateFin: reqData.dateFin,
       nombreJours: reqData.dureeJours,
@@ -505,9 +535,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     showNotificationAlert(
-      '📜 Demande d\'Absence Enregistrée sur Neon',
-      `Demande enregistrée pour ${reqData.nomPrenom} (Code: ${code}).`,
-      reqData.justifiee ? 'SUCCESS' : 'WARNING'
+      '📜 Demande d\'Absence Transmise à l\'Admin',
+      `Demande enregistrée pour ${reqData.nomPrenom} (Code: ${code}). Statut: En attente de validation par l'Admin.`,
+      'INFO'
     );
     return code;
   };

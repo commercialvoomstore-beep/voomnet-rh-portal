@@ -146,7 +146,13 @@ export const fetchNeonLeaveRequests = async (): Promise<AbsenceRequest[] | null>
       nomPrenom: String(r.employee_name || 'Collaborateur'),
       fonctionService: 'Service VOOMNET',
       dateEmbauche: '2023-01-01',
-      typeAbsence: r.type === 'MALADIE' ? 'Maladie' : 'Congé annuel',
+      typeAbsence: (r.type === 'MALADIE' || r.type === 'Maladie')
+        ? 'Maladie'
+        : r.type === 'Congé annuel'
+        ? 'Congé annuel'
+        : r.type === 'Événement familial'
+        ? 'Événement familial'
+        : 'Permission d\'absence',
       dateDebut: r.start_date ? new Date(r.start_date).toISOString().substring(0, 10) : '2026-09-10',
       dateFin: r.end_date ? new Date(r.end_date).toISOString().substring(0, 10) : '2026-09-11',
       dureeJours: Number(r.days_count) || 1,
@@ -161,7 +167,7 @@ export const fetchNeonLeaveRequests = async (): Promise<AbsenceRequest[] | null>
 
 export const insertNeonLeaveRequest = async (req: any) => {
   return executeNeonQuery(async (sql) => {
-    const typeDb = req.type === 'SANTÉ' || req.typeAbsence === 'Maladie' ? 'MALADIE' : 'CONGE_ANNUEL';
+    const typeDb = req.typeAbsence || req.type || 'Permission d\'absence';
     const statusDb = req.statut === 'Approuvé' ? 'APPROUVE' : req.statut === 'Refusé' ? 'REFUSE' : 'EN_ATTENTE';
 
     await sql`
