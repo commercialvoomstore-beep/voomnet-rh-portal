@@ -139,29 +139,43 @@ export const fetchNeonLeaveRequests = async (): Promise<AbsenceRequest[] | null>
       FROM leave_requests
       ORDER BY created_at DESC;
     `;
-    return rows.map((r: any) => ({
-      id: String(r.id),
-      codeSuivi: `VN-P-2026-${String(r.id).substring(0, 6)}`,
-      matricule: String(r.employee_id || ''),
-      nomPrenom: String(r.employee_name || 'Collaborateur'),
-      fonctionService: 'Service VOOMNET',
-      dateEmbauche: '2023-01-01',
-      typeAbsence: (r.type === 'MALADIE' || r.type === 'Maladie')
-        ? 'Maladie'
-        : r.type === 'Congé annuel'
-        ? 'Congé annuel'
-        : r.type === 'Événement familial'
-        ? 'Événement familial'
-        : 'Permission d\'absence',
-      dateDebut: r.start_date ? new Date(r.start_date).toISOString().substring(0, 10) : '2026-09-10',
-      dateFin: r.end_date ? new Date(r.end_date).toISOString().substring(0, 10) : '2026-09-11',
-      dureeJours: Number(r.days_count) || 1,
-      motif: String(r.reason || 'Demande d\'absence'),
-      justifiee: r.status === 'APPROUVE',
-      statut: r.status === 'APPROUVE' ? 'Approuvé' : r.status === 'REFUSE' ? 'Refusé' : 'En attente',
-      dateDemande: new Date().toISOString().split('T')[0],
-      cadreAdminNotes: r.approved_by || (r.status === 'APPROUVE' ? 'Validé par l\'Administration RH' : r.status === 'REFUSE' ? 'Refusé par l\'Administration RH' : 'En attente de décision RH'),
-    }));
+    return rows.map((r: any) => {
+      const dbType = String(r.type || 'Permission d\'absence');
+      const cleanType: AbsenceRequest['typeAbsence'] =
+        dbType === 'Maladie' || dbType === 'SANTÉ'
+          ? 'Maladie'
+          : dbType === 'Congé annuel' || dbType === 'CONGÉ_PAYÉ'
+          ? 'Congé annuel'
+          : dbType === 'Événement familial'
+          ? 'Événement familial'
+          : 'Permission d\'absence';
+
+      return {
+        id: String(r.id),
+        codeSuivi: String(r.id).startsWith('VN-')
+          ? String(r.id)
+          : `VN-P-2026-${String(r.id).substring(0, 6).toUpperCase()}`,
+        matricule: String(r.employee_id || ''),
+        nomPrenom: String(r.employee_name || 'Collaborateur'),
+        fonctionService: 'Service VOOMNET',
+        dateEmbauche: '2023-01-01',
+        typeAbsence: cleanType,
+        dateDebut: r.start_date ? new Date(r.start_date).toISOString().substring(0, 10) : '2026-09-10',
+        dateFin: r.end_date ? new Date(r.end_date).toISOString().substring(0, 10) : '2026-09-11',
+        dureeJours: Number(r.days_count) || 1,
+        motif: String(r.reason || 'Demande d\'absence'),
+        justifiee: r.status === 'APPROUVE',
+        statut: r.status === 'APPROUVE' ? 'Approuvé' : r.status === 'REFUSE' ? 'Refusé' : 'En attente',
+        dateDemande: new Date().toISOString().split('T')[0],
+        cadreAdminNotes:
+          r.approved_by ||
+          (r.status === 'APPROUVE'
+            ? 'Validé par l\'Administration RH'
+            : r.status === 'REFUSE'
+            ? 'Refusé par l\'Administration RH'
+            : 'En attente de décision RH'),
+      };
+    });
   });
 };
 
@@ -169,10 +183,12 @@ export const insertNeonLeaveRequest = async (req: any) => {
   return executeNeonQuery(async (sql) => {
     const typeDb = req.typeAbsence || req.type || 'Permission d\'absence';
     const statusDb = req.statut === 'Approuvé' ? 'APPROUVE' : req.statut === 'Refusé' ? 'REFUSE' : 'EN_ATTENTE';
+    const reqId = req.id || `abs-${Date.now()}`;
 
     await sql`
-      INSERT INTO leave_requests (employee_id, employee_name, type, start_date, end_date, days_count, reason, status)
+      INSERT INTO leave_requests (id, employee_id, employee_name, type, start_date, end_date, days_count, reason, status)
       VALUES (
+        ${reqId},
         ${req.employeId || req.matricule},
         ${req.employeNom || req.nomPrenom},
         ${typeDb},
@@ -181,7 +197,14 @@ export const insertNeonLeaveRequest = async (req: any) => {
         ${req.nombreJours || req.dureeJours || 1},
         ${req.motif},
         ${statusDb}
-      );
+      )
+      ON CONFLICT (id) DO UPDATE SET
+        type = EXCLUDED.type,
+        start_date = EXCLUDED.start_date,
+        end_date = EXCLUDED.end_date,
+        days_count = EXCLUDED.days_count,
+        reason = EXCLUDED.reason,
+        status = EXCLUDED.status;
     `;
   });
 };
