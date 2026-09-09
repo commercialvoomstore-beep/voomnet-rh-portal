@@ -135,9 +135,21 @@ export const insertNeonChatMessage = async (msg: ChatMessage) => {
 export const fetchNeonLeaveRequests = async (): Promise<AbsenceRequest[] | null> => {
   return executeNeonQuery(async (sql) => {
     const rows = await sql`
-      SELECT id, employee_id, employee_name, type, start_date, end_date, days_count, reason, status, approved_by
-      FROM leave_requests
-      ORDER BY created_at DESC;
+      SELECT
+        lr.id,
+        lr.employee_id,
+        lr.employee_name,
+        lr.type,
+        lr.start_date,
+        lr.end_date,
+        lr.days_count,
+        lr.reason,
+        lr.status,
+        lr.approved_by,
+        e.matricule AS emp_matricule
+      FROM leave_requests lr
+      LEFT JOIN employees e ON lr.employee_id = e.id OR lr.employee_id = e.matricule
+      ORDER BY lr.created_at DESC;
     `;
     return rows.map((r: any) => {
       const dbType = String(r.type || 'Permission d\'absence');
@@ -150,12 +162,14 @@ export const fetchNeonLeaveRequests = async (): Promise<AbsenceRequest[] | null>
           ? 'Événement familial'
           : 'Permission d\'absence';
 
+      const resolvedMatricule = String(r.emp_matricule || r.employee_id || '1000');
+
       return {
         id: String(r.id),
         codeSuivi: String(r.id).startsWith('VN-')
           ? String(r.id)
           : `VN-P-2026-${String(r.id).substring(0, 6).toUpperCase()}`,
-        matricule: String(r.employee_id || ''),
+        matricule: resolvedMatricule,
         nomPrenom: String(r.employee_name || 'Collaborateur'),
         fonctionService: 'Service VOOMNET',
         dateEmbauche: '2023-01-01',
@@ -183,14 +197,33 @@ export const insertNeonLeaveRequest = async (req: any) => {
   return executeNeonQuery(async (sql) => {
     const typeDb = req.typeAbsence || req.type || 'Permission d\'absence';
     const statusDb = req.statut === 'Approuvé' ? 'APPROUVE' : req.statut === 'Refusé' ? 'REFUSE' : 'EN_ATTENTE';
+    const targetMatricule = String(req.employeId || req.matricule || '');
 
+    // 1. Resolve foreign key `employee_id` referencing `employees(id)`
+    let targetEmployeeUuid: string | null = null;
+    try {
+      const empMatch = await sql`
+        SELECT id FROM employees
+        WHERE matricule = ${targetMatricule} OR id = ${targetMatricule}
+        LIMIT 1;
+      `;
+      if (empMatch && empMatch.length > 0) {
+        targetEmployeeUuid = String(empMatch[0].id);
+      }
+    } catch (e) {
+      // Ignore lookup failure
+    }
+
+    const fkEmployeeId = targetEmployeeUuid || targetMatricule;
+
+    // 2. Insert with FK resolution
     try {
       const reqId = req.id || `abs-${Date.now()}`;
       const rows = await sql`
         INSERT INTO leave_requests (id, employee_id, employee_name, type, start_date, end_date, days_count, reason, status)
         VALUES (
           ${reqId},
-          ${req.employeId || req.matricule},
+          ${fkEmployeeId},
           ${req.employeNom || req.nomPrenom},
           ${typeDb},
           ${req.dateDebut},
@@ -210,11 +243,11 @@ export const insertNeonLeaveRequest = async (req: any) => {
       `;
       return rows[0];
     } catch (err) {
-      // Fallback if table `leave_requests` has auto-generated UUID/SERIAL id
+      // Fallback if table `leave_requests` uses DEFAULT gen_random_uuid() for primary key `id`
       const rows = await sql`
         INSERT INTO leave_requests (employee_id, employee_name, type, start_date, end_date, days_count, reason, status)
         VALUES (
-          ${req.employeId || req.matricule},
+          ${fkEmployeeId},
           ${req.employeNom || req.nomPrenom},
           ${typeDb},
           ${req.dateDebut},
