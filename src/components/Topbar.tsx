@@ -63,12 +63,6 @@ export const Topbar: React.FC = () => {
         return user?.role === 'Employé'
           ? 'Mes Demandes de Permission & Congés'
           : 'Validation des Demandes de Permission & Congés';
-      case 'primes':
-        return user?.role === 'SuperAdmin'
-          ? 'Matrice & Configuration des Primes (SuperAdmin)'
-          : user?.role === 'Admin' || (user?.role as string) === 'Admin RH'
-          ? 'Suivi & Contrôle des Primes Employés'
-          : 'Ma Prime de Ponctualité T3 2026';
       case 'parametres':
         return 'Configuration du Compte & Photo de Profil';
       default:

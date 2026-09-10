@@ -41,7 +41,7 @@ export const Splash: React.FC = () => {
         </div>
 
         <p className="mt-4 text-slate-400 text-sm max-w-md">
-          Gestion du personnel, suivi des présences 3CX & Moteur automatisé de calcul des primes.
+          Gestion du personnel & suivi des présences 3CX.
         </p>
 
         {/* Loading Bar */}

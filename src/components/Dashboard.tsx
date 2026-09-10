@@ -5,32 +5,24 @@ import { useApp } from '@/context/AppContext';
 import {
   Users,
   UserCheck,
-  GraduationCap,
-  AlertTriangle,
-  Zap,
   CalendarCheck,
-  ArrowUpRight,
   Clock,
   CheckCircle2,
-  XCircle,
   Briefcase,
-  Shield,
-  ShieldAlert,
+  Zap,
 } from 'lucide-react';
 
 export const Dashboard: React.FC = () => {
-  const { employees, absenceRequests, primes, primeConfig, auditLogs, setActiveTab, user } = useApp();
+  const { employees, absenceRequests, auditLogs, setActiveTab, user } = useApp();
 
   if (!user) return null;
 
   const isEmploye = user.role === 'Employé';
   const isSuperAdmin = user.role === 'SuperAdmin';
-  const isAdminRH = user.role === 'Admin' || (user.role as string) === 'Admin RH';
 
   // If user is regular Employee, show personalized Employee Dashboard
   if (isEmploye) {
     const myRequests = absenceRequests.filter((r) => r.matricule === user.matricule);
-    const myPrime = primes.find((p) => p.matricule === user.matricule);
 
     return (
       <div className="space-y-6">
@@ -67,27 +59,13 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {/* My KPIs */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-lg">
             <div className="text-xs font-semibold text-slate-400">Solde Congés Payés</div>
             <div className="mt-2 text-3xl font-extrabold text-white font-mono">
               {user.soldeConges} Jours
             </div>
             <div className="mt-2 text-xs text-emerald-400">Disponibles pour l&apos;année 2026</div>
-          </div>
-
-          <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-lg">
-            <div className="text-xs font-semibold text-slate-400">Prime T3 2026</div>
-            <div className="mt-2 text-2xl font-extrabold text-white">
-              {myPrime?.eligible ? (
-                <span className="text-emerald-400">{primeConfig.montantReference.toLocaleString('fr-FR')} FCFA</span>
-              ) : (
-                <span className="text-red-400 line-through">0 FCFA</span>
-              )}
-            </div>
-            <div className="mt-2 text-xs text-slate-400">
-              {myPrime?.eligible ? 'Assiduité conforme' : 'Suspendue pour absence non justifiée'}
-            </div>
           </div>
 
           <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-lg">
@@ -160,8 +138,7 @@ export const Dashboard: React.FC = () => {
   const stagiairesCount = employees.filter((e) => e.statut === 'STAGIAIRE').length;
 
   const pendingAbsences = absenceRequests.filter((r) => r.statut === 'En attente').length;
-  const canceledPrimesCount = primes.filter((p) => !p.eligible).length;
-  const totalPrimeBudget = primes.filter((p) => p.eligible).reduce((acc, curr) => acc + curr.montantCalcule, 0);
+  const approvedAbsences = absenceRequests.filter((r) => r.statut === 'Approuvé').length;
 
   return (
     <div className="space-y-6">
@@ -174,10 +151,10 @@ export const Dashboard: React.FC = () => {
               VOOMNET TECH RH — Espace {isSuperAdmin ? 'Superadministrateur' : 'Administrateur RH'}
             </div>
             <h3 className="text-2xl font-bold text-white">
-              Tableau de Bord de Pilotage RH & Primes
+              Tableau de Bord de Pilotage RH
             </h3>
             <p className="text-sm text-slate-300 mt-1 max-w-2xl">
-              Suivi global du personnel (CDI, CDD, Stagiaires), contrôle des demandes d&apos;absences et exécution du moteur de primes.
+              Suivi global du personnel (CDI, CDD, Stagiaires) et contrôle centralisé des demandes d&apos;absences et congés.
             </p>
           </div>
 
@@ -188,13 +165,6 @@ export const Dashboard: React.FC = () => {
             >
               <CalendarCheck className="w-4 h-4" />
               Validations ({pendingAbsences})
-            </button>
-            <button
-              onClick={() => setActiveTab('primes')}
-              className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 rounded-xl text-xs font-semibold transition-all flex items-center gap-2"
-            >
-              <Zap className="w-4 h-4 text-amber-400" />
-              Matrice Primes
             </button>
           </div>
         </div>
@@ -248,98 +218,25 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Primes Suspendues */}
+        {/* Demandes Approuvées */}
         <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-lg">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400">Primes Suspendues</span>
-            <div className="w-10 h-10 rounded-xl bg-red-500/20 text-red-400 flex items-center justify-center">
-              <AlertTriangle className="w-5 h-5" />
+            <span className="text-xs font-semibold text-slate-400">Demandes Valides</span>
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+              <CheckCircle2 className="w-5 h-5" />
             </div>
           </div>
-          <div className="mt-3 text-3xl font-extrabold text-white">{canceledPrimesCount}</div>
-          <div className="mt-2 text-xs text-red-400 font-medium">
-            Absences non justifiées
+          <div className="mt-3 text-3xl font-extrabold text-white">{approvedAbsences}</div>
+          <div className="mt-2 text-xs text-emerald-400 font-medium">
+            Permissions & congés approuvés
           </div>
         </div>
       </div>
 
       {/* Middle Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Statut Breakdown & Règle des Primes */}
+        {/* Employee Categories Breakdown */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Moteur de Prime Alert Card */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg">
-            <div className="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center">
-                  <Zap className="w-4 h-4" />
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold text-white">
-                    Moteur de Primes VOOMNET ({primeConfig.periodeNom})
-                  </h4>
-                  <p className="text-xs text-slate-400">
-                    Calcul d&apos;éligibilité automatisé par `primeEngine.js`
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => setActiveTab('primes')}
-                className="text-xs text-blue-400 hover:text-blue-300 font-semibold flex items-center gap-1"
-              >
-                Gérer les primes <ArrowUpRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-
-            <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 text-xs text-slate-300 space-y-2 leading-relaxed">
-              <p>
-                <strong className="text-white">Règle des primes :</strong> Montant de référence fixé à <strong className="text-amber-300">{primeConfig.montantReference.toLocaleString('fr-FR')} FCFA</strong>. Toute absence non justifiée annule l&apos;éligibilité de l&apos;employé.
-              </p>
-              <div className="flex items-center gap-2 text-emerald-400 pt-1">
-                <CheckCircle2 className="w-4 h-4 shrink-0" />
-                <span>
-                  Budget total des primes engagées :{' '}
-                  <strong className="text-white font-mono text-sm">
-                    {totalPrimeBudget.toLocaleString('fr-FR')} FCFA
-                  </strong>
-                </span>
-              </div>
-            </div>
-
-            {/* List of employee prime status preview */}
-            <div className="mt-4 space-y-2">
-              {primes.map((p) => (
-                <div
-                  key={p.matricule}
-                  className="p-3 bg-slate-950/60 rounded-xl border border-slate-800/80 flex items-center justify-between text-xs"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="font-mono font-bold text-blue-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-700">
-                      {p.matricule}
-                    </span>
-                    <div>
-                      <span className="font-semibold text-white">{p.nomPrenom}</span>
-                      <span className="text-[10px] text-slate-400 ml-2">[{p.statutCollaborateur} — {p.roleCollaborateur}]</span>
-                    </div>
-                  </div>
-
-                  {p.eligible ? (
-                    <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-[11px] font-semibold border border-emerald-500/30 flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      Éligible ({p.montantCalcule.toLocaleString('fr-FR')} FCFA)
-                    </span>
-                  ) : (
-                    <span className="px-2.5 py-1 rounded-full bg-red-500/20 text-red-300 text-[11px] font-semibold border border-red-500/30 flex items-center gap-1">
-                      <XCircle className="w-3.5 h-3.5" />
-                      Prime Annulée
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Employee Categories Breakdown */}
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg">
             <h4 className="text-sm font-bold text-white mb-4">
               Répartition des Collaborateurs par Statut Contractuel

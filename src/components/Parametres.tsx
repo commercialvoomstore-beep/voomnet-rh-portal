@@ -256,9 +256,9 @@ export const Parametres: React.FC = () => {
             <Database className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-white">Règles Primes & Architecture Système</h3>
+            <h3 className="text-sm font-bold text-white">Architecture & Configuration Système</h3>
             <p className="text-xs text-slate-400">
-              Détails de la règle des 3 mois basée sur la date d&apos;embauche.
+              Détails techniques de l&apos;infrastructure et de la base de données.
             </p>
           </div>
         </div>
@@ -268,12 +268,12 @@ export const Parametres: React.FC = () => {
             <div className="flex items-center justify-between text-slate-300 font-bold">
               <span className="flex items-center gap-2">
                 <Clock className="w-4 h-4 text-amber-400" />
-                Règle des Primes 3 Mois
+                Suivi du Personnel & Présences 3CX
               </span>
               <span className="text-emerald-400 font-mono text-[10px]">ACTIF</span>
             </div>
             <div className="text-[11px] text-slate-400 leading-relaxed">
-              Pendant les 3 mois du trimestre : toute demande d&apos;absence <strong>sans justificatif</strong> annule la prime. Toute demande d&apos;absence <strong>justifiée</strong> conserve la prime.
+              Gestion automatisée du personnel, des permissions d&apos;absence et intégration avec les téléphones IP 3CX.
             </div>
           </div>
 
@@ -281,12 +281,12 @@ export const Parametres: React.FC = () => {
             <div className="flex items-center justify-between text-slate-300 font-bold">
               <span className="flex items-center gap-2">
                 <Database className="w-4 h-4 text-blue-400" />
-                Base de données MySQL
+                Base de données Neon PostgreSQL
               </span>
-              <span className="text-emerald-400 font-mono text-[10px]">voomnet_rh</span>
+              <span className="text-emerald-400 font-mono text-[10px]">NEON_POSTGRES</span>
             </div>
             <div className="text-[11px] font-mono text-slate-400 space-y-1">
-              <div>Tables: personnel, conges, primes, chat</div>
+              <div>Tables: employees, leave_requests, chat_messages</div>
             </div>
           </div>
         </div>

@@ -9,7 +9,6 @@ import { Topbar } from '@/components/Topbar';
 import { Dashboard } from '@/components/Dashboard';
 import { Personnel } from '@/components/Personnel';
 import { Conges } from '@/components/Conges';
-import { PrimesEngine } from '@/components/PrimesEngine';
 import { Parametres } from '@/components/Parametres';
 import { MonPoste } from '@/components/MonPoste';
 import { ChatRH } from '@/components/ChatRH';

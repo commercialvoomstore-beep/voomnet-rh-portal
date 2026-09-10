@@ -281,7 +281,7 @@ export const Conges: React.FC = () => {
                     <span className="text-[11px] text-slate-400">
                       {justifiee
                         ? 'Un justificatif (certificat médical, convocation) est joint.'
-                        : 'Attention: Une absence non justifiée pendant la période de prime entraîne la perte de la prime.'}
+                        : 'Merci de fournir un justificatif officiel pour la prise en compte RH.'}
                     </span>
                   </div>
                 </div>

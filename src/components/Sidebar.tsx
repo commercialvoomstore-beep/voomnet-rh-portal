@@ -6,7 +6,6 @@ import {
   LayoutDashboard,
   Users,
   CalendarCheck,
-  Zap,
   Settings,
   LogOut,
   Cpu,
@@ -15,7 +14,7 @@ import {
 } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
-  const { activeTab, setActiveTab, logout, user, absenceRequests, primes, chatMessages } = useApp();
+  const { activeTab, setActiveTab, logout, user, absenceRequests, chatMessages } = useApp();
 
   if (!user) return null;
 
@@ -25,7 +24,6 @@ export const Sidebar: React.FC = () => {
 
   // Dynamic Badges
   const pendingAbsences = absenceRequests.filter((r) => r.statut === 'En attente').length;
-  const canceledPrimes = primes.filter((p) => !p.eligible).length;
   const myPendingRequests = absenceRequests.filter(
     (r) => r.matricule === user.matricule && r.statut === 'En attente'
   ).length;

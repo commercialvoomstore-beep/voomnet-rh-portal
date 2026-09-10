@@ -151,7 +151,7 @@ export const Login: React.FC = () => {
                 <div className="text-xs font-extrabold text-slate-900 group-hover:text-sky-700">
                   Marc KOUASSI
                 </div>
-                <div className="text-[10px] text-slate-500 font-medium">Administrateur • Valider Congés & Primes</div>
+                <div className="text-[10px] text-slate-500 font-medium">Administrateur • Valider Congés & Absences</div>
               </div>
             </div>
             <span className="text-[10px] bg-sky-200 text-sky-900 px-2.5 py-0.5 rounded-full font-extrabold border border-sky-300">
