@@ -38,11 +38,20 @@ export const fetchNeonEmployees = async (): Promise<Employee[] | null> => {
   }
 
   return executeNeonQuery(async (sql) => {
-    const rows = await sql`
-      SELECT id, matricule, first_name, last_name, email, phone, role, position, department, status, base_salary, hire_date, avatar_url, password
-      FROM employees
-      ORDER BY created_at DESC;
-    `;
+    let rows: any[] = [];
+    try {
+      rows = await sql`
+        SELECT id, matricule, first_name, last_name, email, phone, role, position, department, status, base_salary, hire_date, avatar_url
+        FROM employees
+        ORDER BY created_at DESC;
+      `;
+    } catch (err) {
+      rows = await sql`
+        SELECT id, matricule, first_name, last_name, email, phone, role, position, department, status
+        FROM employees;
+      `;
+    }
+
     return rows.map((r: any) => ({
       id: String(r.id || `emp-${Date.now()}`),
       matricule: String(r.matricule || '1000'),

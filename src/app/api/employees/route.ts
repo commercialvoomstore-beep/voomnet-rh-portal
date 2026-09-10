@@ -29,11 +29,19 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, error: 'Database connection URL not configured', employees: [] }, { status: 200 });
     }
 
-    const rows = await sql`
-      SELECT id, matricule, first_name, last_name, email, phone, role, position, department, status, base_salary, hire_date, avatar_url, password
-      FROM employees
-      ORDER BY created_at DESC;
-    `;
+    let rows: any[] = [];
+    try {
+      rows = await sql`
+        SELECT id, matricule, first_name, last_name, email, phone, role, position, department, status, base_salary, hire_date, avatar_url
+        FROM employees
+        ORDER BY created_at DESC;
+      `;
+    } catch (err) {
+      rows = await sql`
+        SELECT id, matricule, first_name, last_name, email, phone, role, position, department, status
+        FROM employees;
+      `;
+    }
 
     const employees = rows.map((r: any) => ({
       id: String(r.id || `emp-${Date.now()}`),
