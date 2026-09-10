@@ -59,15 +59,7 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {/* My KPIs */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-lg">
-            <div className="text-xs font-semibold text-slate-400">Solde Congés Payés</div>
-            <div className="mt-2 text-3xl font-extrabold text-white font-mono">
-              {user.soldeConges} Jours
-            </div>
-            <div className="mt-2 text-xs text-emerald-400">Disponibles pour l&apos;année 2026</div>
-          </div>
-
+        <div className="grid grid-cols-1 gap-4">
           <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-lg">
             <div className="text-xs font-semibold text-slate-400">Mes Demandes Soumises</div>
             <div className="mt-2 text-3xl font-extrabold text-white">{myRequests.length}</div>

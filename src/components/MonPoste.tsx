@@ -67,16 +67,6 @@ export const MonPoste: React.FC = () => {
             </p>
           </div>
         </div>
-
-        <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 text-right shrink-0">
-          <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
-            Solde Congés Payés
-          </div>
-          <div className="text-2xl font-extrabold text-white font-mono mt-0.5">
-            {user.soldeConges} Jours
-          </div>
-          <div className="text-[10px] text-emerald-400 mt-0.5">Disponibles pour 2026</div>
-        </div>
       </div>
 
       {/* Grid details */}
