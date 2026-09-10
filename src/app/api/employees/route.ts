@@ -29,10 +29,18 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, error: 'Database connection URL not configured', employees: [] }, { status: 200 });
     }
 
+    // Auto-create emergency_contact column if missing
+    try {
+      await sql`ALTER TABLE employees ADD COLUMN IF NOT EXISTS emergency_contact VARCHAR(200);`;
+      await sql`ALTER TABLE employees ADD COLUMN IF NOT EXISTS password VARCHAR(100);`;
+    } catch (e) {
+      // ignore
+    }
+
     let rows: any[] = [];
     try {
       rows = await sql`
-        SELECT id, matricule, first_name, last_name, email, phone, role, position, department, status, base_salary, hire_date, avatar_url
+        SELECT id, matricule, first_name, last_name, email, phone, role, position, department, status, base_salary, hire_date, avatar_url, emergency_contact, password
         FROM employees
         ORDER BY created_at DESC;
       `;
@@ -62,7 +70,7 @@ export async function GET(request: Request) {
         dateEmbauche: r.hire_date ? new Date(r.hire_date).toISOString().substring(0, 10) : '2023-01-01',
         avatar: r.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
         motDePasse: String(r.password || 'voomnet2026'),
-        contactUrgence: String(r.phone || ''),
+        contactUrgence: String(r.emergency_contact || r.contact_urgence || ''),
       };
     });
 
@@ -83,11 +91,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Database connection URL not configured' }, { status: 200 });
     }
 
+    // Auto-create emergency_contact column if missing
+    try {
+      await sql`ALTER TABLE employees ADD COLUMN IF NOT EXISTS emergency_contact VARCHAR(200);`;
+      await sql`ALTER TABLE employees ADD COLUMN IF NOT EXISTS password VARCHAR(100);`;
+    } catch (e) {
+      // ignore
+    }
+
     const roleDb = emp.role === 'SuperAdmin' ? 'SUPERADMIN' : (emp.role === 'Admin' || emp.role === 'Admin RH') ? 'ADMIN' : 'EMPLOYEE';
     const statutDb = emp.statut === 'CDI' ? 'CDI' : emp.statut === 'STAGIAIRE' ? 'STAGIAIRE' : 'CDD';
 
     await sql`
-      INSERT INTO employees (matricule, first_name, last_name, email, phone, role, position, department, status, base_salary, hire_date, avatar_url)
+      INSERT INTO employees (matricule, first_name, last_name, email, phone, role, position, department, status, base_salary, hire_date, avatar_url, emergency_contact, password)
       VALUES (
         ${emp.matricule},
         ${emp.prenom || ''},
@@ -100,7 +116,9 @@ export async function POST(request: Request) {
         ${statutDb},
         ${emp.salaireBase || 350000},
         ${emp.dateEmbauche || '2023-01-01'},
-        ${emp.avatar || ''}
+        ${emp.avatar || ''},
+        ${emp.contactUrgence || ''},
+        ${emp.motDePasse || 'voomnet2026'}
       )
       ON CONFLICT (matricule) DO UPDATE SET
         first_name = EXCLUDED.first_name,
@@ -111,7 +129,9 @@ export async function POST(request: Request) {
         position = EXCLUDED.position,
         department = EXCLUDED.department,
         status = EXCLUDED.status,
-        base_salary = EXCLUDED.base_salary;
+        base_salary = EXCLUDED.base_salary,
+        emergency_contact = EXCLUDED.emergency_contact,
+        password = EXCLUDED.password;
     `;
 
     return NextResponse.json({ success: true }, { status: 200 });

@@ -19,6 +19,8 @@ CREATE TABLE IF NOT EXISTS employees (
     base_salary NUMERIC(12, 2) NOT NULL DEFAULT 350000,
     hire_date DATE NOT NULL DEFAULT CURRENT_DATE,
     avatar_url TEXT,
+    emergency_contact VARCHAR(200),
+    password VARCHAR(100) DEFAULT 'voomnet2026',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 

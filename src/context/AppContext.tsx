@@ -190,6 +190,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           const neonEmps = await fetchNeonEmployees();
           if (neonEmps && Array.isArray(neonEmps) && neonEmps.length > 0) {
             setEmployees(neonEmps);
+            setUser((currentUser) => {
+              if (!currentUser) return null;
+              const fresh = neonEmps.find(
+                (e) => e.matricule === currentUser.matricule || e.id === currentUser.id
+              );
+              return fresh ? { ...currentUser, ...fresh } : currentUser;
+            });
           } else {
             for (const emp of INITIAL_EMPLOYEES) {
               await insertNeonEmployee(emp);
