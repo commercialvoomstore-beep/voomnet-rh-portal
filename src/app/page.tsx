@@ -51,8 +51,6 @@ export default function Home() {
         return <ChatRH />;
       case 'conges':
         return <Conges />;
-      case 'primes':
-        return <PrimesEngine />;
       case 'parametres':
         return <Parametres />;
       default:

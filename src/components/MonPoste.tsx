@@ -154,37 +154,7 @@ export const MonPoste: React.FC = () => {
         </div>
       </div>
 
-      {/* Card 3: Mon Statut Prime T3 2026 */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg space-y-3">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-          <div className="flex items-center gap-2">
-            <Zap className="w-5 h-5 text-amber-400" />
-            <h3 className="text-sm font-bold text-white">
-              Ma Prime de Ponctualité — {primeConfig.periodeNom}
-            </h3>
-          </div>
-
-          {myPrime?.eligible ? (
-            <span className="px-3 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold rounded-full flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4" />
-              Éligible ({primeConfig.montantReference.toLocaleString('fr-FR')} FCFA)
-            </span>
-          ) : (
-            <span className="px-3 py-1 bg-red-500/20 text-red-300 border border-red-500/30 text-xs font-bold rounded-full flex items-center gap-1.5">
-              <XCircle className="w-4 h-4" />
-              Prime Suspendue
-            </span>
-          )}
-        </div>
-
-        <p className="text-xs text-slate-300 leading-relaxed">
-          {myPrime?.eligible
-            ? 'Règle des 3 mois : Vos assiduités et absences justifiées vous permettent de bénéficier de la totalité de la prime trimestrielle.'
-            : `Statut actuel : ${myPrime?.motifStatus || 'Absence non justifiée enregistrée'}. Rapprochez-vous de l'Administration RH en cas de justificatif officiel.`}
-        </p>
-      </div>
-
-      {/* Card 4: Suivi de Mes Demandes (Validées / Refusées / En attente par l'Admin) */}
+      {/* Card 3: Suivi de Mes Demandes (Validées / Refusées / En attente par l'Admin) */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg space-y-4">
         <div className="flex items-center justify-between border-b border-slate-800 pb-3">
           <div className="flex items-center gap-2">

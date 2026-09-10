@@ -45,7 +45,6 @@ export const Sidebar: React.FC = () => {
           badge: myPendingRequests > 0 ? myPendingRequests : null,
           badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
         },
-        { id: 'primes', label: 'Ma Prime T3 2026', icon: Zap },
         { id: 'parametres', label: 'Mon Compte & Photo', icon: Settings },
       ];
     }
@@ -68,13 +67,6 @@ export const Sidebar: React.FC = () => {
           badge: pendingAbsences > 0 ? pendingAbsences : null,
           badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
         },
-        {
-          id: 'primes',
-          label: 'Suivi des Primes',
-          icon: Zap,
-          badge: canceledPrimes > 0 ? `${canceledPrimes} Annulée${canceledPrimes > 1 ? 's' : ''}` : null,
-          badgeColor: 'bg-red-500/20 text-red-300 border-red-500/30',
-        },
         { id: 'parametres', label: 'Paramètres & Photo', icon: Settings },
       ];
     }
@@ -96,13 +88,6 @@ export const Sidebar: React.FC = () => {
         icon: CalendarCheck,
         badge: pendingAbsences > 0 ? pendingAbsences : null,
         badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
-      },
-      {
-        id: 'primes',
-        label: 'Config & Matrice Primes',
-        icon: Zap,
-        badge: canceledPrimes > 0 ? `${canceledPrimes} Annulée${canceledPrimes > 1 ? 's' : ''}` : null,
-        badgeColor: 'bg-red-500/20 text-red-300 border-red-500/30',
       },
       { id: 'parametres', label: 'Configuration Système', icon: Settings },
     ];
