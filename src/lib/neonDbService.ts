@@ -365,3 +365,38 @@ export const deleteNeonLeaveRequest = async (id: string) => {
     `;
   });
 };
+
+// ==========================================
+// 4. PRIME CONFIGURATION
+// ==========================================
+export const fetchNeonPrimeConfig = async (): Promise<any | null> => {
+  if (typeof window !== 'undefined') {
+    try {
+      const customUrl = localStorage.getItem('VOOMNET_NEON_DATABASE_URL') || '';
+      const url = customUrl ? `/api/prime-config?customUrl=${encodeURIComponent(customUrl)}` : '/api/prime-config';
+      const res = await fetch(url, { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.config) return data.config;
+      }
+    } catch (err) {
+      console.warn('API fetch prime config failed:', err);
+    }
+  }
+  return null;
+};
+
+export const updateNeonPrimeConfig = async (montantReference: number, periodeNom?: string) => {
+  if (typeof window !== 'undefined') {
+    try {
+      const customUrl = localStorage.getItem('VOOMNET_NEON_DATABASE_URL') || '';
+      await fetch('/api/prime-config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ montantReference, periodeNom, customUrl }),
+      });
+    } catch (err) {
+      console.warn('API update prime config failed:', err);
+    }
+  }
+};

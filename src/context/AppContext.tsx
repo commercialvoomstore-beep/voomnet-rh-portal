@@ -28,6 +28,8 @@ import {
   insertNeonLeaveRequest,
   updateNeonLeaveRequestStatus,
   deleteNeonLeaveRequest,
+  fetchNeonPrimeConfig,
+  updateNeonPrimeConfig,
 } from '@/lib/neonDbService';
 import { getActiveProvider } from '@/lib/databaseAdapter';
 
@@ -227,6 +229,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 }
               });
               return Array.from(reqMap.values());
+            });
+          }
+
+          // 4. Sync Prime Configuration from Neon DB
+          const latestConfig = await fetchNeonPrimeConfig();
+          if (latestConfig && latestConfig.montantReference) {
+            setPrimeConfig((prev) => {
+              if (prev.montantReference !== latestConfig.montantReference || prev.periodeNom !== latestConfig.periodeNom) {
+                const newRef = latestConfig.montantReference;
+                setPrimes((pPrev) =>
+                  pPrev.map((p) => ({
+                    ...p,
+                    periodeNom: latestConfig.periodeNom || p.periodeNom,
+                    montantCalcule: p.eligible ? newRef : 0,
+                  }))
+                );
+                return { ...prev, ...latestConfig };
+              }
+              return prev;
             });
           }
         }
@@ -520,14 +541,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const updatePrimeConfig = (newConfig: Partial<PrimeConfig>) => {
     setPrimeConfig((prev) => {
       const updated = { ...prev, ...newConfig };
-      if (newConfig.montantReference !== undefined) {
-        setPrimes((pPrev) =>
-          pPrev.map((p) => ({
-            ...p,
-            montantCalcule: p.eligible ? updated.montantReference : 0,
-          }))
-        );
-      }
+      const newRef = updated.montantReference;
+
+      // Save directly into Neon PostgreSQL database
+      updateNeonPrimeConfig(newRef, updated.periodeNom).catch(console.error);
+
+      setPrimes((pPrev) =>
+        pPrev.map((p) => ({
+          ...p,
+          montantCalcule: p.eligible ? newRef : 0,
+        }))
+      );
       return updated;
     });
 
