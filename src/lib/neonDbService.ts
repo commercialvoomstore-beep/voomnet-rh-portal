@@ -52,24 +52,28 @@ export const fetchNeonEmployees = async (): Promise<Employee[] | null> => {
       `;
     }
 
-    return rows.map((r: any) => ({
-      id: String(r.id || `emp-${Date.now()}`),
-      matricule: String(r.matricule || '1000'),
-      nom: String(r.last_name || ''),
-      prenom: String(r.first_name || ''),
-      email: String(r.email || ''),
-      telephone3CX: String(r.phone || r.matricule || ''),
-      role: (r.role === 'SUPERADMIN' ? 'SuperAdmin' : r.role === 'ADMIN' ? 'Admin' : 'Employé') as RoleType,
-      poste: String(r.position || 'Poste VOOMNET'),
-      departement: String(r.department || 'Général'),
-      statut: (r.status === 'ACTIF' ? 'CDI' : r.status === 'STAGIAIRE' ? 'STAGIAIRE' : 'CDD') as StatutContrat,
-      soldeConges: 24,
-      salaireBase: Number(r.base_salary) || 350000,
-      dateEmbauche: r.hire_date ? new Date(r.hire_date).toISOString().substring(0, 10) : '2023-01-01',
-      avatar: r.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-      motDePasse: String(r.password || 'voomnet2026'),
-      contactUrgence: String(r.phone || ''),
-    }));
+    return rows.map((r: any) => {
+      const s = String(r.status || '').toUpperCase();
+      const mappedStatut = (s === 'CDI' || s === 'ACTIF' ? 'CDI' : s === 'STAGIAIRE' || s === 'STAGE' ? 'STAGIAIRE' : 'CDD') as StatutContrat;
+      return {
+        id: String(r.id || `emp-${Date.now()}`),
+        matricule: String(r.matricule || '1000'),
+        nom: String(r.last_name || ''),
+        prenom: String(r.first_name || ''),
+        email: String(r.email || ''),
+        telephone3CX: String(r.phone || r.matricule || ''),
+        role: (r.role === 'SUPERADMIN' ? 'SuperAdmin' : r.role === 'ADMIN' ? 'Admin' : 'Employé') as RoleType,
+        poste: String(r.position || 'Poste VOOMNET'),
+        departement: String(r.department || 'Général'),
+        statut: mappedStatut,
+        soldeConges: 24,
+        salaireBase: Number(r.base_salary) || 350000,
+        dateEmbauche: r.hire_date ? new Date(r.hire_date).toISOString().substring(0, 10) : '2023-01-01',
+        avatar: r.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+        motDePasse: String(r.password || 'voomnet2026'),
+        contactUrgence: String(r.phone || ''),
+      };
+    });
   });
 };
 
@@ -89,7 +93,7 @@ export const insertNeonEmployee = async (emp: Employee) => {
 
   return executeNeonQuery(async (sql) => {
     const roleDb = emp.role === 'SuperAdmin' ? 'SUPERADMIN' : (emp.role === 'Admin' || (emp.role as string) === 'Admin RH') ? 'ADMIN' : 'EMPLOYEE';
-    const statutDb = emp.statut || 'ACTIF';
+    const statutDb = emp.statut === 'CDI' ? 'CDI' : emp.statut === 'STAGIAIRE' ? 'STAGIAIRE' : 'CDD';
 
     await sql`
       INSERT INTO employees (matricule, first_name, last_name, email, phone, role, position, department, status, base_salary, hire_date, avatar_url)
