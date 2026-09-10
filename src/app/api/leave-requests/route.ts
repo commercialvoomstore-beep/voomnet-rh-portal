@@ -224,3 +224,30 @@ export async function PUT(request: Request) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+    const customUrl = searchParams.get('customUrl') || undefined;
+
+    if (!id) {
+      return NextResponse.json({ success: false, error: 'Missing request ID' }, { status: 400 });
+    }
+
+    const sql = getDbConnection(customUrl);
+    if (!sql) {
+      return NextResponse.json({ success: false, error: 'Database connection URL not configured on server' }, { status: 200 });
+    }
+
+    await sql`
+      DELETE FROM leave_requests
+      WHERE id = ${id};
+    `;
+
+    return NextResponse.json({ success: true }, { status: 200 });
+  } catch (err: any) {
+    console.error('API DELETE /api/leave-requests error:', err);
+    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+  }
+}

@@ -27,6 +27,7 @@ import {
   fetchNeonLeaveRequests,
   insertNeonLeaveRequest,
   updateNeonLeaveRequestStatus,
+  deleteNeonLeaveRequest,
 } from '@/lib/neonDbService';
 import { getActiveProvider } from '@/lib/databaseAdapter';
 
@@ -91,6 +92,7 @@ interface AppContextType {
   markChatMessagesAsRead: (matricule: string) => void;
   createAbsenceRequest: (req: Omit<AbsenceRequest, 'id' | 'codeSuivi' | 'dateDemande'>) => string;
   updateAbsenceStatus: (id: string, statut: 'Approuvé' | 'Refusé', justifiee: boolean, notes?: string) => void;
+  deleteAbsenceRequest: (id: string) => void;
   simulateUnjustifiedAbsence: (matricule: string, dateAbsence: string) => void;
   restorePrime: (matricule: string, motifRestauration: string) => void;
   activeToast: AlertNotification | null;
@@ -692,6 +694,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   };
 
+  const deleteAbsenceRequest = (id: string) => {
+    const target = (absenceRequests || []).find((r) => r && r.id === id);
+    const code = target?.codeSuivi || id;
+
+    setAbsenceRequests((prev) => {
+      const updated = (prev || []).filter((r) => r && r.id !== id);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('VOOMNET_ABSENCE_REQUESTS', JSON.stringify(updated));
+      }
+      return updated;
+    });
+
+    deleteNeonLeaveRequest(id).catch(console.error);
+
+    showNotificationAlert(
+      '🗑️ Demande Supprimée',
+      `La demande d'absence ${code} a été supprimée de la base de données par l'Administration.`,
+      'ALERT'
+    );
+  };
+
   const simulateUnjustifiedAbsence = (matricule: string, dateAbsence: string) => {
     const emp = employees.find((e) => e.matricule === matricule);
     if (!emp) return;
@@ -761,6 +784,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         markChatMessagesAsRead,
         createAbsenceRequest,
         updateAbsenceStatus,
+        deleteAbsenceRequest,
         simulateUnjustifiedAbsence,
         restorePrime,
         activeToast,

@@ -344,3 +344,24 @@ export const updateNeonLeaveRequestStatus = async (id: string, statut: string, n
     `;
   });
 };
+
+export const deleteNeonLeaveRequest = async (id: string) => {
+  if (typeof window !== 'undefined') {
+    try {
+      const customUrl = localStorage.getItem('VOOMNET_NEON_DATABASE_URL') || '';
+      const url = customUrl
+        ? `/api/leave-requests?id=${encodeURIComponent(id)}&customUrl=${encodeURIComponent(customUrl)}`
+        : `/api/leave-requests?id=${encodeURIComponent(id)}`;
+      await fetch(url, { method: 'DELETE' });
+    } catch (err) {
+      console.warn('API delete leave request failed:', err);
+    }
+  }
+
+  return executeNeonQuery(async (sql) => {
+    await sql`
+      DELETE FROM leave_requests
+      WHERE id = ${id};
+    `;
+  });
+};

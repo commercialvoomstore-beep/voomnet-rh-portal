@@ -17,10 +17,11 @@ import {
   Calendar,
   ShieldAlert,
   Lock,
+  Trash2,
 } from 'lucide-react';
 
 export const Conges: React.FC = () => {
-  const { absenceRequests, createAbsenceRequest, updateAbsenceStatus, user, employees } = useApp();
+  const { absenceRequests, createAbsenceRequest, updateAbsenceStatus, deleteAbsenceRequest, user, employees } = useApp();
   const [showNewForm, setShowShowNewForm] = useState(false);
   const [filterStatut, setFilterStatut] = useState<string>('Tous');
 
@@ -507,6 +508,24 @@ export const Conges: React.FC = () => {
                             </span>
                           </div>
                         )}
+
+                        {/* Bouton de Suppression pour Admin & SuperAdmin */}
+                        <button
+                          onClick={() => {
+                            if (
+                              confirm(
+                                `Êtes-vous sûr de vouloir supprimer définitivement la demande ${req.codeSuivi} de ${req.nomPrenom} ?`
+                              )
+                            ) {
+                              deleteAbsenceRequest(req.id);
+                            }
+                          }}
+                          className="px-2.5 py-1 bg-red-950/60 hover:bg-red-900 text-red-300 border border-red-800/80 font-bold text-[11px] rounded-xl shadow-sm transition-all flex items-center gap-1 mt-1 ml-auto"
+                          title="Supprimer définitivement la demande (Admin & SuperAdmin)"
+                        >
+                          <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                          Supprimer
+                        </button>
                       </div>
                     ) : (
                       <div className="space-y-1 text-right">
