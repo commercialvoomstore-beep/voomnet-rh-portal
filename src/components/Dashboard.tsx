@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   Briefcase,
   Zap,
+  Award,
 } from 'lucide-react';
 
 export const Dashboard: React.FC = () => {
@@ -47,6 +48,13 @@ export const Dashboard: React.FC = () => {
             >
               <CalendarCheck className="w-4 h-4" />
               Soumettre une permission
+            </button>
+            <button
+              onClick={() => setActiveTab('primes')}
+              className="px-4 py-2.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-amber-600/30 transition-all flex items-center gap-2"
+            >
+              <Award className="w-4 h-4" />
+              Ma Prime
             </button>
             <button
               onClick={() => setActiveTab('monposte')}
@@ -157,6 +165,13 @@ export const Dashboard: React.FC = () => {
             >
               <CalendarCheck className="w-4 h-4" />
               Validations ({pendingAbsences})
+            </button>
+            <button
+              onClick={() => setActiveTab('primes')}
+              className="px-4 py-2.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-amber-600/30 transition-all flex items-center gap-2"
+            >
+              <Award className="w-4 h-4" />
+              Attribution Primes
             </button>
           </div>
         </div>

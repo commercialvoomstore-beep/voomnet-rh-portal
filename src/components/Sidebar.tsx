@@ -19,9 +19,10 @@ export const Sidebar: React.FC = () => {
 
   if (!user) return null;
 
-  const isSuperAdmin = user.role === 'SuperAdmin';
-  const isAdminRH = user.role === 'Admin' || (user.role as string) === 'Admin RH';
-  const isEmploye = user.role === 'Employé';
+  const roleStr = String(user.role || '').toLowerCase();
+  const isSuperAdmin = roleStr.includes('super');
+  const isAdminRH = roleStr.includes('admin') && !isSuperAdmin;
+  const isEmploye = !isSuperAdmin && !isAdminRH;
 
   // Dynamic Badges
   const pendingAbsences = absenceRequests.filter((r) => r.statut === 'En attente').length;
