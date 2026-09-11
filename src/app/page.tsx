@@ -26,17 +26,7 @@ export default function Home() {
   }
 
   const getThemeClass = () => {
-    switch (appTheme) {
-      case 'emerald':
-        return 'theme-emerald bg-zinc-950 text-zinc-100';
-      case 'violet':
-        return 'theme-violet bg-neutral-950 text-neutral-100';
-      case 'light':
-        return 'theme-light bg-slate-100 text-slate-900';
-      case 'ocean':
-      default:
-        return 'theme-ocean bg-slate-950 text-slate-100';
-    }
+    return 'bg-slate-50 text-slate-900 font-sans';
   };
 
   const renderTabContent = () => {

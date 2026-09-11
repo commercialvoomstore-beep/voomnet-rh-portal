@@ -99,7 +99,7 @@ export const Topbar: React.FC = () => {
   };
 
   return (
-    <header className="bg-white/90 backdrop-blur-md border-b border-indigo-100 px-6 py-4 flex flex-col gap-3 relative z-30 shadow-sm">
+    <header className="bg-white border-b border-slate-200 px-6 py-4 flex flex-col gap-3 relative z-30 shadow-sm">
       {/* Animated Floating Toast Alert Banner */}
       {activeToast && (
         <div className="fixed top-4 right-4 z-50 max-w-md bg-white border-2 border-rose-400 text-slate-800 p-4 rounded-2xl shadow-2xl flex items-start justify-between gap-3 animate-slideDown">
@@ -127,10 +127,10 @@ export const Topbar: React.FC = () => {
 
       <div className="flex items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-[10px] font-extrabold text-purple-700 uppercase tracking-wider">
+          <div className="flex items-center gap-2 text-[10px] font-extrabold text-blue-600 uppercase tracking-wider">
             <span>VOOMNET TECHNOLOGY</span>
             <span>•</span>
-            <span className="text-pink-600 font-extrabold">Période : Trimestre 3 - 2026</span>
+            <span className="text-slate-500 font-extrabold">Période : Trimestre 3 - 2026</span>
           </div>
           <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">{getTitle()}</h2>
         </div>

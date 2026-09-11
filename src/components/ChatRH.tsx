@@ -37,13 +37,13 @@ export const ChatRH: React.FC = () => {
 
   if (!isSuperAdmin && !isAdminRH) {
     return (
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center max-w-md mx-auto my-12 space-y-4">
-        <div className="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center mx-auto">
+      <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center max-w-md mx-auto my-12 space-y-4 shadow-sm">
+        <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto">
           <Lock className="w-6 h-6" />
         </div>
-        <h3 className="text-lg font-bold text-white">Canal de Chat RH Restreint</h3>
-        <p className="text-xs text-slate-400 leading-relaxed">
-          Le canal de discussion instantanée est réservé exclusivement aux échanges entre le <strong className="text-purple-400">Superadministrateur</strong> et l&apos;<strong className="text-blue-400">Administrateur RH</strong>.
+        <h3 className="text-lg font-bold text-slate-900">Canal de Chat RH Restreint</h3>
+        <p className="text-xs text-slate-500 leading-relaxed">
+          Le canal de discussion instantanée est réservé exclusivement aux échanges entre le <strong className="text-purple-600">Superadministrateur</strong> et l&apos;<strong className="text-blue-600">Administrateur RH</strong>.
         </p>
       </div>
     );
@@ -64,37 +64,37 @@ export const ChatRH: React.FC = () => {
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-purple-950 via-slate-900 to-blue-950 p-5 rounded-2xl border border-purple-800/40 shadow-xl flex items-center justify-between gap-4">
+      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center justify-center shrink-0">
+          <div className="w-11 h-11 rounded-2xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center shrink-0">
             <MessageSquare className="w-6 h-6" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-purple-300 uppercase tracking-wider">
+              <span className="text-xs font-bold text-blue-700 uppercase tracking-wider">
                 Messagerie RH Directe (Émetteur ➔ Récepteur)
               </span>
-              <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-mono border border-emerald-500/30 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+              <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[10px] font-mono border border-emerald-200 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
                 Transmission instantanée 3CX
               </span>
             </div>
-            <h3 className="text-lg font-bold text-white mt-0.5">
+            <h3 className="text-lg font-bold text-slate-900 mt-0.5">
               Canal : {user.prenom} {user.nom} ({user.role}) ➔ {recipientName} ({recipientObj?.role})
             </h3>
           </div>
         </div>
 
-        <div className="hidden sm:flex items-center gap-2 text-xs text-slate-300 font-mono bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800">
-          <Shield className="w-4 h-4 text-purple-400" />
+        <div className="hidden sm:flex items-center gap-2 text-xs text-slate-700 font-mono bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
+          <Shield className="w-4 h-4 text-purple-600" />
           <span>Poste {user.matricule} ➔ Poste {targetRecipientMatricule}</span>
         </div>
       </div>
 
       {/* Chat Container */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl flex flex-col h-[580px] overflow-hidden">
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col h-[580px] overflow-hidden">
         {/* Chat Feed Header */}
-        <div className="p-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
+        <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
               <img
@@ -102,7 +102,7 @@ export const ChatRH: React.FC = () => {
                 alt={user.nom}
                 className="h-8 w-8 rounded-full ring-2 ring-blue-500 object-cover"
               />
-              <ArrowRight className="w-4 h-4 text-slate-500" />
+              <ArrowRight className="w-4 h-4 text-slate-400" />
               <img
                 src={recipientObj?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
                 alt={recipientName}
@@ -110,25 +110,25 @@ export const ChatRH: React.FC = () => {
               />
             </div>
             <div>
-              <div className="text-xs font-bold text-white flex items-center gap-2">
+              <div className="text-xs font-bold text-slate-900 flex items-center gap-2">
                 <span>Émetteur : {user.prenom} {user.nom} ({user.matricule})</span>
-                <span className="text-slate-500">•</span>
-                <span className="text-purple-300">Récepteur : {recipientName} ({targetRecipientMatricule})</span>
+                <span className="text-slate-400">•</span>
+                <span className="text-purple-700">Récepteur : {recipientName} ({targetRecipientMatricule})</span>
               </div>
-              <div className="text-[10px] text-slate-400">
+              <div className="text-[10px] text-slate-500">
                 Liaison directe — Suivi avec indicateurs d&apos;envoi (Envoyé / Distribué)
               </div>
             </div>
           </div>
 
-          <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/60 px-2.5 py-1 rounded-lg border border-emerald-800 flex items-center gap-1">
+          <span className="text-[10px] font-mono text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 flex items-center gap-1 font-bold">
             <CheckCheck className="w-3.5 h-3.5" />
             Ligne Active
           </span>
         </div>
 
         {/* Message Feed */}
-        <div className="flex-1 p-5 overflow-y-auto space-y-4 bg-slate-950/60">
+        <div className="flex-1 p-5 overflow-y-auto space-y-4 bg-slate-50/50">
           {chatMessages.map((msg) => {
             const isMe = msg.senderMatricule === user.matricule;
             return (
@@ -147,15 +147,15 @@ export const ChatRH: React.FC = () => {
                 />
 
                 <div
-                  className={`p-4 rounded-2xl text-xs space-y-1.5 shadow-lg ${
+                  className={`p-4 rounded-2xl text-xs space-y-1.5 shadow-sm ${
                     isMe
                       ? 'bg-blue-600 text-white rounded-tr-none'
                       : msg.senderRole === 'SuperAdmin'
-                      ? 'bg-purple-950/80 border border-purple-800/80 text-purple-100 rounded-tl-none'
-                      : 'bg-slate-800 border border-slate-700 text-slate-100 rounded-tl-none'
+                      ? 'bg-purple-50 border border-purple-200 text-purple-900 rounded-tl-none font-medium'
+                      : 'bg-white border border-slate-200 text-slate-900 rounded-tl-none font-medium'
                   }`}
                 >
-                  <div className="flex items-center justify-between gap-4 text-[10px] opacity-80 border-b border-white/10 pb-1">
+                  <div className="flex items-center justify-between gap-4 text-[10px] opacity-80 border-b border-black/10 pb-1">
                     <span className="font-bold">{msg.senderName} ({msg.senderRole})</span>
                     <span className="font-mono flex items-center gap-1">
                       <Clock className="w-3 h-3" />
@@ -166,15 +166,15 @@ export const ChatRH: React.FC = () => {
                   <p className="leading-relaxed whitespace-pre-wrap">{msg.text}</p>
 
                   {/* Message Transmission / Delivery Indicator for Sent Messages */}
-                  <div className={`pt-1 flex items-center justify-end text-[10px] font-mono font-semibold ${isMe ? 'text-blue-100' : 'text-slate-400'}`}>
+                  <div className={`pt-1 flex items-center justify-end text-[10px] font-mono font-semibold ${isMe ? 'text-blue-100' : 'text-slate-500'}`}>
                     {isMe ? (
-                      <span className="flex items-center gap-1 text-cyan-200">
-                        <CheckCheck className="w-3.5 h-3.5 text-cyan-300" />
+                      <span className="flex items-center gap-1 text-blue-100">
+                        <CheckCheck className="w-3.5 h-3.5 text-blue-100" />
                         <span>Envoyé & Distribué au Poste {targetRecipientMatricule}</span>
                       </span>
                     ) : (
-                      <span className="flex items-center gap-1 text-slate-400">
-                        <Check className="w-3.5 h-3.5 text-emerald-400" />
+                      <span className="flex items-center gap-1 text-slate-500">
+                        <Check className="w-3.5 h-3.5 text-emerald-600" />
                         <span>Reçu sur votre poste {user.matricule}</span>
                       </span>
                     )}
@@ -187,9 +187,9 @@ export const ChatRH: React.FC = () => {
         </div>
 
         {/* Input Bar */}
-        <form onSubmit={handleSend} className="p-4 bg-slate-950 border-t border-slate-800 flex items-center gap-3">
-          <div className="flex-1 flex items-center gap-2 bg-slate-900 border border-slate-700 rounded-xl px-3 py-1">
-            <span className="text-[10px] text-blue-400 font-bold uppercase font-mono shrink-0">
+        <form onSubmit={handleSend} className="p-4 bg-slate-50 border-t border-slate-200 flex items-center gap-3">
+          <div className="flex-1 flex items-center gap-2 bg-white border border-slate-300 rounded-xl px-3 py-1">
+            <span className="text-[10px] text-blue-600 font-bold uppercase font-mono shrink-0">
               Vers {recipientName} :
             </span>
             <input
@@ -197,13 +197,13 @@ export const ChatRH: React.FC = () => {
               placeholder={`Tapez votre message pour ${recipientName}...`}
               value={text}
               onChange={(e) => setText(e.target.value)}
-              className="w-full py-2 bg-transparent text-white text-xs focus:outline-none"
+              className="w-full py-2 bg-transparent text-slate-900 text-xs focus:outline-none"
             />
           </div>
 
           <button
             type="submit"
-            className="px-5 py-3 bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:opacity-90 text-white font-bold text-xs rounded-xl shadow-lg shadow-purple-600/30 flex items-center gap-2 transition-all shrink-0"
+            className="px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-sm flex items-center gap-2 transition-all shrink-0"
           >
             <span>Envoyer</span>
             <Send className="w-4 h-4" />

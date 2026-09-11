@@ -31,28 +31,27 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-amber-100 via-rose-100 via-sky-100 to-indigo-100 px-4 py-8 relative overflow-hidden">
+    <div className="min-h-screen w-full flex items-center justify-center bg-slate-50 px-4 py-8 relative overflow-hidden">
       {/* Background decorations */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-amber-400/20 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-10 right-10 w-80 h-80 bg-rose-400/20 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-100/50 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="w-full max-w-md bg-white/95 backdrop-blur-xl border border-white/80 rounded-3xl shadow-2xl shadow-purple-500/10 p-8 relative z-10 text-slate-800">
+      <div className="w-full max-w-md bg-white border border-slate-200 rounded-3xl shadow-lg p-8 relative z-10 text-slate-800">
         {/* Header */}
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-400 via-rose-500 to-pink-500 text-white shadow-lg shadow-rose-500/30 mb-3 animate-bounce">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-600 text-white shadow-md shadow-blue-500/20 mb-3">
             <PhoneCall className="w-8 h-8" />
           </div>
           <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
             VOOMNET TECH RH
           </h2>
-          <p className="text-xs font-bold text-rose-600 mt-1">
-            Portail Joyeux & Dynamique — Gestion des 3 Rôles
+          <p className="text-xs font-bold text-blue-600 mt-1">
+            Portail RH Pro — Gestion des 3 Rôles
           </p>
         </div>
 
         {/* Notice badge */}
-        <div className="mb-5 p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-2.5 shadow-sm">
-          <Shield className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+        <div className="mb-5 p-3.5 rounded-2xl bg-blue-50 border border-blue-200 text-blue-900 text-xs flex items-start gap-2.5 shadow-sm">
+          <Shield className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
           <div>
             <span className="font-bold block text-slate-900">Connexion Matricule (Poste 3CX) ou Email</span>
             Entrez votre numéro de poste interne (ex: 9999, 1000, 1009, 1015) ou votre email.
@@ -77,7 +76,7 @@ export const Login: React.FC = () => {
                 placeholder="Ex: 9999 ou m.kouassi@voomnet.com"
                 value={matricule}
                 onChange={(e) => setMatricule(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-200 font-mono font-bold"
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-2xl text-slate-900 text-sm focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200 font-mono font-bold"
               />
             </div>
           </div>
@@ -93,17 +92,17 @@ export const Login: React.FC = () => {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 text-sm focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-200 font-bold"
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-2xl text-slate-900 text-sm focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200 font-bold"
               />
             </div>
             <p className="text-[10px] text-slate-500 mt-1">
-              Mot de passe démo : <code className="text-rose-600 font-extrabold">voomnet2026</code>
+              Mot de passe démo : <code className="text-blue-600 font-extrabold">voomnet2026</code>
             </p>
           </div>
 
           <button
             type="submit"
-            className="w-full mt-2 py-3.5 px-4 bg-gradient-to-r from-amber-400 via-rose-500 to-pink-600 hover:opacity-95 text-white font-extrabold text-sm rounded-2xl shadow-xl shadow-rose-500/25 flex items-center justify-center gap-2 transition-all transform hover:scale-[1.01]"
+            className="w-full mt-2 py-3.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-sm rounded-2xl shadow-md flex items-center justify-center gap-2 transition-all"
           >
             Se connecter au portail RH
             <ArrowRight className="w-4 h-4" />
@@ -113,7 +112,7 @@ export const Login: React.FC = () => {
         {/* Demo Account Shortcuts for 3 Roles */}
         <div className="mt-6 pt-5 border-t border-slate-100 space-y-2">
           <div className="flex items-center gap-1.5 text-xs text-slate-800 font-extrabold mb-2">
-            <Sparkles className="w-4 h-4 text-amber-500 animate-spin" />
+            <Sparkles className="w-4 h-4 text-blue-600" />
             Accès rapide pour tester les 3 Rôles :
           </div>
 
@@ -133,7 +132,7 @@ export const Login: React.FC = () => {
                 <div className="text-[10px] text-slate-500 font-medium">Superadministrateur • Accès Complet</div>
               </div>
             </div>
-            <span className="text-[10px] bg-purple-200 text-purple-900 px-2.5 py-0.5 rounded-full font-extrabold border border-purple-300">
+            <span className="text-[10px] bg-purple-100 text-purple-900 px-2.5 py-0.5 rounded-full font-extrabold border border-purple-300">
               SuperAdmin
             </span>
           </button>
@@ -154,7 +153,7 @@ export const Login: React.FC = () => {
                 <div className="text-[10px] text-slate-500 font-medium">Administrateur • Valider Congés & Absences</div>
               </div>
             </div>
-            <span className="text-[10px] bg-sky-200 text-sky-900 px-2.5 py-0.5 rounded-full font-extrabold border border-sky-300">
+            <span className="text-[10px] bg-sky-100 text-sky-900 px-2.5 py-0.5 rounded-full font-extrabold border border-sky-300">
               Admin
             </span>
           </button>
@@ -175,7 +174,7 @@ export const Login: React.FC = () => {
                 <div className="text-[10px] text-slate-500 font-medium">Ingénieure Réseau • Employé CDI</div>
               </div>
             </div>
-            <span className="text-[10px] bg-emerald-200 text-emerald-900 px-2.5 py-0.5 rounded-full font-extrabold border border-emerald-300">
+            <span className="text-[10px] bg-emerald-100 text-emerald-900 px-2.5 py-0.5 rounded-full font-extrabold border border-emerald-300">
               Employé CDI
             </span>
           </button>
@@ -196,7 +195,7 @@ export const Login: React.FC = () => {
                 <div className="text-[10px] text-slate-500 font-medium">Développeuse Frontend • Employé CDD</div>
               </div>
             </div>
-            <span className="text-[10px] bg-teal-200 text-teal-900 px-2.5 py-0.5 rounded-full font-extrabold border border-teal-300">
+            <span className="text-[10px] bg-teal-100 text-teal-900 px-2.5 py-0.5 rounded-full font-extrabold border border-teal-300">
               Employé CDD
             </span>
           </button>
@@ -217,14 +216,14 @@ export const Login: React.FC = () => {
                 <div className="text-[10px] text-slate-500 font-medium">Stagiaire Développeur</div>
               </div>
             </div>
-            <span className="text-[10px] bg-pink-200 text-pink-900 px-2.5 py-0.5 rounded-full font-extrabold border border-pink-300">
+            <span className="text-[10px] bg-pink-100 text-pink-900 px-2.5 py-0.5 rounded-full font-extrabold border border-pink-300">
               STAGIAIRE
             </span>
           </button>
         </div>
 
         <div className="mt-5 text-center text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-          VOOMNET TECHNOLOGY © 2026 — Portail Joyeux & Dynamique
+          VOOMNET TECHNOLOGY © 2026 — Portail RH Pro Clean Design
         </div>
       </div>
     </div>

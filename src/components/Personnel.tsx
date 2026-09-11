@@ -142,21 +142,21 @@ export const Personnel: React.FC = () => {
     switch (statut) {
       case 'STAGIAIRE':
         return (
-          <span className="px-2.5 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[11px] font-bold flex items-center gap-1 w-max">
+          <span className="px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200 text-[11px] font-bold flex items-center gap-1 w-max">
             <GraduationCap className="w-3 h-3" />
             STAGIAIRE
           </span>
         );
       case 'CDD':
         return (
-          <span className="px-2.5 py-1 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-[11px] font-bold w-max">
+          <span className="px-2.5 py-1 rounded-full bg-cyan-50 text-cyan-700 border border-cyan-200 text-[11px] font-bold w-max">
             CDD
           </span>
         );
       case 'CDI':
       default:
         return (
-          <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[11px] font-bold flex items-center gap-1 w-max">
+          <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-bold flex items-center gap-1 w-max">
             <CheckCircle2 className="w-3 h-3" />
             CDI
           </span>
@@ -168,20 +168,20 @@ export const Personnel: React.FC = () => {
     switch (role) {
       case 'SuperAdmin':
         return (
-          <span className="px-2.5 py-0.5 rounded text-[10px] font-extrabold bg-purple-500/20 text-purple-300 border border-purple-500/40">
+          <span className="px-2.5 py-0.5 rounded text-[10px] font-extrabold bg-purple-100 text-purple-800 border border-purple-300">
             SuperAdmin
           </span>
         );
       case 'Admin':
         return (
-          <span className="px-2.5 py-0.5 rounded text-[10px] font-extrabold bg-blue-500/20 text-blue-300 border border-blue-500/40">
+          <span className="px-2.5 py-0.5 rounded text-[10px] font-extrabold bg-sky-100 text-sky-800 border border-sky-300">
             Admin
           </span>
         );
       case 'Employé':
       default:
         return (
-          <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">
+          <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-300">
             Employé
           </span>
         );
@@ -191,18 +191,18 @@ export const Personnel: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Top Banner Info */}
-      <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-lg">
+      <div className="bg-white p-5 rounded-2xl border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
         <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-blue-400">
-            <Shield className="w-4 h-4 text-purple-400" />
+          <div className="flex items-center gap-2 text-xs font-semibold text-blue-600">
+            <Shield className="w-4 h-4 text-purple-600" />
             Espace {isSuperAdmin ? 'Superadministrateur (Accès Master CRUD)' : 'Administrateur RH'}
           </div>
-          <h3 className="text-xl font-bold text-white mt-1">
+          <h3 className="text-xl font-bold text-slate-900 mt-1">
             {isSuperAdmin
               ? 'Gestion des Utilisateurs, Rôles & Dates d\'Embauche'
               : 'Suivi des Employés & Fiches Administratives'}
           </h3>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-slate-500 mt-0.5">
             Dates d&apos;embauche visibles pour tous les profils (SuperAdmin 9999, Admin RH 1000 et Employés).
           </p>
         </div>
@@ -210,7 +210,7 @@ export const Personnel: React.FC = () => {
         {isSuperAdmin && (
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="px-4 py-2.5 bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:opacity-90 text-white rounded-xl text-xs font-bold shadow-lg shadow-purple-600/30 flex items-center gap-2 shrink-0 transition-all"
+            className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-2 shrink-0 transition-all"
           >
             <UserPlus className="w-4 h-4" />
             Créer un Utilisateur
@@ -219,22 +219,22 @@ export const Personnel: React.FC = () => {
       </div>
 
       {/* Filters Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900 p-4 rounded-2xl border border-slate-800 shadow-md">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3.5 top-3 w-4 h-4 text-slate-500" />
+          <Search className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
           <input
             type="text"
             placeholder="Rechercher par nom, matricule 3CX, poste..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:outline-none focus:border-blue-500"
+            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs focus:outline-none focus:border-blue-600"
           />
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           {/* Statut Contrat Filter */}
-          <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs font-semibold text-slate-400">
-            <span className="px-2 text-[10px] uppercase font-bold text-slate-500">Contrat :</span>
+          <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600">
+            <span className="px-2 text-[10px] uppercase font-bold text-slate-400">Contrat :</span>
             {['Tous', 'CDI', 'CDD', 'STAGIAIRE'].map((st) => (
               <button
                 key={st}
@@ -242,7 +242,7 @@ export const Personnel: React.FC = () => {
                 className={`px-2.5 py-1 rounded-lg transition-all ${
                   filterStatut === st
                     ? 'bg-blue-600 text-white'
-                    : 'hover:text-white hover:bg-slate-800'
+                    : 'hover:text-slate-900 hover:bg-slate-200'
                 }`}
               >
                 {st}
@@ -251,8 +251,8 @@ export const Personnel: React.FC = () => {
           </div>
 
           {/* Role Filter */}
-          <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs font-semibold text-slate-400">
-            <span className="px-2 text-[10px] uppercase font-bold text-slate-500">Rôle :</span>
+          <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600">
+            <span className="px-2 text-[10px] uppercase font-bold text-slate-400">Rôle :</span>
             {['Tous', 'SuperAdmin', 'Admin', 'Employé'].map((r) => (
               <button
                 key={r}
@@ -260,7 +260,7 @@ export const Personnel: React.FC = () => {
                 className={`px-2.5 py-1 rounded-lg transition-all ${
                   filterRole === r
                     ? 'bg-purple-600 text-white'
-                    : 'hover:text-white hover:bg-slate-800'
+                    : 'hover:text-slate-900 hover:bg-slate-200'
                 }`}
               >
                 {r}
@@ -271,11 +271,11 @@ export const Personnel: React.FC = () => {
       </div>
 
       {/* Staff Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-950 border-b border-slate-800 text-slate-400 text-[11px] font-bold uppercase tracking-wider">
+              <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-[11px] font-bold uppercase tracking-wider">
                 <th className="py-3.5 px-4">Utilisateur & Photo</th>
                 <th className="py-3.5 px-4">Matricule (3CX)</th>
                 <th className="py-3.5 px-4">Poste & Service</th>
@@ -285,22 +285,22 @@ export const Personnel: React.FC = () => {
                 <th className="py-3.5 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/80 text-xs">
+            <tbody className="divide-y divide-slate-100 text-xs">
               {filteredEmployees.map((emp) => (
-                <tr key={emp.id} className="hover:bg-slate-800/50 transition-colors">
+                <tr key={emp.id} className="hover:bg-slate-50/80 transition-colors">
                   <td className="py-3.5 px-4">
                     <div className="flex items-center gap-3">
                       <img
                         src={emp.avatar}
                         alt={emp.nom}
-                        className="w-10 h-10 rounded-xl object-cover ring-2 ring-slate-700"
+                        className="w-10 h-10 rounded-xl object-cover ring-2 ring-slate-200"
                       />
                       <div>
-                        <div className="font-bold text-white text-sm">
+                        <div className="font-bold text-slate-900 text-sm">
                           {emp.prenom} {emp.nom}
                         </div>
-                        <div className="text-[11px] text-slate-400 flex items-center gap-1">
-                          <Mail className="w-3 h-3 text-slate-500" />
+                        <div className="text-[11px] text-slate-500 flex items-center gap-1">
+                          <Mail className="w-3 h-3 text-slate-400" />
                           <span>{emp.email}</span>
                         </div>
                       </div>
@@ -308,16 +308,16 @@ export const Personnel: React.FC = () => {
                   </td>
 
                   <td className="py-3.5 px-4 font-mono">
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-700 font-bold text-blue-400">
-                      <PhoneCall className="w-3 h-3 text-emerald-400" />
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 font-bold text-blue-600">
+                      <PhoneCall className="w-3 h-3 text-emerald-600" />
                       {emp.matricule}
                     </span>
                   </td>
 
                   <td className="py-3.5 px-4">
-                    <div className="font-semibold text-slate-200">{emp.poste}</div>
-                    <div className="text-[11px] text-slate-400 flex items-center gap-1">
-                      <Building2 className="w-3 h-3 text-slate-500" />
+                    <div className="font-semibold text-slate-900">{emp.poste}</div>
+                    <div className="text-[11px] text-slate-500 flex items-center gap-1">
+                      <Building2 className="w-3 h-3 text-slate-400" />
                       <span>{emp.departement}</span>
                     </div>
                   </td>
@@ -326,10 +326,9 @@ export const Personnel: React.FC = () => {
 
                   <td className="py-3.5 px-4">{getStatutBadge(emp.statut)}</td>
 
-                  {/* Prominently Display Hiring Date for ALL employees (including SuperAdmin and Admin RH) */}
-                  <td className="py-3.5 px-4 font-mono font-bold text-slate-200">
-                    <div className="flex items-center gap-1.5 bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800 w-max text-xs">
-                      <Calendar className="w-3.5 h-3.5 text-blue-400" />
+                  <td className="py-3.5 px-4 font-mono font-bold text-slate-800">
+                    <div className="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200 w-max text-xs">
+                      <Calendar className="w-3.5 h-3.5 text-blue-600" />
                       <span>{emp.dateEmbauche}</span>
                     </div>
                   </td>
@@ -339,7 +338,7 @@ export const Personnel: React.FC = () => {
                       <button
                         onClick={() => handleStartEdit(emp)}
                         title="Modifier / Compléter les infos"
-                        className="p-1.5 bg-slate-800 hover:bg-slate-700 text-blue-400 rounded-lg border border-slate-700 transition-all"
+                        className="p-1.5 bg-slate-100 hover:bg-slate-200 text-blue-600 rounded-lg border border-slate-300 transition-all"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
@@ -348,7 +347,7 @@ export const Personnel: React.FC = () => {
                         <button
                           onClick={() => handleDelete(emp)}
                           title="Supprimer l'utilisateur"
-                          className="p-1.5 bg-red-950/60 hover:bg-red-900/80 text-red-400 rounded-lg border border-red-800/80 transition-all"
+                          className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg border border-rose-200 transition-all"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -364,27 +363,27 @@ export const Personnel: React.FC = () => {
 
       {/* SuperAdmin Add Modal */}
       {isAddModalOpen && isSuperAdmin && (
-        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-purple-500/40 rounded-2xl w-full max-w-lg shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-lg shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto text-slate-900">
             <button
               onClick={() => setIsAddModalOpen(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white p-1"
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-900 p-1"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <h3 className="text-lg font-bold text-white mb-1 flex items-center gap-2">
-              <UserPlus className="w-5 h-5 text-purple-400" />
+            <h3 className="text-lg font-bold text-slate-900 mb-1 flex items-center gap-2">
+              <UserPlus className="w-5 h-5 text-blue-600" />
               Créer un Nouvel Utilisateur (SuperAdmin)
             </h3>
-            <p className="text-xs text-slate-400 mb-5">
+            <p className="text-xs text-slate-500 mb-5">
               Fixez la date d&apos;embauche, le rôle et le statut contractuel.
             </p>
 
             <form onSubmit={handleAddSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
                     Matricule (Poste 3CX) *
                   </label>
                   <input
@@ -393,18 +392,18 @@ export const Personnel: React.FC = () => {
                     placeholder="Ex: 1030"
                     value={addFormState.matricule}
                     onChange={(e) => setAddFormState({ ...addFormState, matricule: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs font-mono"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs font-mono"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Rôle Système *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Rôle Système *</label>
                   <select
                     value={addFormState.role}
                     onChange={(e) =>
                       setAddFormState({ ...addFormState, role: e.target.value as RoleType })
                     }
-                    className="w-full px-3 py-2 bg-slate-950 border border-purple-700 rounded-xl text-purple-300 text-xs font-bold"
+                    className="w-full px-3 py-2 bg-slate-50 border border-purple-300 rounded-xl text-purple-900 text-xs font-bold"
                   >
                     <option value="Employé">Employé</option>
                     <option value="Admin">Admin</option>
@@ -415,49 +414,49 @@ export const Personnel: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Nom *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Nom *</label>
                   <input
                     type="text"
                     required
                     placeholder="Ex: TANOH"
                     value={addFormState.nom}
                     onChange={(e) => setAddFormState({ ...addFormState, nom: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Prénom *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Prénom *</label>
                   <input
                     type="text"
                     required
                     placeholder="Ex: Clarisse"
                     value={addFormState.prenom}
                     onChange={(e) => setAddFormState({ ...addFormState, prenom: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Poste Occupé *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Poste Occupé *</label>
                   <input
                     type="text"
                     required
-                    placeholder="Ex: Ingénieure Réseau / Développeur"
+                    placeholder="Ex: Ingénieure Réseau"
                     value={addFormState.poste}
                     onChange={(e) => setAddFormState({ ...addFormState, poste: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Département *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Département *</label>
                   <select
                     value={addFormState.departement}
                     onChange={(e) => setAddFormState({ ...addFormState, departement: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs"
                   >
                     <option value="Ressources Humaines">Ressources Humaines</option>
                     <option value="Développement Logiciel">Développement Logiciel</option>
@@ -469,13 +468,13 @@ export const Personnel: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Statut Contractuel *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Statut Contractuel *</label>
                   <select
                     value={addFormState.statut}
                     onChange={(e) =>
                       setAddFormState({ ...addFormState, statut: e.target.value as StatutContrat })
                     }
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs font-bold"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs font-bold"
                   >
                     <option value="CDI">CDI</option>
                     <option value="CDD">CDD</option>
@@ -484,77 +483,77 @@ export const Personnel: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Date d&apos;Embauche *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Date d&apos;Embauche *</label>
                   <input
                     type="date"
                     required
                     value={addFormState.dateEmbauche}
                     onChange={(e) => setAddFormState({ ...addFormState, dateEmbauche: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-950 border border-blue-600 rounded-xl text-white font-mono font-bold text-xs"
+                    className="w-full px-3 py-2 bg-slate-50 border border-blue-600 rounded-xl text-slate-900 font-mono font-bold text-xs"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Adresse Email *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Adresse Email *</label>
                   <input
                     type="email"
                     placeholder="c.tanoh@voomnet.com"
                     value={addFormState.email}
                     onChange={(e) => setAddFormState({ ...addFormState, email: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Mot de passe de Connexion *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Mot de passe de Connexion *</label>
                   <input
                     type="text"
                     required
                     placeholder="Ex: voomnet2026"
                     value={addFormState.motDePasse}
                     onChange={(e) => setAddFormState({ ...addFormState, motDePasse: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-950 border border-emerald-600 rounded-xl text-emerald-300 font-mono text-xs font-bold"
+                    className="w-full px-3 py-2 bg-slate-50 border border-emerald-600 rounded-xl text-emerald-800 font-mono text-xs font-bold"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Contact Urgence</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Contact Urgence</label>
                   <input
                     type="text"
                     placeholder="Ex: Frère (+225 01 22 33 44 55)"
                     value={addFormState.contactUrgence}
                     onChange={(e) => setAddFormState({ ...addFormState, contactUrgence: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Photo de Profil (URL)</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Photo de Profil (URL)</label>
                   <input
                     type="text"
                     placeholder="https://images.unsplash.com/..."
                     value={addFormState.avatar}
                     onChange={(e) => setAddFormState({ ...addFormState, avatar: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs font-mono"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs font-mono"
                   />
                 </div>
               </div>
 
-              <div className="pt-4 flex justify-end gap-3 border-t border-slate-800">
+              <div className="pt-4 flex justify-end gap-3 border-t border-slate-200">
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="px-4 py-2 bg-slate-800 text-slate-300 text-xs font-semibold rounded-xl"
+                  className="px-4 py-2 bg-slate-100 text-slate-700 text-xs font-semibold rounded-xl"
                 >
                   Annuler
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-purple-600/30"
+                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-md"
                 >
                   Créer l&apos;utilisateur
                 </button>
@@ -564,45 +563,44 @@ export const Personnel: React.FC = () => {
         </div>
       )}
 
-      {/* Edit Modal (Accessible to SuperAdmin and Admin RH) */}
+      {/* Edit Modal */}
       {editingEmployee && (
-        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-blue-500/40 rounded-2xl w-full max-w-lg shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 text-slate-900">
+          <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-lg shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setEditingEmployee(null)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white p-1"
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-900 p-1"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <h3 className="text-lg font-bold text-white mb-1 flex items-center gap-2">
-              <Edit2 className="w-5 h-5 text-blue-400" />
+            <h3 className="text-lg font-bold text-slate-900 mb-1 flex items-center gap-2">
+              <Edit2 className="w-5 h-5 text-blue-600" />
               Modifier ({editingEmployee.prenom} {editingEmployee.nom})
             </h3>
-            <p className="text-xs text-slate-400 mb-4">
-              Matricule : <strong className="text-blue-400 font-mono">{editingEmployee.matricule}</strong>
+            <p className="text-xs text-slate-500 mb-4">
+              Matricule : <strong className="text-blue-600 font-mono">{editingEmployee.matricule}</strong>
             </p>
 
             <form onSubmit={handleEditSubmit} className="space-y-4">
-              {/* Photo modification */}
-              <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 flex items-center gap-4">
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center gap-4">
                 <img
                   src={editFormState.avatar || DEFAULT_FALLBACK_AVATAR}
                   alt="Avatar Preview"
                   className="w-14 h-14 rounded-xl object-cover ring-2 ring-blue-500"
                 />
                 <div className="flex-1 space-y-1.5">
-                  <label className="block text-[11px] font-bold text-slate-300">URL Photo de Profil</label>
+                  <label className="block text-[11px] font-bold text-slate-700">URL Photo de Profil</label>
                   <input
                     type="text"
                     value={editFormState.avatar || ''}
                     onChange={(e) => setEditFormState({ ...editFormState, avatar: e.target.value })}
-                    className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-white text-xs font-mono"
+                    className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-slate-900 text-xs font-mono"
                   />
                   <button
                     type="button"
                     onClick={() => setEditFormState({ ...editFormState, avatar: DEFAULT_FALLBACK_AVATAR })}
-                    className="text-[10px] text-red-400 hover:text-red-300 font-bold flex items-center gap-1"
+                    className="text-[10px] text-rose-600 hover:text-rose-700 font-bold flex items-center gap-1"
                   >
                     <RotateCcw className="w-3 h-3" />
                     Réinitialiser la photo par défaut
@@ -611,15 +609,15 @@ export const Personnel: React.FC = () => {
               </div>
 
               {isSuperAdmin ? (
-                <div className="p-3 bg-purple-950/40 rounded-xl border border-purple-800/50 grid grid-cols-3 gap-2">
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 grid grid-cols-3 gap-2">
                   <div>
-                    <label className="block text-xs font-bold text-purple-300 mb-1">Rôle</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Rôle</label>
                     <select
                       value={editFormState.role}
                       onChange={(e) =>
                         setEditFormState({ ...editFormState, role: e.target.value as RoleType })
                       }
-                      className="w-full px-2 py-1.5 bg-slate-950 border border-purple-700 rounded-xl text-purple-300 text-xs font-bold"
+                      className="w-full px-2 py-1.5 bg-white border border-slate-300 rounded-xl text-slate-900 text-xs font-bold"
                     >
                       <option value="Employé">Employé</option>
                       <option value="Admin">Admin</option>
@@ -628,13 +626,13 @@ export const Personnel: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-purple-300 mb-1">Contrat</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Contrat</label>
                     <select
                       value={editFormState.statut}
                       onChange={(e) =>
                         setEditFormState({ ...editFormState, statut: e.target.value as StatutContrat })
                       }
-                      className="w-full px-2 py-1.5 bg-slate-950 border border-purple-700 rounded-xl text-purple-300 text-xs font-bold"
+                      className="w-full px-2 py-1.5 bg-white border border-slate-300 rounded-xl text-slate-900 text-xs font-bold"
                     >
                       <option value="CDI">CDI</option>
                       <option value="CDD">CDD</option>
@@ -643,81 +641,81 @@ export const Personnel: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-purple-300 mb-1">Date Embauche</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Date Embauche</label>
                     <input
                       type="date"
                       value={editFormState.dateEmbauche || ''}
                       onChange={(e) => setEditFormState({ ...editFormState, dateEmbauche: e.target.value })}
-                      className="w-full px-2 py-1.5 bg-slate-950 border border-purple-700 rounded-xl text-white font-mono text-xs"
+                      className="w-full px-2 py-1.5 bg-white border border-slate-300 rounded-xl text-slate-900 font-mono text-xs"
                     />
                   </div>
                 </div>
               ) : (
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Date d&apos;Embauche</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Date d&apos;Embauche</label>
                   <input
                     type="date"
                     value={editFormState.dateEmbauche || ''}
                     onChange={(e) => setEditFormState({ ...editFormState, dateEmbauche: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white font-mono text-xs"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-mono text-xs"
                   />
                 </div>
               )}
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Nom</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Nom</label>
                   <input
                     type="text"
                     value={editFormState.nom || ''}
                     onChange={(e) => setEditFormState({ ...editFormState, nom: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Prénom</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Prénom</label>
                   <input
                     type="text"
                     value={editFormState.prenom || ''}
                     onChange={(e) => setEditFormState({ ...editFormState, prenom: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Contact Urgence</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Contact Urgence</label>
                 <input
                   type="text"
                   placeholder="Ex: Frère (+225 01 22 33 44 55)"
                   value={editFormState.contactUrgence || ''}
                   onChange={(e) => setEditFormState({ ...editFormState, contactUrgence: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Notes Administratives RH</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Notes Administratives RH</label>
                 <textarea
                   rows={2}
                   value={editFormState.notesAdministratives || ''}
                   onChange={(e) => setEditFormState({ ...editFormState, notesAdministratives: e.target.value })}
-                  className="w-full p-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs"
                 />
               </div>
 
-              <div className="pt-4 flex justify-end gap-3 border-t border-slate-800">
+              <div className="pt-4 flex justify-end gap-3 border-t border-slate-200">
                 <button
                   type="button"
                   onClick={() => setEditingEmployee(null)}
-                  className="px-4 py-2 bg-slate-800 text-slate-300 text-xs font-semibold rounded-xl"
+                  className="px-4 py-2 bg-slate-100 text-slate-700 text-xs font-semibold rounded-xl"
                 >
                   Annuler
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-blue-600/30 flex items-center gap-1.5"
+                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-md flex items-center gap-1.5"
                 >
                   <Save className="w-4 h-4" />
                   Enregistrer
