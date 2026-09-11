@@ -67,6 +67,7 @@ export interface EmployeePrimeStatus {
   statut?: 'Accordée' | 'Refusée' | 'En attente';
   montant?: number;
   motif?: string;
+  masquee?: boolean;
 }
 
 export interface ChatMessage {

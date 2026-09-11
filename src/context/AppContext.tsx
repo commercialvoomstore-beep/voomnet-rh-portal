@@ -103,8 +103,10 @@ interface AppContextType {
     statut: 'Accordée' | 'Refusée' | 'En attente';
     montant: number;
     motif: string;
+    masquee?: boolean;
   })[];
   attributePrime: (matricule: string, statut: 'Accordée' | 'Refusée', motif: string) => void;
+  toggleMaskPrime: (matricule: string) => void;
   activeToast: AlertNotification | null;
   dismissToast: () => void;
   showNotificationAlert: (title: string, message: string, type?: AlertNotification['type'], recipientMatricule?: string) => void;
@@ -989,6 +991,34 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   };
 
+  const toggleMaskPrime = (matricule: string) => {
+    const cleanMatricule = String(matricule).trim();
+    let isNowMasked = false;
+    const targetEmp = employees.find((e) => String(e.matricule).trim() === cleanMatricule);
+    const empName = targetEmp ? `${targetEmp.prenom} ${targetEmp.nom}` : 'Employé';
+
+    setPrimes((prev) =>
+      prev.map((p) => {
+        if (String(p.matricule).trim() === cleanMatricule) {
+          isNowMasked = !p.masquee;
+          return {
+            ...p,
+            masquee: isNowMasked,
+          };
+        }
+        return p;
+      })
+    );
+
+    showNotificationAlert(
+      isNowMasked ? '🙈 Prime Masquée' : '👁️ Prime Publiée',
+      isNowMasked
+        ? `La prime de ${empName} (Matricule ${cleanMatricule}) est désormais masquée pour l'employé.`
+        : `La prime de ${empName} (Matricule ${cleanMatricule}) est à nouveau visible par l'employé.`,
+      isNowMasked ? 'WARNING' : 'SUCCESS'
+    );
+  };
+
   const primeAttributions = primes.map((p) => {
     let resolvedStatut: 'Accordée' | 'Refusée' | 'En attente' = 'En attente';
     if (p.statut) {
@@ -1010,6 +1040,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       statut: resolvedStatut,
       montant: resolvedStatut === 'Accordée' ? p.montantCalcule || p.montant || primeConfig.montantReference : 0,
       motif: p.motif || (p.motifStatus ? p.motifStatus.replace(/^(ACCORDÉE|REFUSÉE|ANNULÉE)\s*—\s*/i, '') : ''),
+      masquee: !!p.masquee,
     };
   });
 
@@ -1050,6 +1081,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         restorePrime,
         primeAttributions,
         attributePrime,
+        toggleMaskPrime,
         activeToast,
         dismissToast,
         showNotificationAlert,
