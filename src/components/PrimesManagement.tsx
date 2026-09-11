@@ -18,6 +18,7 @@ import {
   Building2,
   Eye,
   EyeOff,
+  X,
 } from 'lucide-react';
 
 export const PrimesManagement: React.FC = () => {
@@ -38,7 +39,49 @@ export const PrimesManagement: React.FC = () => {
   const [montantRefInput, setMontantRefInput] = useState<number>(primeConfig.montantReference);
   const [periodeNomInput, setPeriodeNomInput] = useState<string>(primeConfig.periodeNom);
 
+  // Custom Decision Modal State
+  const [modalState, setModalState] = useState<{
+    isOpen: boolean;
+    action: 'Accordée' | 'En attente' | 'Refusée';
+    employee: any | null;
+    motif: string;
+  }>({
+    isOpen: false,
+    action: 'Accordée',
+    employee: null,
+    motif: '',
+  });
+
   if (!user) return null;
+
+  const openDecisionModal = (emp: any, action: 'Accordée' | 'En attente' | 'Refusée') => {
+    const existingPrime = getEmployeePrime(emp.matricule);
+    const defaultMotif =
+      existingPrime?.motif ||
+      (action === 'Accordée'
+        ? 'Prime trimestrielle accordée par l\'administration.'
+        : action === 'En attente'
+        ? 'Dossier de prime en cours d\'évaluation par la Direction RH.'
+        : 'Prime non attribuée pour ce trimestre.');
+
+    setModalState({
+      isOpen: true,
+      action,
+      employee: emp,
+      motif: defaultMotif,
+    });
+  };
+
+  const closeModal = () => {
+    setModalState((prev) => ({ ...prev, isOpen: false }));
+  };
+
+  const handleConfirmDecision = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!modalState.employee) return;
+    attributePrime(modalState.employee.matricule, modalState.action, modalState.motif);
+    closeModal();
+  };
 
   const isSuperAdmin = user.role === 'SuperAdmin';
   const isAdminRH = user.role === 'Admin' || (user.role as string) === 'Admin RH';
@@ -409,15 +452,7 @@ export const PrimesManagement: React.FC = () => {
                     <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-1.5 flex-wrap">
                         <button
-                          onClick={() => {
-                            const motif = prompt(
-                              `Accorder la prime de ${primeConfig.montantReference.toLocaleString('fr-FR')} FCFA à ${emp.prenom} ${emp.nom} ?\nRemarque / Motif d'attribution :`,
-                              prime?.motif || 'Prime trimestrielle accordée par l\'administration.'
-                            );
-                            if (motif !== null) {
-                              attributePrime(emp.matricule, 'Accordée', motif);
-                            }
-                          }}
+                          onClick={() => openDecisionModal(emp, 'Accordée')}
                           className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-sm flex items-center gap-1 transition-all shrink-0"
                           title="Accorder la prime"
                         >
@@ -426,15 +461,7 @@ export const PrimesManagement: React.FC = () => {
                         </button>
 
                         <button
-                          onClick={() => {
-                            const motif = prompt(
-                              `Mettre la prime en attente d'évaluation pour ${emp.prenom} ${emp.nom} ?\nRemarque / Motif de mise en attente :`,
-                              prime?.motif || 'Dossier de prime en cours d\'évaluation par la Direction RH.'
-                            );
-                            if (motif !== null) {
-                              attributePrime(emp.matricule, 'En attente', motif);
-                            }
-                          }}
+                          onClick={() => openDecisionModal(emp, 'En attente')}
                           className="px-2.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl shadow-sm flex items-center gap-1 transition-all shrink-0"
                           title="Mettre la prime en attente"
                         >
@@ -443,15 +470,7 @@ export const PrimesManagement: React.FC = () => {
                         </button>
 
                         <button
-                          onClick={() => {
-                            const motif = prompt(
-                              `Refuser la prime trimestrielle pour ${emp.prenom} ${emp.nom} ?\nMotif du refus :`,
-                              prime?.motif || 'Prime non attribuée pour ce trimestre.'
-                            );
-                            if (motif !== null) {
-                              attributePrime(emp.matricule, 'Refusée', motif);
-                            }
-                          }}
+                          onClick={() => openDecisionModal(emp, 'Refusée')}
                           className="px-2.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-sm flex items-center gap-1 transition-all shrink-0"
                           title="Refuser la prime"
                         >
@@ -489,6 +508,149 @@ export const PrimesManagement: React.FC = () => {
           </table>
         </div>
       </div>
+      {/* Custom Prime Decision Modal */}
+      {modalState.isOpen && modalState.employee && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-lg w-full overflow-hidden transition-all transform">
+            {/* Modal Header according to Action */}
+            <div
+              className={`p-6 text-white flex items-center justify-between ${
+                modalState.action === 'Accordée'
+                  ? 'bg-gradient-to-r from-emerald-600 to-teal-600'
+                  : modalState.action === 'En attente'
+                  ? 'bg-gradient-to-r from-amber-500 to-orange-500'
+                  : 'bg-gradient-to-r from-rose-600 to-red-600'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-white/20 rounded-2xl backdrop-blur-md">
+                  {modalState.action === 'Accordée' && <CheckCircle2 className="w-6 h-6 text-white" />}
+                  {modalState.action === 'En attente' && <Clock className="w-6 h-6 text-white" />}
+                  {modalState.action === 'Refusée' && <XCircle className="w-6 h-6 text-white" />}
+                </div>
+                <div>
+                  <h4 className="text-lg font-extrabold tracking-tight">
+                    {modalState.action === 'Accordée' && 'Accorder la Prime Trimestrielle'}
+                    {modalState.action === 'En attente' && 'Mise en Attente de la Prime'}
+                    {modalState.action === 'Refusée' && 'Refuser la Prime Trimestrielle'}
+                  </h4>
+                  <p className="text-xs text-white/80 font-medium">
+                    {primeConfig.periodeNom}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={closeModal}
+                className="p-1.5 rounded-full hover:bg-white/20 transition-colors text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Form */}
+            <form onSubmit={handleConfirmDecision} className="p-6 space-y-5">
+              {/* Employee Summary Card */}
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex items-center gap-3.5">
+                <img
+                  src={modalState.employee.avatar}
+                  alt={modalState.employee.nom}
+                  className="w-12 h-12 rounded-2xl object-cover ring-2 ring-slate-200"
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <h5 className="font-extrabold text-slate-900 text-sm truncate">
+                      {modalState.employee.prenom} {modalState.employee.nom}
+                    </h5>
+                    <span className="px-2 py-0.5 bg-blue-50 text-blue-700 font-mono font-bold text-[10px] rounded border border-blue-200">
+                      3CX #{modalState.employee.matricule}
+                    </span>
+                  </div>
+                  <div className="text-xs text-slate-500 font-medium mt-0.5">
+                    {modalState.employee.poste} ({modalState.employee.statut})
+                  </div>
+                </div>
+              </div>
+
+              {/* Amount Display Card */}
+              <div className="p-4 rounded-2xl border flex items-center justify-between bg-slate-50 border-slate-200">
+                <span className="text-xs font-bold text-slate-600">
+                  Montant concerné par la décision :
+                </span>
+                <span
+                  className={`text-lg font-extrabold font-mono ${
+                    modalState.action === 'Accordée'
+                      ? 'text-emerald-600'
+                      : modalState.action === 'En attente'
+                      ? 'text-amber-600'
+                      : 'text-rose-600'
+                  }`}
+                >
+                  {modalState.action === 'Accordée'
+                    ? `${primeConfig.montantReference.toLocaleString('fr-FR')} FCFA`
+                    : '0 FCFA'}
+                </span>
+              </div>
+
+              {/* Motive / Remarks Input */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-slate-700">
+                  Motif & Remarque RH pour le collaborateur <span className="text-rose-500">*</span>
+                </label>
+                <textarea
+                  rows={3}
+                  required
+                  value={modalState.motif}
+                  onChange={(e) => setModalState((prev) => ({ ...prev, motif: e.target.value }))}
+                  placeholder="Saisissez ici la justification ou les remarques RH..."
+                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-amber-500 transition-all"
+                />
+              </div>
+
+              {/* Footer Action Buttons */}
+              <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all"
+                >
+                  Annuler
+                </button>
+
+                <button
+                  type="submit"
+                  className={`px-5 py-2.5 text-white font-extrabold text-xs rounded-xl shadow-md flex items-center gap-2 transition-all ${
+                    modalState.action === 'Accordée'
+                      ? 'bg-emerald-600 hover:bg-emerald-700'
+                      : modalState.action === 'En attente'
+                      ? 'bg-amber-500 hover:bg-amber-600'
+                      : 'bg-rose-600 hover:bg-rose-700'
+                  }`}
+                >
+                  {modalState.action === 'Accordée' && (
+                    <>
+                      <CheckCircle2 className="w-4 h-4" />
+                      Confirmer l&apos;Attribution
+                    </>
+                  )}
+                  {modalState.action === 'En attente' && (
+                    <>
+                      <Clock className="w-4 h-4" />
+                      Confirmer la Mise en Attente
+                    </>
+                  )}
+                  {modalState.action === 'Refusée' && (
+                    <>
+                      <XCircle className="w-4 h-4" />
+                      Confirmer le Refus
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
