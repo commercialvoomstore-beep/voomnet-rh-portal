@@ -124,8 +124,6 @@ export const Topbar: React.FC = () => {
         <div>
           <div className="flex items-center gap-2 text-[10px] font-extrabold text-blue-600 uppercase tracking-wider">
             <span>VOOMNET TECHNOLOGY</span>
-            <span>•</span>
-            <span className="text-slate-500 font-extrabold">Période : Trimestre 3 - 2026</span>
           </div>
           <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">{getTitle()}</h2>
         </div>
