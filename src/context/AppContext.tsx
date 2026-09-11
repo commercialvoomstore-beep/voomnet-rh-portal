@@ -105,7 +105,7 @@ interface AppContextType {
     motif: string;
     masquee?: boolean;
   })[];
-  attributePrime: (matricule: string, statut: 'Accordée' | 'Refusée', motif: string) => void;
+  attributePrime: (matricule: string, statut: 'Accordée' | 'Refusée' | 'En attente', motif: string) => void;
   toggleMaskPrime: (matricule: string) => void;
   activeToast: AlertNotification | null;
   dismissToast: () => void;
@@ -916,7 +916,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   };
 
-  const attributePrime = (matricule: string, statut: 'Accordée' | 'Refusée', motif: string) => {
+  const attributePrime = (matricule: string, statut: 'Accordée' | 'Refusée' | 'En attente', motif: string) => {
     const cleanMatricule = String(matricule).trim();
     const isAccordee = statut === 'Accordée';
     const montantVal = isAccordee ? primeConfig.montantReference : 0;
@@ -978,15 +978,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       id: `log-${Date.now()}`,
       timestamp: new Date().toLocaleString('fr-FR'),
       type: isAccordee ? 'PRIME_RESTORE' : 'PRIME_CANCEL',
-      message: `Prime trimestrielle ${statut.toLowerCase()} pour ${empName} (Matricule ${cleanMatricule}). Motif : "${motif}".`,
+      message: `Prime trimestrielle ${statut === 'En attente' ? 'mise en attente' : statut.toLowerCase()} pour ${empName} (Matricule ${cleanMatricule}). Motif : "${motif}".`,
       auteur: user ? `${user.prenom} ${user.nom}` : 'Administration RH',
     };
     setAuditLogs((prev) => [newLog, ...prev]);
 
+    const notifTitle =
+      statut === 'Accordée'
+        ? '🎉 Prime Accordée'
+        : statut === 'Refusée'
+        ? '❌ Prime Refusée'
+        : '⏳ Prime Mise en Attente';
+
+    const notifType = statut === 'Accordée' ? 'SUCCESS' : statut === 'Refusée' ? 'ALERT' : 'WARNING';
+
     showNotificationAlert(
-      statut === 'Accordée' ? '🎉 Prime Accordée' : '❌ Prime Refusée',
-      `Notification envoyée à l'employé ${empName} (Poste 3CX ${cleanMatricule}) : Votre prime trimestrielle a été ${statut.toLowerCase()} (${montantVal.toLocaleString('fr-FR')} FCFA). Remarque : "${motif}".`,
-      statut === 'Accordée' ? 'SUCCESS' : 'ALERT',
+      notifTitle,
+      `Notification envoyée à l'employé ${empName} (Poste 3CX ${cleanMatricule}) : Votre prime trimestrielle est ${
+        statut === 'En attente' ? 'mise en attente d\'étude' : `désormais ${statut.toLowerCase()}`
+      } (${montantVal.toLocaleString('fr-FR')} FCFA). Remarque : "${motif}".`,
+      notifType,
       cleanMatricule
     );
   };

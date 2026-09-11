@@ -407,7 +407,7 @@ export const PrimesManagement: React.FC = () => {
                     </td>
 
                     <td className="py-3.5 px-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-1.5 flex-wrap">
                         <button
                           onClick={() => {
                             const motif = prompt(
@@ -418,10 +418,28 @@ export const PrimesManagement: React.FC = () => {
                               attributePrime(emp.matricule, 'Accordée', motif);
                             }
                           }}
-                          className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-sm flex items-center gap-1 transition-all"
+                          className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-sm flex items-center gap-1 transition-all shrink-0"
+                          title="Accorder la prime"
                         >
                           <CheckCircle2 className="w-3.5 h-3.5" />
-                          Accorder
+                          <span>Accorder</span>
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            const motif = prompt(
+                              `Mettre la prime en attente d'évaluation pour ${emp.prenom} ${emp.nom} ?\nRemarque / Motif de mise en attente :`,
+                              prime?.motif || 'Dossier de prime en cours d\'évaluation par la Direction RH.'
+                            );
+                            if (motif !== null) {
+                              attributePrime(emp.matricule, 'En attente', motif);
+                            }
+                          }}
+                          className="px-2.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl shadow-sm flex items-center gap-1 transition-all shrink-0"
+                          title="Mettre la prime en attente"
+                        >
+                          <Clock className="w-3.5 h-3.5" />
+                          <span>En attente</span>
                         </button>
 
                         <button
@@ -434,15 +452,16 @@ export const PrimesManagement: React.FC = () => {
                               attributePrime(emp.matricule, 'Refusée', motif);
                             }
                           }}
-                          className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-sm flex items-center gap-1 transition-all"
+                          className="px-2.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-sm flex items-center gap-1 transition-all shrink-0"
+                          title="Refuser la prime"
                         >
                           <XCircle className="w-3.5 h-3.5" />
-                          Refuser
+                          <span>Refuser</span>
                         </button>
 
                         <button
                           onClick={() => toggleMaskPrime(emp.matricule)}
-                          className={`px-3 py-1.5 font-bold text-xs rounded-xl shadow-sm flex items-center gap-1 transition-all ${
+                          className={`px-2.5 py-1.5 font-bold text-xs rounded-xl shadow-sm flex items-center gap-1 transition-all shrink-0 ${
                             prime?.masquee
                               ? 'bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300'
                               : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300'
