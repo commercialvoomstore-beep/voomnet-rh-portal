@@ -99,7 +99,7 @@ interface AppContextType {
   restorePrime: (matricule: string, motifRestauration: string) => void;
   activeToast: AlertNotification | null;
   dismissToast: () => void;
-  showNotificationAlert: (title: string, message: string, type?: AlertNotification['type']) => void;
+  showNotificationAlert: (title: string, message: string, type?: AlertNotification['type'], recipientMatricule?: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -162,10 +162,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       localStorage.setItem('VOOMNET_ABSENCE_REQUESTS', JSON.stringify(absenceRequests));
     }
   }, [absenceRequests]);
+
   const [primeConfig, setPrimeConfig] = useState<PrimeConfig>(INITIAL_PRIME_CONFIG);
   const [primes, setPrimes] = useState<EmployeePrimeStatus[]>(INITIAL_PRIMES);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>(INITIAL_CHAT_MESSAGES);
-  const [notifications, setNotifications] = useState<AlertNotification[]>(INITIAL_NOTIFICATIONS);
+
+  const [notifications, setNotifications] = useState<AlertNotification[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('VOOMNET_NOTIFICATIONS');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        } catch (e) {
+          localStorage.removeItem('VOOMNET_NOTIFICATIONS');
+        }
+      }
+    }
+    return INITIAL_NOTIFICATIONS;
+  });
+
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>(INITIAL_AUDIT_LOGS);
   const [activeToast, setActiveToast] = useState<AlertNotification | null>(null);
 
@@ -224,26 +240,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                   reqMap.set(String(r.id), r);
                 }
               });
+
               latestLeaves.forEach((r) => {
                 if (r && typeof r === 'object' && r.id) {
                   const existing = reqMap.get(String(r.id));
 
-                  // Detect status transition from 'En attente' to 'Approuvé' or 'Refusé' for the logged in employee
-                  if (
-                    existing &&
-                    existing.statut === 'En attente' &&
-                    (r.statut === 'Approuvé' || r.statut === 'Refusé') &&
-                    user &&
-                    (String(r.matricule).trim() === String(user.matricule).trim() ||
-                      String(existing.matricule).trim() === String(user.matricule).trim())
-                  ) {
-                    showNotificationAlert(
-                      r.statut === 'Approuvé'
-                        ? `🎉 Demande ${r.codeSuivi || r.id} Validée !`
-                        : `❌ Demande ${r.codeSuivi || r.id} Refusée`,
-                      `Votre demande de permission "${r.typeAbsence}" a été ${r.statut.toLowerCase()} par l'Administration RH. Remarque : "${r.cadreAdminNotes || 'Aucune'}"`,
-                      r.statut === 'Approuvé' ? 'SUCCESS' : 'ALERT'
-                    );
+                  // Create notifications for validated or refused requests if not already created
+                  if (r.statut === 'Approuvé' || r.statut === 'Refusé') {
+                    const notifKey = `notif-leave-${r.id}`;
+                    setNotifications((prevNotifs) => {
+                      if (!prevNotifs.some((n) => n.id === notifKey)) {
+                        const isApproved = r.statut === 'Approuvé';
+                        const notifTitle = isApproved
+                          ? `🎉 Demande ${r.codeSuivi || r.id} Validée !`
+                          : `❌ Demande ${r.codeSuivi || r.id} Refusée`;
+                        const notifMsg = `Votre demande de permission "${r.typeAbsence}" a été ${r.statut.toLowerCase()} par l'Administration RH. Remarque RH : "${r.cadreAdminNotes || 'Aucune'}"`;
+                        const newNotif: AlertNotification = {
+                          id: notifKey,
+                          title: notifTitle,
+                          message: notifMsg,
+                          timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                          type: isApproved ? 'SUCCESS' : 'ALERT',
+                          read: false,
+                          recipientMatricule: r.matricule,
+                        };
+                        const updated = [newNotif, ...prevNotifs];
+                        if (typeof window !== 'undefined') {
+                          localStorage.setItem('VOOMNET_NOTIFICATIONS', JSON.stringify(updated));
+                        }
+                        return updated;
+                      }
+                      return prevNotifs;
+                    });
                   }
 
                   // Preserve user's submitted `justifiee` boolean when status is still 'En attente'
@@ -296,20 +324,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const showNotificationAlert = (
     title: string,
     message: string,
-    type: AlertNotification['type'] = 'INFO'
+    type: AlertNotification['type'] = 'INFO',
+    recipientMatricule?: string
   ) => {
     playNotificationSound();
 
     const newNotif: AlertNotification = {
-      id: `notif-${Date.now()}`,
+      id: `notif-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
       title,
       message,
       timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
       type,
       read: false,
+      recipientMatricule,
     };
 
-    setNotifications((prev) => [newNotif, ...prev]);
+    setNotifications((prev) => {
+      const updated = [newNotif, ...prev];
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('VOOMNET_NOTIFICATIONS', JSON.stringify(updated));
+      }
+      return updated;
+    });
+
     setActiveToast(newNotif);
 
     setTimeout(() => {
@@ -320,13 +357,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const dismissToast = () => setActiveToast(null);
 
   const markNotificationAsRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    );
+    setNotifications((prev) => {
+      const updated = prev.map((n) => (n.id === id ? { ...n, read: true } : n));
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('VOOMNET_NOTIFICATIONS', JSON.stringify(updated));
+      }
+      return updated;
+    });
   };
 
   const clearAllNotifications = () => {
     setNotifications([]);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('VOOMNET_NOTIFICATIONS');
+    }
   };
 
   const markPrimeNotificationsAsRead = () => {
@@ -367,11 +411,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       } else {
         setActiveTab('dashboard');
       }
-      showNotificationAlert(
-        `👋 Bienvenue ${found.prenom} ${found.nom}`,
-        `Connexion réussie sous le rôle ${found.role} (${found.statut}).`,
-        'SUCCESS'
-      );
+
+      // Check if there are unread notifications specifically for this employee
+      setTimeout(() => {
+        setNotifications((currentNotifs) => {
+          const unreadForEmp = currentNotifs.find(
+            (n) => !n.read && n.recipientMatricule && n.recipientMatricule === found.matricule
+          );
+          if (unreadForEmp) {
+            setActiveToast(unreadForEmp);
+            playNotificationSound();
+          } else {
+            showNotificationAlert(
+              `👋 Bienvenue ${found.prenom} ${found.nom}`,
+              `Connexion réussie sous le rôle ${found.role} (${found.statut}).`,
+              'SUCCESS',
+              found.matricule
+            );
+          }
+          return currentNotifs;
+        });
+      }, 500);
+
       return true;
     }
     return false;
@@ -560,7 +621,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     showNotificationAlert(
       '💬 Message Envoyé & Enregistré',
       `Message sauvegardé dans la base Neon et transmis à ${recipientName} (Poste 3CX ${recipientMatricule}).`,
-      'SUCCESS'
+      'SUCCESS',
+      recipientMatricule
     );
   };
 
@@ -740,7 +802,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     showNotificationAlert(
       statut === 'Approuvé' ? `🎉 Demande ${reqCode} Validée !` : `❌ Demande ${reqCode} Refusée`,
       `Notification transmise à l'employé ${reqName} (Poste 3CX ${reqMatricule}) : Votre demande de permission ${reqCode} a été ${statut.toLowerCase()} par l'Admin. Remarque RH : "${notes || 'Aucune'}"`,
-      statut === 'Approuvé' ? 'SUCCESS' : 'ALERT'
+      statut === 'Approuvé' ? 'SUCCESS' : 'ALERT',
+      reqMatricule
     );
   };
 

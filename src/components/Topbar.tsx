@@ -36,7 +36,15 @@ export const Topbar: React.FC = () => {
   const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
   const [showThemeDropdown, setShowThemeDropdown] = useState(false);
   const [showDatabaseModal, setShowDatabaseModal] = useState(false);
-  const unreadCount = notifications.filter((n) => !n.read).length;
+
+  const userNotifications = notifications.filter(
+    (n) =>
+      !n.recipientMatricule ||
+      n.recipientMatricule === user?.matricule ||
+      user?.role === 'SuperAdmin' ||
+      user?.role === 'Admin'
+  );
+  const unreadCount = userNotifications.filter((n) => !n.read).length;
   const activeDbProvider = getActiveProvider();
 
   const currentDateStr = new Date().toLocaleDateString('fr-FR', {
@@ -264,7 +272,7 @@ export const Topbar: React.FC = () => {
                 </div>
 
                 <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
-                  {notifications.map((n) => (
+                  {userNotifications.map((n) => (
                     <div
                       key={n.id}
                       onClick={() => markNotificationAsRead(n.id)}
@@ -285,7 +293,7 @@ export const Topbar: React.FC = () => {
                     </div>
                   ))}
 
-                  {notifications.length === 0 && (
+                  {userNotifications.length === 0 && (
                     <div className="text-center py-6 text-slate-400 text-xs font-medium">
                       Aucune notification récente.
                     </div>

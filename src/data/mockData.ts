@@ -86,6 +86,7 @@ export interface AlertNotification {
   timestamp: string;
   type: 'INFO' | 'SUCCESS' | 'WARNING' | 'ALERT' | 'CHAT';
   read: boolean;
+  recipientMatricule?: string;
 }
 
 export interface AuditLog {
