@@ -9,6 +9,7 @@ import { Topbar } from '@/components/Topbar';
 import { Dashboard } from '@/components/Dashboard';
 import { Personnel } from '@/components/Personnel';
 import { Conges } from '@/components/Conges';
+import { PrimesManagement } from '@/components/PrimesManagement';
 import { Parametres } from '@/components/Parametres';
 import { MonPoste } from '@/components/MonPoste';
 import { ChatRH } from '@/components/ChatRH';
@@ -50,6 +51,8 @@ export default function Home() {
         return <ChatRH />;
       case 'conges':
         return <Conges />;
+      case 'primes':
+        return <PrimesManagement />;
       case 'parametres':
         return <Parametres />;
       default:

@@ -371,7 +371,7 @@ export const deleteNeonLeaveRequest = async (id: string) => {
 };
 
 // ==========================================
-// 4. PRIME CONFIGURATION
+// 4. PRIME CONFIGURATION & ATTRIBUTIONS
 // ==========================================
 export const fetchNeonPrimeConfig = async (): Promise<any | null> => {
   if (typeof window !== 'undefined') {
@@ -401,6 +401,49 @@ export const updateNeonPrimeConfig = async (montantReference: number, periodeNom
       });
     } catch (err) {
       console.warn('API update prime config failed:', err);
+    }
+  }
+};
+
+export const fetchNeonPrimeAttributions = async (): Promise<any[] | null> => {
+  if (typeof window !== 'undefined') {
+    try {
+      const customUrl = localStorage.getItem('VOOMNET_NEON_DATABASE_URL') || '';
+      const url = customUrl ? `/api/primes?customUrl=${encodeURIComponent(customUrl)}` : '/api/primes';
+      const res = await fetch(url, { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.success && Array.isArray(data.attributions)) {
+          return data.attributions;
+        }
+      }
+    } catch (err) {
+      console.warn('API fetch prime attributions failed:', err);
+    }
+  }
+  return null;
+};
+
+export const insertNeonPrimeAttribution = async (attr: {
+  id?: string;
+  matricule: string;
+  nomPrenom: string;
+  periodeNom: string;
+  statut: 'Accordée' | 'Refusée' | 'En attente';
+  montant: number;
+  motif?: string;
+  approvedBy?: string;
+}) => {
+  if (typeof window !== 'undefined') {
+    try {
+      const customUrl = localStorage.getItem('VOOMNET_NEON_DATABASE_URL') || '';
+      await fetch('/api/primes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...attr, customUrl }),
+      });
+    } catch (err) {
+      console.warn('API insert prime attribution failed:', err);
     }
   }
 };

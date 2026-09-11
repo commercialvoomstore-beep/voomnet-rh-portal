@@ -11,6 +11,7 @@ import {
   Cpu,
   MessageSquare,
   Briefcase,
+  Award,
 } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
@@ -43,6 +44,7 @@ export const Sidebar: React.FC = () => {
           badge: myPendingRequests > 0 ? myPendingRequests : null,
           badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
         },
+        { id: 'primes', label: 'Ma Prime Trimestrielle', icon: Award },
         { id: 'parametres', label: 'Mon Compte & Photo', icon: Settings },
       ];
     }
@@ -65,6 +67,7 @@ export const Sidebar: React.FC = () => {
           badge: pendingAbsences > 0 ? pendingAbsences : null,
           badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
         },
+        { id: 'primes', label: 'Attribution Primes', icon: Award },
         { id: 'parametres', label: 'Paramètres & Photo', icon: Settings },
       ];
     }
@@ -87,6 +90,7 @@ export const Sidebar: React.FC = () => {
         badge: pendingAbsences > 0 ? pendingAbsences : null,
         badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
       },
+      { id: 'primes', label: 'Primes Trimestrielles', icon: Award },
       { id: 'parametres', label: 'Configuration Système', icon: Settings },
     ];
   };
