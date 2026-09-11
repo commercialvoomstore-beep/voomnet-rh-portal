@@ -227,6 +227,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               latestLeaves.forEach((r) => {
                 if (r && typeof r === 'object' && r.id) {
                   const existing = reqMap.get(String(r.id));
+
+                  // Detect status transition from 'En attente' to 'Approuvé' or 'Refusé' for the logged in employee
+                  if (
+                    existing &&
+                    existing.statut === 'En attente' &&
+                    (r.statut === 'Approuvé' || r.statut === 'Refusé') &&
+                    user &&
+                    (String(r.matricule).trim() === String(user.matricule).trim() ||
+                      String(existing.matricule).trim() === String(user.matricule).trim())
+                  ) {
+                    showNotificationAlert(
+                      r.statut === 'Approuvé'
+                        ? `🎉 Demande ${r.codeSuivi || r.id} Validée !`
+                        : `❌ Demande ${r.codeSuivi || r.id} Refusée`,
+                      `Votre demande de permission "${r.typeAbsence}" a été ${r.statut.toLowerCase()} par l'Administration RH. Remarque : "${r.cadreAdminNotes || 'Aucune'}"`,
+                      r.statut === 'Approuvé' ? 'SUCCESS' : 'ALERT'
+                    );
+                  }
+
                   // Preserve user's submitted `justifiee` boolean when status is still 'En attente'
                   const mergedJustifiee =
                     r.statut === 'En attente' && existing && typeof existing.justifiee === 'boolean'
@@ -719,8 +738,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     // 🔔 Notification pour l'employé & l'administrateur
     showNotificationAlert(
-      statut === 'Approuvé' ? `✅ Demande ${reqCode} Validée` : `❌ Demande ${reqCode} Refusée`,
-      `Notification transmise à l'employé ${reqName} (Poste 3CX ${reqMatricule}) : Votre demande ${reqCode} a été ${statut.toLowerCase()} par l'Admin. Remarque : "${notes || 'Aucune'}"`,
+      statut === 'Approuvé' ? `🎉 Demande ${reqCode} Validée !` : `❌ Demande ${reqCode} Refusée`,
+      `Notification transmise à l'employé ${reqName} (Poste 3CX ${reqMatricule}) : Votre demande de permission ${reqCode} a été ${statut.toLowerCase()} par l'Admin. Remarque RH : "${notes || 'Aucune'}"`,
       statut === 'Approuvé' ? 'SUCCESS' : 'ALERT'
     );
   };
