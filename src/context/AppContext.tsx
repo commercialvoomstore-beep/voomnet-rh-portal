@@ -97,6 +97,12 @@ interface AppContextType {
   deleteAbsenceRequest: (id: string) => void;
   simulateUnjustifiedAbsence: (matricule: string, dateAbsence: string) => void;
   restorePrime: (matricule: string, motifRestauration: string) => void;
+  primeAttributions: (EmployeePrimeStatus & {
+    statut: 'Accordée' | 'Refusée' | 'En attente';
+    montant: number;
+    motif: string;
+  })[];
+  attributePrime: (matricule: string, statut: 'Accordée' | 'Refusée', motif: string) => void;
   activeToast: AlertNotification | null;
   dismissToast: () => void;
   showNotificationAlert: (title: string, message: string, type?: AlertNotification['type'], recipientMatricule?: string) => void;
@@ -865,6 +871,42 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   };
 
+  const attributePrime = (matricule: string, statut: 'Accordée' | 'Refusée', motif: string) => {
+    setPrimes((prev) =>
+      prev.map((p) => {
+        if (p.matricule === matricule) {
+          const isAccordee = statut === 'Accordée';
+          return {
+            ...p,
+            eligible: isAccordee,
+            montantCalcule: isAccordee ? primeConfig.montantReference : 0,
+            motifStatus: `${statut.toUpperCase()} — ${motif}`,
+            dateAnnulation: isAccordee ? undefined : new Date().toLocaleString('fr-FR'),
+          };
+        }
+        return p;
+      })
+    );
+
+    showNotificationAlert(
+      statut === 'Accordée' ? '🎉 Prime Accordée' : '❌ Prime Refusée',
+      `Décision RH pour le matricule ${matricule} : Prime ${statut.toLowerCase()} (${motif}).`,
+      statut === 'Accordée' ? 'SUCCESS' : 'ALERT',
+      matricule
+    );
+  };
+
+  const primeAttributions = primes.map((p) => ({
+    ...p,
+    statut: (p.eligible
+      ? 'Accordée'
+      : p.motifStatus && p.motifStatus.includes('ANNULÉE')
+      ? 'Refusée'
+      : 'En attente') as 'Accordée' | 'Refusée' | 'En attente',
+    montant: p.eligible ? p.montantCalcule : 0,
+    motif: p.motifStatus || '',
+  }));
+
   return (
     <AppContext.Provider
       value={{
@@ -900,6 +942,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         deleteAbsenceRequest,
         simulateUnjustifiedAbsence,
         restorePrime,
+        primeAttributions,
+        attributePrime,
         activeToast,
         dismissToast,
         showNotificationAlert,
