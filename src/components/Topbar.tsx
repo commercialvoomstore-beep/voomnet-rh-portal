@@ -12,9 +12,7 @@ import {
   AlertTriangle,
   MessageSquare,
   Info,
-  Check,
   Trash2,
-  Palette,
 } from 'lucide-react';
 
 import { DatabaseConfigModal } from '@/components/DatabaseConfigModal';
@@ -29,12 +27,9 @@ export const Topbar: React.FC = () => {
     dismissToast,
     markNotificationAsRead,
     clearAllNotifications,
-    appTheme,
-    setAppTheme,
   } = useApp();
 
   const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
-  const [showThemeDropdown, setShowThemeDropdown] = useState(false);
   const [showDatabaseModal, setShowDatabaseModal] = useState(false);
 
   const userNotifications = notifications.filter(
@@ -158,87 +153,6 @@ export const Topbar: React.FC = () => {
           <div className="hidden md:flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-amber-50 text-xs font-bold text-amber-900 border border-amber-200 shadow-sm">
             <Calendar className="w-3.5 h-3.5 text-amber-600" />
             <span>{formattedDate}</span>
-          </div>
-
-          {/* Palette / Theme Selector Button Dropdown */}
-          <div className="relative">
-            <button
-              onClick={() => setShowThemeDropdown(!showThemeDropdown)}
-              className="p-2.5 rounded-xl bg-gradient-to-r from-amber-400 via-rose-500 to-pink-500 text-white font-extrabold shadow-md shadow-rose-500/20 hover:opacity-95 transition-all flex items-center gap-1.5"
-              title="Changer les couleurs"
-            >
-              <Palette className="w-4 h-4 text-white animate-bounce" />
-              <span className="hidden sm:inline text-xs">
-                Couleurs
-              </span>
-            </button>
-
-            {showThemeDropdown && (
-              <div className="absolute right-0 mt-2 w-64 bg-white border border-indigo-100 rounded-2xl shadow-2xl p-4 z-50 space-y-2 animate-fadeIn">
-                <div className="flex items-center gap-2 border-b border-indigo-100 pb-2">
-                  <Palette className="w-4 h-4 text-rose-500" />
-                  <h4 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider">
-                    Sélecteur de Thème
-                  </h4>
-                </div>
-
-                <div className="space-y-1.5 pt-1">
-                  <button
-                    onClick={() => {
-                      setAppTheme('ocean');
-                      setShowThemeDropdown(false);
-                    }}
-                    className={`w-full p-2.5 rounded-xl text-xs font-bold flex items-center justify-between border transition-all ${
-                      appTheme === 'ocean'
-                        ? 'bg-rose-50 border-rose-300 text-rose-900'
-                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
-                    }`}
-                  >
-                    <span className="flex items-center gap-2">
-                      <span className="w-3.5 h-3.5 rounded-full bg-gradient-to-r from-amber-400 to-rose-500 shadow-sm" />
-                      Gai, Joyeux & Ensoleillé
-                    </span>
-                    {appTheme === 'ocean' && <Check className="w-3.5 h-3.5 text-rose-600" />}
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      setAppTheme('emerald');
-                      setShowThemeDropdown(false);
-                    }}
-                    className={`w-full p-2.5 rounded-xl text-xs font-bold flex items-center justify-between border transition-all ${
-                      appTheme === 'emerald'
-                        ? 'bg-emerald-50 border-emerald-300 text-emerald-900'
-                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
-                    }`}
-                  >
-                    <span className="flex items-center gap-2">
-                      <span className="w-3.5 h-3.5 rounded-full bg-gradient-to-r from-teal-400 to-emerald-500 shadow-sm" />
-                      Émeraude & Vert Menthe
-                    </span>
-                    {appTheme === 'emerald' && <Check className="w-3.5 h-3.5 text-emerald-600" />}
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      setAppTheme('violet');
-                      setShowThemeDropdown(false);
-                    }}
-                    className={`w-full p-2.5 rounded-xl text-xs font-bold flex items-center justify-between border transition-all ${
-                      appTheme === 'violet'
-                        ? 'bg-purple-50 border-purple-300 text-purple-900'
-                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
-                    }`}
-                  >
-                    <span className="flex items-center gap-2">
-                      <span className="w-3.5 h-3.5 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 shadow-sm" />
-                      Améthyste & Violet Cyber
-                    </span>
-                    {appTheme === 'violet' && <Check className="w-3.5 h-3.5 text-purple-600" />}
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Bell Notification Button Dropdown */}
