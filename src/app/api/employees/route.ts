@@ -19,6 +19,35 @@ function getDbConnection(customUrl?: string) {
   }
 }
 
+async function ensureEmployeeTable(sql: any) {
+  try {
+    await sql`
+      CREATE TABLE IF NOT EXISTS employees (
+          id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid()::text,
+          matricule VARCHAR(20) UNIQUE NOT NULL,
+          first_name VARCHAR(100) NOT NULL,
+          last_name VARCHAR(100) NOT NULL,
+          email VARCHAR(150) UNIQUE NOT NULL,
+          phone VARCHAR(30),
+          role VARCHAR(20) NOT NULL DEFAULT 'EMPLOYEE',
+          position VARCHAR(150) NOT NULL,
+          department VARCHAR(150) NOT NULL,
+          status VARCHAR(20) NOT NULL DEFAULT 'ACTIF',
+          base_salary NUMERIC(12, 2) NOT NULL DEFAULT 350000,
+          hire_date DATE NOT NULL DEFAULT CURRENT_DATE,
+          avatar_url TEXT,
+          emergency_contact VARCHAR(200),
+          password VARCHAR(100) DEFAULT 'voomnet2026',
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+    `;
+    await sql`ALTER TABLE employees ADD COLUMN IF NOT EXISTS emergency_contact VARCHAR(200);`;
+    await sql`ALTER TABLE employees ADD COLUMN IF NOT EXISTS password VARCHAR(100);`;
+  } catch (e) {
+    // ignore
+  }
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -29,13 +58,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, error: 'Database connection URL not configured', employees: [] }, { status: 200 });
     }
 
-    // Auto-create emergency_contact column if missing
-    try {
-      await sql`ALTER TABLE employees ADD COLUMN IF NOT EXISTS emergency_contact VARCHAR(200);`;
-      await sql`ALTER TABLE employees ADD COLUMN IF NOT EXISTS password VARCHAR(100);`;
-    } catch (e) {
-      // ignore
-    }
+    await ensureEmployeeTable(sql);
 
     let rows: any[] = [];
     try {
@@ -91,13 +114,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Database connection URL not configured' }, { status: 200 });
     }
 
-    // Auto-create emergency_contact column if missing
-    try {
-      await sql`ALTER TABLE employees ADD COLUMN IF NOT EXISTS emergency_contact VARCHAR(200);`;
-      await sql`ALTER TABLE employees ADD COLUMN IF NOT EXISTS password VARCHAR(100);`;
-    } catch (e) {
-      // ignore
-    }
+    await ensureEmployeeTable(sql);
 
     const roleDb = emp.role === 'SuperAdmin' ? 'SUPERADMIN' : (emp.role === 'Admin' || emp.role === 'Admin RH') ? 'ADMIN' : 'EMPLOYEE';
     const statutDb = emp.statut === 'CDI' ? 'CDI' : emp.statut === 'STAGIAIRE' ? 'STAGIAIRE' : 'CDD';

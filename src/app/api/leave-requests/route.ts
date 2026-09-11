@@ -19,6 +19,28 @@ function getDbConnection(customUrl?: string) {
   }
 }
 
+async function ensureLeaveTable(sql: any) {
+  try {
+    await sql`
+      CREATE TABLE IF NOT EXISTS leave_requests (
+          id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid()::text,
+          employee_id VARCHAR(100) NOT NULL,
+          employee_name VARCHAR(200) NOT NULL,
+          type VARCHAR(50) NOT NULL,
+          start_date DATE NOT NULL,
+          end_date DATE NOT NULL,
+          days_count INT NOT NULL DEFAULT 1,
+          reason TEXT,
+          status VARCHAR(20) DEFAULT 'EN_ATTENTE',
+          approved_by VARCHAR(150),
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+    `;
+  } catch (e) {
+    // ignore
+  }
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -28,6 +50,8 @@ export async function GET(request: Request) {
     if (!sql) {
       return NextResponse.json({ success: false, error: 'Database connection URL not configured on server', requests: [] }, { status: 200 });
     }
+
+    await ensureLeaveTable(sql);
 
     const rows = await sql`
       SELECT
@@ -106,6 +130,8 @@ export async function POST(request: Request) {
     if (!sql) {
       return NextResponse.json({ success: false, error: 'Database connection URL not configured on server' }, { status: 200 });
     }
+
+    await ensureLeaveTable(sql);
 
     const typeDb = req.typeAbsence || req.type || 'Permission d\'absence';
     const statusDb = req.statut === 'Approuvé' ? 'APPROUVE' : req.statut === 'Refusé' ? 'REFUSE' : 'EN_ATTENTE';
