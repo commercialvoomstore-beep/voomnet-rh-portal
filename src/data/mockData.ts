@@ -64,6 +64,9 @@ export interface EmployeePrimeStatus {
   restaureeParAdmin?: boolean;
   restaureePar?: string;
   dateRestauration?: string;
+  statut?: 'Accordée' | 'Refusée' | 'En attente';
+  montant?: number;
+  motif?: string;
 }
 
 export interface ChatMessage {

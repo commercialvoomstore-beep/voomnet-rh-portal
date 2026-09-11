@@ -317,21 +317,40 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           const latestAttributions = await fetchNeonPrimeAttributions();
           if (latestAttributions && Array.isArray(latestAttributions) && latestAttributions.length > 0) {
             setPrimes((prevPrimes) => {
-              return prevPrimes.map((p) => {
-                const neonAttr = latestAttributions.find(
-                  (a) => a.matricule === p.matricule && (a.periodeNom === p.periodeNom || !a.periodeNom)
-                );
-                if (neonAttr) {
-                  const isAccordee = neonAttr.statut === 'Accordée';
-                  return {
-                    ...p,
-                    eligible: isAccordee,
-                    montantCalcule: isAccordee ? neonAttr.montant || primeConfig.montantReference : 0,
-                    motifStatus: `${neonAttr.statut.toUpperCase()} — ${neonAttr.motif || 'Décision RH'}`,
-                  };
+              const primeMap = new Map<string, EmployeePrimeStatus>();
+              (prevPrimes || []).forEach((p) => {
+                if (p && p.matricule) {
+                  primeMap.set(String(p.matricule).trim(), p);
                 }
-                return p;
               });
+
+              latestAttributions.forEach((attr) => {
+                if (attr && attr.matricule) {
+                  const mKey = String(attr.matricule).trim();
+                  const existing = primeMap.get(mKey);
+                  const isAccordee = attr.statut === 'Accordée';
+                  const isRefused = attr.statut === 'Refusée';
+
+                  const updatedItem: EmployeePrimeStatus = {
+                    matricule: mKey,
+                    nomPrenom: attr.nomPrenom || existing?.nomPrenom || 'Collaborateur',
+                    dateEmbauche: existing?.dateEmbauche || '2023-01-01',
+                    statutCollaborateur: existing?.statutCollaborateur || 'CDI',
+                    roleCollaborateur: existing?.roleCollaborateur || 'Employé',
+                    periodeNom: attr.periodeNom || existing?.periodeNom || primeConfig.periodeNom,
+                    eligible: isAccordee,
+                    montantCalcule: isAccordee ? attr.montant || primeConfig.montantReference : 0,
+                    statut: (isAccordee ? 'Accordée' : isRefused ? 'Refusée' : 'En attente') as 'Accordée' | 'Refusée' | 'En attente',
+                    montant: isAccordee ? attr.montant || primeConfig.montantReference : 0,
+                    motif: attr.motif || existing?.motif || '',
+                    motifStatus: `${attr.statut.toUpperCase()} — ${attr.motif || 'Décision RH'}`,
+                  };
+
+                  primeMap.set(mKey, updatedItem);
+                }
+              });
+
+              return Array.from(primeMap.values());
             });
           }
         }
@@ -896,29 +915,54 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const attributePrime = (matricule: string, statut: 'Accordée' | 'Refusée', motif: string) => {
+    const cleanMatricule = String(matricule).trim();
     const isAccordee = statut === 'Accordée';
     const montantVal = isAccordee ? primeConfig.montantReference : 0;
-    const targetEmp = employees.find((e) => e.matricule === matricule);
+    const targetEmp = employees.find((e) => String(e.matricule).trim() === cleanMatricule);
     const empName = targetEmp ? `${targetEmp.prenom} ${targetEmp.nom}` : 'Employé';
 
-    setPrimes((prev) =>
-      prev.map((p) => {
-        if (p.matricule === matricule) {
+    setPrimes((prev) => {
+      let found = false;
+      const updated = prev.map((p) => {
+        if (String(p.matricule).trim() === cleanMatricule) {
+          found = true;
           return {
             ...p,
             eligible: isAccordee,
             montantCalcule: montantVal,
+            statut: statut,
+            montant: montantVal,
+            motif: motif,
             motifStatus: `${statut.toUpperCase()} — ${motif}`,
             dateAnnulation: isAccordee ? undefined : new Date().toLocaleString('fr-FR'),
           };
         }
         return p;
-      })
-    );
+      });
 
-    // Persist directly to Neon PostgreSQL database table `prime_attributions`
+      if (!found && targetEmp) {
+        updated.push({
+          matricule: cleanMatricule,
+          nomPrenom: empName,
+          dateEmbauche: targetEmp.dateEmbauche,
+          statutCollaborateur: targetEmp.statut,
+          roleCollaborateur: targetEmp.role,
+          periodeNom: primeConfig.periodeNom,
+          eligible: isAccordee,
+          montantCalcule: montantVal,
+          statut: statut,
+          montant: montantVal,
+          motif: motif,
+          motifStatus: `${statut.toUpperCase()} — ${motif}`,
+        });
+      }
+
+      return updated;
+    });
+
+    // Save directly into Neon PostgreSQL database
     insertNeonPrimeAttribution({
-      matricule,
+      matricule: cleanMatricule,
       nomPrenom: empName,
       periodeNom: primeConfig.periodeNom,
       statut,
@@ -932,29 +976,42 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       id: `log-${Date.now()}`,
       timestamp: new Date().toLocaleString('fr-FR'),
       type: isAccordee ? 'PRIME_RESTORE' : 'PRIME_CANCEL',
-      message: `Prime trimestrielle ${statut.toLowerCase()} pour ${empName} (Matricule ${matricule}). Motif : "${motif}".`,
+      message: `Prime trimestrielle ${statut.toLowerCase()} pour ${empName} (Matricule ${cleanMatricule}). Motif : "${motif}".`,
       auteur: user ? `${user.prenom} ${user.nom}` : 'Administration RH',
     };
     setAuditLogs((prev) => [newLog, ...prev]);
 
     showNotificationAlert(
       statut === 'Accordée' ? '🎉 Prime Accordée' : '❌ Prime Refusée',
-      `Décision RH pour l'employé ${empName} (Matricule ${matricule}) : Prime ${statut.toLowerCase()} (${montantVal.toLocaleString('fr-FR')} FCFA). Remarque : "${motif}".`,
+      `Notification envoyée à l'employé ${empName} (Poste 3CX ${cleanMatricule}) : Votre prime trimestrielle a été ${statut.toLowerCase()} (${montantVal.toLocaleString('fr-FR')} FCFA). Remarque : "${motif}".`,
       statut === 'Accordée' ? 'SUCCESS' : 'ALERT',
-      matricule
+      cleanMatricule
     );
   };
 
-  const primeAttributions = primes.map((p) => ({
-    ...p,
-    statut: (p.eligible
-      ? 'Accordée'
-      : p.motifStatus && p.motifStatus.includes('ANNULÉE')
-      ? 'Refusée'
-      : 'En attente') as 'Accordée' | 'Refusée' | 'En attente',
-    montant: p.eligible ? p.montantCalcule : 0,
-    motif: p.motifStatus || '',
-  }));
+  const primeAttributions = primes.map((p) => {
+    let resolvedStatut: 'Accordée' | 'Refusée' | 'En attente' = 'En attente';
+    if (p.statut) {
+      resolvedStatut = p.statut;
+    } else if (p.eligible) {
+      resolvedStatut = 'Accordée';
+    } else if (
+      p.motifStatus &&
+      (p.motifStatus.includes('REFUSÉE') ||
+        p.motifStatus.includes('REFUSÉ') ||
+        p.motifStatus.includes('ANNULÉE') ||
+        p.motifStatus.includes('ANNULÉ'))
+    ) {
+      resolvedStatut = 'Refusée';
+    }
+
+    return {
+      ...p,
+      statut: resolvedStatut,
+      montant: resolvedStatut === 'Accordée' ? p.montantCalcule || p.montant || primeConfig.montantReference : 0,
+      motif: p.motif || (p.motifStatus ? p.motifStatus.replace(/^(ACCORDÉE|REFUSÉE|ANNULÉE)\s*—\s*/i, '') : ''),
+    };
+  });
 
   return (
     <AppContext.Provider
