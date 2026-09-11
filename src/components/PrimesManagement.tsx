@@ -16,7 +16,9 @@ import {
   DollarSign,
   Gift,
   Building2,
+  Database,
 } from 'lucide-react';
+import { PrimeDatabaseViewerModal } from '@/components/PrimeDatabaseViewerModal';
 
 export const PrimesManagement: React.FC = () => {
   const {
@@ -30,6 +32,7 @@ export const PrimesManagement: React.FC = () => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatut, setFilterStatut] = useState<string>('Tous');
+  const [showDbModal, setShowDbModal] = useState(false);
 
   // SuperAdmin Config Form State
   const [montantRefInput, setMontantRefInput] = useState<number>(primeConfig.montantReference);
@@ -82,12 +85,23 @@ export const PrimesManagement: React.FC = () => {
             </p>
           </div>
 
-          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-right shrink-0">
-            <div className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">
-              Montant de Référence
-            </div>
-            <div className="text-2xl font-extrabold text-amber-600 font-mono mt-0.5">
-              {primeConfig.montantReference.toLocaleString('fr-FR')} FCFA
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowDbModal(true)}
+              className="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-sm"
+              title="Inspecter la table PostgreSQL prime_attributions dans Neon DB"
+            >
+              <Database className="w-4 h-4 text-blue-600" />
+              <span>Voir Base Neon SQL</span>
+            </button>
+
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-right shrink-0">
+              <div className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">
+                Montant de Référence
+              </div>
+              <div className="text-2xl font-extrabold text-amber-600 font-mono mt-0.5">
+                {primeConfig.montantReference.toLocaleString('fr-FR')} FCFA
+              </div>
             </div>
           </div>
         </div>
@@ -419,6 +433,10 @@ export const PrimesManagement: React.FC = () => {
           </table>
         </div>
       </div>
+      <PrimeDatabaseViewerModal
+        isOpen={showDbModal}
+        onClose={() => setShowDbModal(false)}
+      />
     </div>
   );
 };
