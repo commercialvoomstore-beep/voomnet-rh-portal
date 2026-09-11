@@ -81,7 +81,7 @@ interface AppContextType {
   chatMessages: ChatMessage[];
   notifications: AlertNotification[];
   auditLogs: AuditLog[];
-  login: (identifier: string, passwordInput?: string) => boolean;
+  login: (identifier: string, passwordInput?: string) => Promise<boolean>;
   logout: () => void;
   addEmployee: (emp: Omit<Employee, 'id'>) => void;
   updateEmployee: (id: string, empData: Partial<Employee>) => void;
@@ -444,11 +444,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   };
 
-  const login = (identifier: string, passwordInput?: string): boolean => {
+  const login = async (identifier: string, passwordInput?: string): Promise<boolean> => {
     const trimmed = (identifier || '').trim().toLowerCase();
-    const found = employees.find(
+    
+    // 1. Check in-memory employees state first
+    let found = employees.find(
       (e) => (e.matricule || '').trim().toLowerCase() === trimmed || (e.email || '').trim().toLowerCase() === trimmed
     );
+
+    // 2. If not found in memory (e.g. employee created on another workstation), perform a live query to Neon DB
+    if (!found) {
+      try {
+        const liveEmps = await fetchNeonEmployees();
+        if (liveEmps && liveEmps.length > 0) {
+          setEmployees(liveEmps);
+          found = liveEmps.find(
+            (e) => (e.matricule || '').trim().toLowerCase() === trimmed || (e.email || '').trim().toLowerCase() === trimmed
+          );
+        }
+      } catch (err) {
+        console.warn('Live fetch on login failed:', err);
+      }
+    }
+
     if (found) {
       if (passwordInput && passwordInput.trim() !== '') {
         const validPassword = found.motDePasse || 'voomnet2026';
@@ -467,17 +485,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setTimeout(() => {
         setNotifications((currentNotifs) => {
           const unreadForEmp = currentNotifs.find(
-            (n) => !n.read && n.recipientMatricule && n.recipientMatricule === found.matricule
+            (n) => !n.read && n.recipientMatricule && n.recipientMatricule === found?.matricule
           );
           if (unreadForEmp) {
             setActiveToast(unreadForEmp);
             playNotificationSound();
           } else {
             showNotificationAlert(
-              `👋 Bienvenue ${found.prenom} ${found.nom}`,
-              `Connexion réussie sous le rôle ${found.role} (${found.statut}).`,
+              `👋 Bienvenue ${found?.prenom} ${found?.nom}`,
+              `Connexion réussie sous le rôle ${found?.role} (${found?.statut}).`,
               'SUCCESS',
-              found.matricule
+              found?.matricule
             );
           }
           return currentNotifs;

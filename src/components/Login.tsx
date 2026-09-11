@@ -9,18 +9,20 @@ export const Login: React.FC = () => {
   const [matricule, setMatricule] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!matricule) {
       setError('Veuillez saisir votre numéro de matricule (Poste 3CX) ou votre email.');
       return;
     }
-    const success = login(matricule, password);
+    setLoading(true);
+    setError('');
+    const success = await login(matricule, password);
+    setLoading(false);
     if (!success) {
       setError('Identifiant ou mot de passe incorrect. Vérifiez vos identifiants.');
-    } else {
-      setError('');
     }
   };
 
@@ -96,9 +98,10 @@ export const Login: React.FC = () => {
 
           <button
             type="submit"
-            className="w-full mt-2 py-3.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-sm rounded-2xl shadow-md flex items-center justify-center gap-2 transition-all"
+            disabled={loading}
+            className="w-full mt-2 py-3.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-sm rounded-2xl shadow-md flex items-center justify-center gap-2 transition-all disabled:opacity-70"
           >
-            Se connecter au portail RH
+            {loading ? 'Connexion en cours...' : 'Se connecter au portail RH'}
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>
