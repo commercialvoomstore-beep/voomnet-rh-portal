@@ -30,6 +30,8 @@ import {
   deleteNeonLeaveRequest,
   fetchNeonPrimeConfig,
   updateNeonPrimeConfig,
+  fetchNeonPrimeAttributions,
+  insertNeonPrimeAttribution,
 } from '@/lib/neonDbService';
 import { getActiveProvider } from '@/lib/databaseAdapter';
 
@@ -308,6 +310,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 return { ...prev, ...latestConfig };
               }
               return prev;
+            });
+          }
+
+          // 5. Sync Prime Attributions from Neon DB
+          const latestAttributions = await fetchNeonPrimeAttributions();
+          if (latestAttributions && Array.isArray(latestAttributions) && latestAttributions.length > 0) {
+            setPrimes((prevPrimes) => {
+              return prevPrimes.map((p) => {
+                const neonAttr = latestAttributions.find(
+                  (a) => a.matricule === p.matricule && (a.periodeNom === p.periodeNom || !a.periodeNom)
+                );
+                if (neonAttr) {
+                  const isAccordee = neonAttr.statut === 'Accordée';
+                  return {
+                    ...p,
+                    eligible: isAccordee,
+                    montantCalcule: isAccordee ? neonAttr.montant || primeConfig.montantReference : 0,
+                    motifStatus: `${neonAttr.statut.toUpperCase()} — ${neonAttr.motif || 'Décision RH'}`,
+                  };
+                }
+                return p;
+              });
             });
           }
         }
@@ -872,14 +896,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const attributePrime = (matricule: string, statut: 'Accordée' | 'Refusée', motif: string) => {
+    const isAccordee = statut === 'Accordée';
+    const montantVal = isAccordee ? primeConfig.montantReference : 0;
+    const targetEmp = employees.find((e) => e.matricule === matricule);
+    const empName = targetEmp ? `${targetEmp.prenom} ${targetEmp.nom}` : 'Employé';
+
     setPrimes((prev) =>
       prev.map((p) => {
         if (p.matricule === matricule) {
-          const isAccordee = statut === 'Accordée';
           return {
             ...p,
             eligible: isAccordee,
-            montantCalcule: isAccordee ? primeConfig.montantReference : 0,
+            montantCalcule: montantVal,
             motifStatus: `${statut.toUpperCase()} — ${motif}`,
             dateAnnulation: isAccordee ? undefined : new Date().toLocaleString('fr-FR'),
           };
@@ -888,9 +916,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       })
     );
 
+    // Persist directly to Neon PostgreSQL database table `prime_attributions`
+    insertNeonPrimeAttribution({
+      matricule,
+      nomPrenom: empName,
+      periodeNom: primeConfig.periodeNom,
+      statut,
+      montant: montantVal,
+      motif,
+      approvedBy: user ? `${user.prenom} ${user.nom} (${user.role})` : 'Administration RH',
+    }).catch(console.error);
+
+    // Audit log
+    const newLog: AuditLog = {
+      id: `log-${Date.now()}`,
+      timestamp: new Date().toLocaleString('fr-FR'),
+      type: isAccordee ? 'PRIME_RESTORE' : 'PRIME_CANCEL',
+      message: `Prime trimestrielle ${statut.toLowerCase()} pour ${empName} (Matricule ${matricule}). Motif : "${motif}".`,
+      auteur: user ? `${user.prenom} ${user.nom}` : 'Administration RH',
+    };
+    setAuditLogs((prev) => [newLog, ...prev]);
+
     showNotificationAlert(
       statut === 'Accordée' ? '🎉 Prime Accordée' : '❌ Prime Refusée',
-      `Décision RH pour le matricule ${matricule} : Prime ${statut.toLowerCase()} (${motif}).`,
+      `Décision RH pour l'employé ${empName} (Matricule ${matricule}) : Prime ${statut.toLowerCase()} (${montantVal.toLocaleString('fr-FR')} FCFA). Remarque : "${motif}".`,
       statut === 'Accordée' ? 'SUCCESS' : 'ALERT',
       matricule
     );
