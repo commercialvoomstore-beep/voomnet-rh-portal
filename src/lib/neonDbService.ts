@@ -24,7 +24,8 @@ export const fetchNeonEmployees = async (): Promise<Employee[] | null> => {
   if (typeof window !== 'undefined') {
     try {
       const customUrl = localStorage.getItem('VOOMNET_NEON_DATABASE_URL') || '';
-      const url = customUrl ? `/api/employees?customUrl=${encodeURIComponent(customUrl)}` : '/api/employees';
+      const t = Date.now();
+      const url = customUrl ? `/api/employees?customUrl=${encodeURIComponent(customUrl)}&t=${t}` : `/api/employees?t=${t}`;
       const res = await fetch(url, { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
@@ -179,6 +180,22 @@ export const insertNeonChatMessage = async (msg: ChatMessage) => {
 // 3. LEAVE / ABSENCE REQUESTS
 // ==========================================
 export const fetchNeonLeaveRequests = async (): Promise<AbsenceRequest[] | null> => {
+  if (typeof window !== 'undefined') {
+    try {
+      const customUrl = localStorage.getItem('VOOMNET_NEON_DATABASE_URL') || '';
+      const t = Date.now();
+      const url = customUrl ? `/api/leave-requests?customUrl=${encodeURIComponent(customUrl)}&t=${t}` : `/api/leave-requests?t=${t}`;
+      const res = await fetch(url, { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.success && Array.isArray(data.requests)) {
+          return data.requests;
+        }
+      }
+    } catch (err) {
+      console.warn('API fetch leave requests failed:', err);
+    }
+  }
   return executeNeonQuery(async (sql) => {
     const rows = await sql`
       SELECT
