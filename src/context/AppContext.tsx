@@ -39,30 +39,79 @@ import {
 } from '@/lib/neonDbService';
 import { getActiveProvider } from '@/lib/databaseAdapter';
 
-export const playNotificationSound = () => {
+export const playNotificationSound = (type: 'info' | 'success' | 'alert' | 'chat' = 'info') => {
   try {
     if (typeof window === 'undefined') return;
-    const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    const AudioCtx =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
     if (!AudioCtx) return;
     const ctx = new AudioCtx();
     if (ctx.state === 'suspended') {
       ctx.resume();
     }
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
 
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(587.33, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15);
+    const now = ctx.currentTime;
 
-    gain.gain.setValueAtTime(0.2, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+    if (type === 'chat') {
+      // Pleasant double-ding for Chat RH
+      const osc1 = ctx.createOscillator();
+      const gain = ctx.createGain();
 
-    osc.connect(gain);
-    gain.connect(ctx.destination);
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(659.25, now); // E5
+      osc1.frequency.setValueAtTime(880, now + 0.08); // A5
 
-    osc.start();
-    osc.stop(ctx.currentTime + 0.35);
+      gain.gain.setValueAtTime(0.25, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+      osc1.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc1.start(now);
+      osc1.stop(now + 0.35);
+    } else if (type === 'alert') {
+      // Warning chime
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(440, now);
+      osc.frequency.setValueAtTime(349.23, now + 0.12);
+
+      gain.gain.setValueAtTime(0.3, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.4);
+    } else {
+      // Success / Info crystal chime (C5 -> E5 -> G5)
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc1.type = 'sine';
+      osc2.type = 'sine';
+
+      osc1.frequency.setValueAtTime(523.25, now); // C5
+      osc1.frequency.setValueAtTime(659.25, now + 0.08); // E5
+      osc2.frequency.setValueAtTime(783.99, now + 0.16); // G5
+
+      gain.gain.setValueAtTime(0.25, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+
+      osc1.connect(gain);
+      osc2.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc1.start(now);
+      osc2.start(now + 0.16);
+      osc1.stop(now + 0.45);
+      osc2.stop(now + 0.45);
+    }
   } catch (e) {
     // Audio context silently ignored if muted
   }
@@ -392,7 +441,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     type: AlertNotification['type'] = 'INFO',
     recipientMatricule?: string
   ) => {
-    playNotificationSound();
+    const soundType =
+      type === 'ALERT'
+        ? 'alert'
+        : type === 'CHAT'
+        ? 'chat'
+        : type === 'SUCCESS'
+        ? 'success'
+        : 'info';
+    playNotificationSound(soundType);
 
     const newNotif: AlertNotification = {
       id: `notif-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
@@ -769,7 +826,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     insertNeonChatMessage(newMsg).catch(console.error);
 
     // Play pleasant transmission sound
-    playNotificationSound();
+    playNotificationSound('chat');
 
     showNotificationAlert(
       '💬 Message Envoyé & Enregistré',
