@@ -63,31 +63,56 @@ export const ChatRH: React.FC = () => {
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
-      {/* Header Banner */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center shrink-0">
-            <MessageSquare className="w-6 h-6" />
+      {/* Redesigned Modern Chat Header */}
+      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-950 p-6 rounded-3xl shadow-lg border border-slate-800 text-white flex flex-col md:flex-row items-start md:items-center justify-between gap-5 relative overflow-hidden">
+        {/* Background glow decoration */}
+        <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-blue-500/10 rounded-full blur-2xl pointer-events-none" />
+
+        <div className="flex items-center gap-4 relative z-10">
+          <div className="relative">
+            <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-blue-400 shadow-inner shrink-0">
+              <MessageSquare className="w-7 h-7 text-white" />
+            </div>
+            <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-slate-900 rounded-full" />
           </div>
+
           <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-blue-700 uppercase tracking-wider">
-                Messagerie RH Directe (Émetteur ➔ Récepteur)
+            <div className="flex flex-wrap items-center gap-2 mb-1">
+              <span className="px-3 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30 text-[10px] font-mono font-extrabold uppercase tracking-wider">
+                Messagerie Instantanée RH
               </span>
-              <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[10px] font-mono border border-emerald-200 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
-                Transmission instantanée 3CX
+              <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[10px] font-mono font-bold flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                Ligne Directe 3CX
               </span>
             </div>
-            <h3 className="text-lg font-bold text-slate-900 mt-0.5">
-              Canal : {user.prenom} {user.nom} ({user.role}) ➔ {recipientName} ({recipientObj?.role})
-            </h3>
+
+            <h2 className="text-xl font-extrabold text-white tracking-tight flex items-center gap-2">
+              Discussion Directe & Sécurisée
+            </h2>
+
+            <p className="text-xs text-slate-300 mt-0.5 flex items-center gap-2 font-medium">
+              <span>{user.prenom} {user.nom} ({user.role})</span>
+              <ArrowRight className="w-3.5 h-3.5 text-blue-400" />
+              <span className="text-emerald-300 font-bold">{recipientName} ({recipientObj?.role || 'RH'})</span>
+            </p>
           </div>
         </div>
 
-        <div className="hidden sm:flex items-center gap-2 text-xs text-slate-700 font-mono bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
-          <Shield className="w-4 h-4 text-purple-600" />
-          <span>Poste {user.matricule} ➔ Poste {targetRecipientMatricule}</span>
+        {/* Receiver Quick Card / Line Status */}
+        <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md p-3 rounded-2xl border border-white/15 relative z-10 shrink-0">
+          <img
+            src={recipientObj?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
+            alt={recipientName}
+            className="w-10 h-10 rounded-xl object-cover ring-2 ring-emerald-400 shadow"
+          />
+          <div className="text-xs">
+            <div className="font-extrabold text-white">{recipientName}</div>
+            <div className="text-[10px] text-blue-200 font-mono flex items-center gap-1">
+              <PhoneCall className="w-3 h-3 text-emerald-400" />
+              <span>Poste 3CX : {targetRecipientMatricule}</span>
+            </div>
+          </div>
         </div>
       </div>
 
