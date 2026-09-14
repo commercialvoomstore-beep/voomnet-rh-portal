@@ -30,6 +30,7 @@ export const Personnel: React.FC = () => {
 
   // Modals state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isSubmittingAdd, setIsSubmittingAdd] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
 
   const isSuperAdmin = user?.role === 'SuperAdmin';
@@ -80,22 +81,26 @@ export const Personnel: React.FC = () => {
     return matchesSearch && matchesStatut && matchesRole;
   });
 
-  const handleAddSubmit = (e: React.FormEvent) => {
+  const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!addFormState.matricule || !addFormState.nom || !addFormState.prenom) {
       alert('Veuillez renseigner au moins le matricule, le nom et le prénom.');
       return;
     }
 
-    const generatedEmail = addFormState.email || `${addFormState.prenom.charAt(0).toLowerCase()}.${addFormState.nom.toLowerCase().replace(/\s+/g, '')}@voomnet.com`;
+    const generatedEmail =
+      addFormState.email ||
+      `${addFormState.prenom.charAt(0).toLowerCase()}.${addFormState.nom.toLowerCase().replace(/\s+/g, '')}@voomnet.com`;
 
-    addEmployee({
+    setIsSubmittingAdd(true);
+    await addEmployee({
       ...addFormState,
       email: generatedEmail,
       telephone3CX: addFormState.telephone3CX || addFormState.matricule,
       soldeConges: addFormState.statut === 'STAGIAIRE' ? 5 : 24,
       avatar: addFormState.avatar || DEFAULT_FALLBACK_AVATAR,
     });
+    setIsSubmittingAdd(false);
 
     setIsAddModalOpen(false);
   };
@@ -553,9 +558,10 @@ export const Personnel: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-md"
+                  disabled={isSubmittingAdd}
+                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-md disabled:opacity-70 transition-all"
                 >
-                  Créer l&apos;utilisateur
+                  {isSubmittingAdd ? 'Création & Enregistrement SQL...' : 'Créer l\'utilisateur'}
                 </button>
               </div>
             </form>

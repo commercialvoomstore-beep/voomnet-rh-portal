@@ -124,20 +124,38 @@ export async function POST(request: Request) {
     const roleDb = emp.role === 'SuperAdmin' ? 'SUPERADMIN' : (emp.role === 'Admin' || emp.role === 'Admin RH') ? 'ADMIN' : 'EMPLOYEE';
     const statutDb = emp.statut === 'CDI' ? 'CDI' : emp.statut === 'STAGIAIRE' ? 'STAGIAIRE' : 'CDD';
 
+    const cleanMatricule = String(emp.matricule || '').trim();
+    let cleanEmail = String(emp.email || '').trim().toLowerCase();
+    if (!cleanEmail) {
+      cleanEmail = `${cleanMatricule}@voomnet.com`;
+    }
+
+    // Check if another employee (different matricule) owns this email
+    try {
+      const existingEmail = await sql`
+        SELECT id, matricule FROM employees WHERE LOWER(email) = ${cleanEmail} AND matricule != ${cleanMatricule};
+      `;
+      if (existingEmail && existingEmail.length > 0) {
+        cleanEmail = `${emp.prenom ? emp.prenom.toLowerCase().charAt(0) : 'user'}.${emp.nom ? emp.nom.toLowerCase().replace(/\s+/g, '') : 'emp'}.${cleanMatricule}@voomnet.com`;
+      }
+    } catch (e) {
+      // Ignore
+    }
+
     await sql`
       INSERT INTO employees (matricule, first_name, last_name, email, phone, role, position, department, status, base_salary, hire_date, avatar_url, emergency_contact, password)
       VALUES (
-        ${emp.matricule},
+        ${cleanMatricule},
         ${emp.prenom || ''},
         ${emp.nom || ''},
-        ${emp.email || `${emp.matricule}@voomnet.com`},
-        ${emp.telephone3CX || emp.telephonePerso || ''},
+        ${cleanEmail},
+        ${emp.telephone3CX || emp.telephonePerso || cleanMatricule},
         ${roleDb},
         ${emp.poste || 'Employé'},
         ${emp.departement || 'Support'},
         ${statutDb},
         ${emp.salaireBase || 350000},
-        ${emp.dateEmbauche || '2023-01-01'},
+        ${emp.dateEmbauche || new Date().toISOString().split('T')[0]},
         ${emp.avatar || ''},
         ${emp.contactUrgence || ''},
         ${emp.motDePasse || 'voomnet2026'}
@@ -156,7 +174,7 @@ export async function POST(request: Request) {
         password = EXCLUDED.password;
     `;
 
-    return NextResponse.json({ success: true }, { status: 200 });
+    return NextResponse.json({ success: true, email: cleanEmail }, { status: 200 });
   } catch (err: any) {
     console.error('API POST /api/employees error:', err);
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });

@@ -82,11 +82,17 @@ export const insertNeonEmployee = async (emp: Employee) => {
   if (typeof window !== 'undefined') {
     try {
       const customUrl = localStorage.getItem('VOOMNET_NEON_DATABASE_URL') || '';
-      await fetch('/api/employees', {
+      const res = await fetch('/api/employees', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...emp, customUrl }),
       });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.success) {
+          return data;
+        }
+      }
     } catch (err) {
       console.warn('API insert employee failed:', err);
     }
@@ -127,6 +133,7 @@ export const insertNeonEmployee = async (emp: Employee) => {
         emergency_contact = EXCLUDED.emergency_contact,
         password = EXCLUDED.password;
     `;
+    return { success: true };
   });
 };
 

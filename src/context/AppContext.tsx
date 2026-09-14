@@ -83,7 +83,7 @@ interface AppContextType {
   auditLogs: AuditLog[];
   login: (identifier: string, passwordInput?: string) => Promise<{ success: boolean; message?: string }>;
   logout: () => void;
-  addEmployee: (emp: Omit<Employee, 'id'>) => void;
+  addEmployee: (emp: Omit<Employee, 'id'>) => Promise<boolean>;
   updateEmployee: (id: string, empData: Partial<Employee>) => void;
   deleteEmployee: (id: string) => void;
   updateProfilePicture: (matricule: string, avatarUrl: string | null) => void;
@@ -624,16 +624,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
-  const addEmployee = (empData: Omit<Employee, 'id'>) => {
+  const addEmployee = async (empData: Omit<Employee, 'id'>): Promise<boolean> => {
     const newEmp: Employee = {
       ...empData,
       id: `emp-${Date.now()}`,
       avatar: empData.avatar || DEFAULT_FALLBACK_AVATAR,
     };
     setEmployees((prev) => [newEmp, ...prev]);
-
-    // Save directly to Neon PostgreSQL database
-    insertNeonEmployee(newEmp).catch(console.error);
 
     const newPrime: EmployeePrimeStatus = {
       matricule: newEmp.matricule,
@@ -648,11 +645,32 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
     setPrimes((prev) => [...prev, newPrime]);
 
+    // Save directly to Neon PostgreSQL database
+    try {
+      const res = await insertNeonEmployee(newEmp);
+      if (res && res.email) {
+        newEmp.email = res.email;
+      }
+    } catch (err) {
+      console.error('Neon DB Employee insert error:', err);
+    }
+
+    // Force a fresh fetch from Neon DB immediately to ensure local state is 100% in sync
+    try {
+      const freshEmps = await fetchNeonEmployees();
+      if (freshEmps && freshEmps.length > 0) {
+        setEmployees(freshEmps);
+      }
+    } catch (e) {
+      // Ignore
+    }
+
     showNotificationAlert(
       '👤 Utilisateur Créé & Synchronisé sur Neon',
       `Le compte de ${newEmp.prenom} ${newEmp.nom} (Matricule ${newEmp.matricule}) a été enregistré dans Neon.tech.`,
       'SUCCESS'
     );
+    return true;
   };
 
   const updateEmployee = (id: string, empData: Partial<Employee>) => {
