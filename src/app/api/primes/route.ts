@@ -4,13 +4,15 @@ import { neon } from '@neondatabase/serverless';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
+const DEFAULT_NEON_URL = 'postgresql://neondb_owner:npg_ctQ3PBZwHfT1@ep-wandering-hall-aw7ln4ss-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require';
+
 function getDbConnection(customUrl?: string) {
   const connStr =
     customUrl ||
     process.env.POSTGRES_URL ||
     process.env.DATABASE_URL ||
     process.env.NEXT_PUBLIC_NEON_URL ||
-    '';
+    DEFAULT_NEON_URL;
   if (!connStr || (!connStr.startsWith('postgres://') && !connStr.startsWith('postgresql://'))) {
     return null;
   }
