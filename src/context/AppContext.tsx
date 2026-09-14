@@ -116,7 +116,17 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [splashVisible, setSplashVisible] = useState(true);
-  const [user, setUser] = useState<Employee | null>(null);
+  const [user, setUser] = useState<Employee | null>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = sessionStorage.getItem('VOOMNET_USER_SESSION');
+        if (saved) return JSON.parse(saved);
+      } catch (e) {
+        sessionStorage.removeItem('VOOMNET_USER_SESSION');
+      }
+    }
+    return null;
+  });
   const [activeTab, setActiveTab] = useState('dashboard');
   const [appTheme, setAppThemeState] = useState<AppTheme>('ocean');
 
@@ -198,7 +208,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     const timer = setTimeout(() => {
       setSplashVisible(false);
-    }, 2200);
+    }, 800);
     return () => clearTimeout(timer);
   }, []);
 
@@ -451,14 +461,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const rawTrimmed = (identifier || '').trim();
     const trimmed = rawTrimmed.toLowerCase();
     if (!trimmed) {
-      return { success: false, message: 'Veuillez saisir votre numéro de matricule (Poste 3CX) ou votre email.' };
+      return { success: false, message: 'Veuillez saisir votre numéro de matricule (Poste 3CX), adresse email ou nom.' };
     }
 
-    // Helper matcher
+    // Flexible matcher (matricule, email, phone, prenom, nom, full name)
     const matchesEmp = (e: Employee) => {
       const m = String(e.matricule || '').trim().toLowerCase();
       const em = String(e.email || '').trim().toLowerCase();
-      return m === trimmed || em === trimmed;
+      const fn = String(e.prenom || '').trim().toLowerCase();
+      const ln = String(e.nom || '').trim().toLowerCase();
+      const fullName = `${fn} ${ln}`.trim();
+      const phone = String(e.telephone3CX || '').trim().toLowerCase();
+
+      return (
+        m === trimmed ||
+        em === trimmed ||
+        phone === trimmed ||
+        fn === trimmed ||
+        ln === trimmed ||
+        fullName === trimmed
+      );
     };
 
     // 1. Check in-memory employees state first
@@ -480,7 +502,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!found) {
       return {
         success: false,
-        message: `Le matricule ou l'email "${rawTrimmed}" n'a pas été trouvé. Assurez-vous que le compte a bien été créé par l'administrateur.`,
+        message: `Identifiant "${rawTrimmed}" introuvable. Vérifiez votre matricule 3CX ou votre adresse email. Assurez-vous que l'administrateur a bien créé votre compte.`,
       };
     }
 
@@ -491,12 +513,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (inputPass !== validPassword && inputPass !== 'voomnet2026') {
         return {
           success: false,
-          message: `Mot de passe incorrect pour le matricule ${found.matricule} (${found.prenom} ${found.nom}). Le mot de passe par défaut est "voomnet2026".`,
+          message: `Mot de passe incorrect pour ${found.prenom} ${found.nom} (Matricule ${found.matricule}). Le mot de passe par défaut est "voomnet2026".`,
         };
       }
     }
 
     setUser(found);
+    if (typeof window !== 'undefined') {
+      try {
+        sessionStorage.setItem('VOOMNET_USER_SESSION', JSON.stringify(found));
+      } catch (e) {
+        // Ignore quota limits
+      }
+    }
+
     if (found.role === 'Employé') {
       setActiveTab('monposte');
     } else {
@@ -529,6 +559,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const logout = () => {
     setUser(null);
+    if (typeof window !== 'undefined') {
+      try {
+        sessionStorage.removeItem('VOOMNET_USER_SESSION');
+      } catch (e) {
+        // Ignore
+      }
+    }
     showNotificationAlert('🔒 Déconnexion', 'Vous avez été déconnecté du portail RH.', 'INFO');
   };
 
