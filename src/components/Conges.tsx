@@ -651,17 +651,16 @@ export const Conges: React.FC = () => {
               {decisionModal.action !== 'Supprimer' ? (
                 <div className="space-y-1.5">
                   <label className="block text-xs font-bold text-slate-700">
-                    Remarque & Motif RH Officiel <span className="text-rose-500">*</span>
+                    Remarque & Motif RH Officiel <span className="text-slate-400 font-normal">(Facultatif)</span>
                   </label>
                   <textarea
                     rows={3}
-                    required
                     value={decisionModal.notes}
                     onChange={(e) => setDecisionModal((prev) => ({ ...prev, notes: e.target.value }))}
                     placeholder={
                       decisionModal.action === 'Approuvé'
-                        ? 'Remarque pour l\'employé (ex: Permission accordée par la direction RH)...'
-                        : 'Motif obligatoire du refus (ex: Refusé pour impératif de service)...'
+                        ? 'Remarque facultative pour l\'employé (ex: Accordé par la direction)...'
+                        : 'Remarque ou motif facultatif du refus...'
                     }
                     className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />

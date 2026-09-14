@@ -595,14 +595,13 @@ export const PrimesManagement: React.FC = () => {
               {/* Motive / Remarks Input */}
               <div className="space-y-1.5">
                 <label className="block text-xs font-bold text-slate-700">
-                  Motif & Remarque RH pour le collaborateur <span className="text-rose-500">*</span>
+                  Motif & Remarque RH pour le collaborateur <span className="text-slate-400 font-normal">(Facultatif)</span>
                 </label>
                 <textarea
                   rows={3}
-                  required
                   value={modalState.motif}
                   onChange={(e) => setModalState((prev) => ({ ...prev, motif: e.target.value }))}
-                  placeholder="Saisissez ici la justification ou les remarques RH..."
+                  placeholder="Saisissez ici des remarques RH facultatives..."
                   className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-amber-500 transition-all"
                 />
               </div>
