@@ -565,3 +565,82 @@ export const insertNeonPrimeAttribution = async (attr: {
     }
   }
 };
+
+// ==========================================
+// 5. SYSTEM NOTIFICATIONS CRUD
+// ==========================================
+export const fetchNeonNotifications = async (matricule?: string, role?: string): Promise<any[] | null> => {
+  if (typeof window !== 'undefined') {
+    try {
+      const customUrl = localStorage.getItem('VOOMNET_NEON_DATABASE_URL') || '';
+      const t = Date.now();
+      let url = customUrl
+        ? `/api/notifications?customUrl=${encodeURIComponent(customUrl)}&t=${t}`
+        : `/api/notifications?t=${t}`;
+      if (matricule) url += `&matricule=${encodeURIComponent(matricule)}`;
+      if (role) url += `&role=${encodeURIComponent(role)}`;
+
+      const res = await fetch(url, { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.success && Array.isArray(data.notifications)) {
+          return data.notifications;
+        }
+      }
+    } catch (err) {
+      console.warn('API fetch notifications failed:', err);
+    }
+  }
+  return null;
+};
+
+export const insertNeonNotification = async (notif: {
+  id?: string;
+  title: string;
+  message: string;
+  type?: 'INFO' | 'SUCCESS' | 'WARNING' | 'ALERT' | 'CHAT';
+  recipientMatricule?: string;
+  targetRole?: string;
+}) => {
+  if (typeof window !== 'undefined') {
+    try {
+      const customUrl = localStorage.getItem('VOOMNET_NEON_DATABASE_URL') || '';
+      await fetch('/api/notifications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...notif, customUrl }),
+      });
+    } catch (err) {
+      console.warn('API insert notification failed:', err);
+    }
+  }
+};
+
+export const markNeonNotificationAsRead = async (id?: string, matricule?: string) => {
+  if (typeof window !== 'undefined') {
+    try {
+      const customUrl = localStorage.getItem('VOOMNET_NEON_DATABASE_URL') || '';
+      await fetch('/api/notifications', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, matricule, customUrl }),
+      });
+    } catch (err) {
+      console.warn('API mark notification read failed:', err);
+    }
+  }
+};
+
+export const clearNeonNotifications = async (matricule?: string) => {
+  if (typeof window !== 'undefined') {
+    try {
+      const customUrl = localStorage.getItem('VOOMNET_NEON_DATABASE_URL') || '';
+      const url = matricule
+        ? `/api/notifications?matricule=${encodeURIComponent(matricule)}&customUrl=${encodeURIComponent(customUrl)}`
+        : `/api/notifications?customUrl=${encodeURIComponent(customUrl)}`;
+      await fetch(url, { method: 'DELETE' });
+    } catch (err) {
+      console.warn('API clear notifications failed:', err);
+    }
+  }
+};
