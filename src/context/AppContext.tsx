@@ -757,11 +757,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     let empName = '';
     setEmployees((prev) =>
       prev.map((emp) => {
-        if (emp.id === id) {
+        if (emp.id === id || emp.matricule === id) {
           empName = `${emp.prenom} ${emp.nom}`;
           const updated = { ...emp, ...empData };
-          if (user && user.id === id) {
+          if (user && (user.id === id || user.matricule === id)) {
             setUser(updated);
+            if (typeof window !== 'undefined') {
+              try {
+                sessionStorage.setItem('VOOMNET_USER_SESSION', JSON.stringify(updated));
+              } catch (e) {}
+            }
           }
           // Sync update to Neon
           insertNeonEmployee(updated).catch(console.error);

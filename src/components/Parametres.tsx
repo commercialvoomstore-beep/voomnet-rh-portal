@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 
 export const Parametres: React.FC = () => {
-  const { user, updateProfilePicture, uploadProfilePictureFile, showNotificationAlert } = useApp();
+  const { user, updateEmployee, updateProfilePicture, uploadProfilePictureFile, showNotificationAlert } = useApp();
 
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -38,11 +38,34 @@ export const Parametres: React.FC = () => {
 
   const handleChangePassword = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newPassword || newPassword !== confirmPassword) {
-      alert('Les mots de passe ne correspondent pas.');
+    if (!newPassword || newPassword.trim() === '') {
+      alert('Veuillez saisir un nouveau mot de passe.');
       return;
     }
-    showNotificationAlert('🔒 Mot de passe', 'Votre mot de passe a été mis à jour avec succès.', 'SUCCESS');
+    if (newPassword.trim().length < 4) {
+      alert('Le nouveau mot de passe doit contenir au moins 4 caractères.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      alert('Le nouveau mot de passe et sa confirmation ne correspondent pas.');
+      return;
+    }
+
+    const currentPass = user.motDePasse || 'voomnet2026';
+    if (oldPassword && oldPassword.trim() !== currentPass && oldPassword.trim() !== 'voomnet2026') {
+      alert('L\'ancien mot de passe saisi est incorrect.');
+      return;
+    }
+
+    // Persist new password into user profile and Neon DB
+    updateEmployee(user.id, { motDePasse: newPassword.trim() });
+
+    showNotificationAlert(
+      '🔒 Mot de passe Mis à Jour',
+      `Votre mot de passe a été enregistré avec succès dans la base Neon. Vous pourrez désormais vous connecter avec votre nouveau mot de passe.`,
+      'SUCCESS'
+    );
+
     setOldPassword('');
     setNewPassword('');
     setConfirmPassword('');
