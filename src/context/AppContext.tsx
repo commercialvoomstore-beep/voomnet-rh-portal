@@ -81,7 +81,7 @@ interface AppContextType {
   chatMessages: ChatMessage[];
   notifications: AlertNotification[];
   auditLogs: AuditLog[];
-  login: (identifier: string, passwordInput?: string) => Promise<boolean>;
+  login: (identifier: string, passwordInput?: string) => Promise<{ success: boolean; message?: string }>;
   logout: () => void;
   addEmployee: (emp: Omit<Employee, 'id'>) => void;
   updateEmployee: (id: string, empData: Partial<Employee>) => void;
@@ -444,67 +444,87 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   };
 
-  const login = async (identifier: string, passwordInput?: string): Promise<boolean> => {
-    const trimmed = (identifier || '').trim().toLowerCase();
-    
-    // 1. Check in-memory employees state first
-    let found = employees.find(
-      (e) => (e.matricule || '').trim().toLowerCase() === trimmed || (e.email || '').trim().toLowerCase() === trimmed
-    );
+  const login = async (
+    identifier: string,
+    passwordInput?: string
+  ): Promise<{ success: boolean; message?: string }> => {
+    const rawTrimmed = (identifier || '').trim();
+    const trimmed = rawTrimmed.toLowerCase();
+    if (!trimmed) {
+      return { success: false, message: 'Veuillez saisir votre numéro de matricule (Poste 3CX) ou votre email.' };
+    }
 
-    // 2. If not found in memory (e.g. employee created on another workstation), perform a live query to Neon DB
+    // Helper matcher
+    const matchesEmp = (e: Employee) => {
+      const m = String(e.matricule || '').trim().toLowerCase();
+      const em = String(e.email || '').trim().toLowerCase();
+      return m === trimmed || em === trimmed;
+    };
+
+    // 1. Check in-memory employees state first
+    let found = employees.find(matchesEmp);
+
+    // 2. Always fetch fresh employees from Neon DB if not found in local state
     if (!found) {
       try {
         const liveEmps = await fetchNeonEmployees();
         if (liveEmps && liveEmps.length > 0) {
           setEmployees(liveEmps);
-          found = liveEmps.find(
-            (e) => (e.matricule || '').trim().toLowerCase() === trimmed || (e.email || '').trim().toLowerCase() === trimmed
-          );
+          found = liveEmps.find(matchesEmp);
         }
       } catch (err) {
         console.warn('Live fetch on login failed:', err);
       }
     }
 
-    if (found) {
-      if (passwordInput && passwordInput.trim() !== '') {
-        const validPassword = found.motDePasse || 'voomnet2026';
-        if (passwordInput !== validPassword && passwordInput !== 'voomnet2026') {
-          return false;
-        }
-      }
-      setUser(found);
-      if (found.role === 'Employé') {
-        setActiveTab('monposte');
-      } else {
-        setActiveTab('dashboard');
-      }
-
-      // Check if there are unread notifications specifically for this employee
-      setTimeout(() => {
-        setNotifications((currentNotifs) => {
-          const unreadForEmp = currentNotifs.find(
-            (n) => !n.read && n.recipientMatricule && n.recipientMatricule === found?.matricule
-          );
-          if (unreadForEmp) {
-            setActiveToast(unreadForEmp);
-            playNotificationSound();
-          } else {
-            showNotificationAlert(
-              `👋 Bienvenue ${found?.prenom} ${found?.nom}`,
-              `Connexion réussie sous le rôle ${found?.role} (${found?.statut}).`,
-              'SUCCESS',
-              found?.matricule
-            );
-          }
-          return currentNotifs;
-        });
-      }, 500);
-
-      return true;
+    if (!found) {
+      return {
+        success: false,
+        message: `Le matricule ou l'email "${rawTrimmed}" n'a pas été trouvé. Assurez-vous que le compte a bien été créé par l'administrateur.`,
+      };
     }
-    return false;
+
+    // Check password
+    if (passwordInput && passwordInput.trim() !== '') {
+      const inputPass = passwordInput.trim();
+      const validPassword = String(found.motDePasse || 'voomnet2026').trim();
+      if (inputPass !== validPassword && inputPass !== 'voomnet2026') {
+        return {
+          success: false,
+          message: `Mot de passe incorrect pour le matricule ${found.matricule} (${found.prenom} ${found.nom}). Le mot de passe par défaut est "voomnet2026".`,
+        };
+      }
+    }
+
+    setUser(found);
+    if (found.role === 'Employé') {
+      setActiveTab('monposte');
+    } else {
+      setActiveTab('dashboard');
+    }
+
+    // Check if there are unread notifications specifically for this employee
+    setTimeout(() => {
+      setNotifications((currentNotifs) => {
+        const unreadForEmp = currentNotifs.find(
+          (n) => !n.read && n.recipientMatricule && n.recipientMatricule === found?.matricule
+        );
+        if (unreadForEmp) {
+          setActiveToast(unreadForEmp);
+          playNotificationSound();
+        } else {
+          showNotificationAlert(
+            `👋 Bienvenue ${found?.prenom} ${found?.nom}`,
+            `Connexion réussie sous le rôle ${found?.role} (${found?.statut}).`,
+            'SUCCESS',
+            found?.matricule
+          );
+        }
+        return currentNotifs;
+      });
+    }, 500);
+
+    return { success: true };
   };
 
   const logout = () => {

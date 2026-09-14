@@ -19,10 +19,10 @@ export const Login: React.FC = () => {
     }
     setLoading(true);
     setError('');
-    const success = await login(matricule, password);
+    const res = await login(matricule, password);
     setLoading(false);
-    if (!success) {
-      setError('Identifiant ou mot de passe incorrect. Vérifiez vos identifiants.');
+    if (!res.success) {
+      setError(res.message || 'Identifiant ou mot de passe incorrect. Vérifiez vos identifiants.');
     }
   };
 
