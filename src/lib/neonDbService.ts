@@ -108,37 +108,51 @@ export const insertNeonEmployee = async (emp: Employee) => {
     const roleDb = emp.role === 'SuperAdmin' ? 'SUPERADMIN' : (emp.role === 'Admin' || (emp.role as string) === 'Admin RH') ? 'ADMIN' : 'EMPLOYEE';
     const statutDb = emp.statut === 'CDI' ? 'CDI' : emp.statut === 'STAGIAIRE' ? 'STAGIAIRE' : 'CDD';
 
-    await sql`
-      INSERT INTO employees (matricule, first_name, last_name, email, phone, role, position, department, status, base_salary, hire_date, avatar_url, emergency_contact, password)
-      VALUES (
-        ${emp.matricule},
-        ${emp.prenom || ''},
-        ${emp.nom || ''},
-        ${emp.email || `${emp.matricule}@voomnet.com`},
-        ${emp.telephone3CX || emp.telephonePerso || ''},
-        ${roleDb},
-        ${emp.poste || 'Employé'},
-        ${emp.departement || 'Support'},
-        ${statutDb},
-        ${emp.salaireBase || 350000},
-        ${emp.dateEmbauche || '2023-01-01'},
-        ${emp.avatar || ''},
-        ${emp.contactUrgence || ''},
-        ${emp.motDePasse || 'voomnet2026'}
-      )
-      ON CONFLICT (matricule) DO UPDATE SET
-        first_name = EXCLUDED.first_name,
-        last_name = EXCLUDED.last_name,
-        email = EXCLUDED.email,
-        phone = EXCLUDED.phone,
-        role = EXCLUDED.role,
-        position = EXCLUDED.position,
-        department = EXCLUDED.department,
-        status = EXCLUDED.status,
-        base_salary = EXCLUDED.base_salary,
-        emergency_contact = EXCLUDED.emergency_contact,
-        password = EXCLUDED.password;
+    const cleanMatricule = String(emp.matricule || '').trim();
+
+    const existing = await sql`
+      SELECT id FROM employees WHERE matricule = ${cleanMatricule} OR id = ${cleanMatricule} LIMIT 1;
     `;
+
+    if (existing && existing.length > 0) {
+      await sql`
+        UPDATE employees
+        SET
+          first_name = ${emp.prenom || ''},
+          last_name = ${emp.nom || ''},
+          email = ${emp.email || `${cleanMatricule}@voomnet.com`},
+          phone = ${emp.telephone3CX || emp.telephonePerso || cleanMatricule},
+          role = ${roleDb},
+          position = ${emp.poste || 'Employé'},
+          department = ${emp.departement || 'Support'},
+          status = ${statutDb},
+          base_salary = ${emp.salaireBase || 350000},
+          emergency_contact = ${emp.contactUrgence || ''},
+          password = ${emp.motDePasse || 'voomnet2026'},
+          avatar_url = COALESCE(${emp.avatar || null}, avatar_url)
+        WHERE matricule = ${cleanMatricule} OR id = ${cleanMatricule};
+      `;
+    } else {
+      await sql`
+        INSERT INTO employees (matricule, first_name, last_name, email, phone, role, position, department, status, base_salary, hire_date, avatar_url, emergency_contact, password)
+        VALUES (
+          ${cleanMatricule},
+          ${emp.prenom || ''},
+          ${emp.nom || ''},
+          ${emp.email || `${cleanMatricule}@voomnet.com`},
+          ${emp.telephone3CX || emp.telephonePerso || cleanMatricule},
+          ${roleDb},
+          ${emp.poste || 'Employé'},
+          ${emp.departement || 'Support'},
+          ${statutDb},
+          ${emp.salaireBase || 350000},
+          ${emp.dateEmbauche || '2023-01-01'},
+          ${emp.avatar || ''},
+          ${emp.contactUrgence || ''},
+          ${emp.motDePasse || 'voomnet2026'}
+        );
+      `;
+    }
     return { success: true };
   });
 };

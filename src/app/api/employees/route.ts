@@ -148,37 +148,49 @@ export async function POST(request: Request) {
       // Ignore
     }
 
-    await sql`
-      INSERT INTO employees (matricule, first_name, last_name, email, phone, role, position, department, status, base_salary, hire_date, avatar_url, emergency_contact, password)
-      VALUES (
-        ${cleanMatricule},
-        ${emp.prenom || ''},
-        ${emp.nom || ''},
-        ${cleanEmail},
-        ${emp.telephone3CX || emp.telephonePerso || cleanMatricule},
-        ${roleDb},
-        ${emp.poste || 'Employé'},
-        ${emp.departement || 'Support'},
-        ${statutDb},
-        ${emp.salaireBase || 350000},
-        ${emp.dateEmbauche || new Date().toISOString().split('T')[0]},
-        ${emp.avatar || ''},
-        ${emp.contactUrgence || ''},
-        ${emp.motDePasse || 'voomnet2026'}
-      )
-      ON CONFLICT (matricule) DO UPDATE SET
-        first_name = EXCLUDED.first_name,
-        last_name = EXCLUDED.last_name,
-        email = EXCLUDED.email,
-        phone = EXCLUDED.phone,
-        role = EXCLUDED.role,
-        position = EXCLUDED.position,
-        department = EXCLUDED.department,
-        status = EXCLUDED.status,
-        base_salary = EXCLUDED.base_salary,
-        emergency_contact = EXCLUDED.emergency_contact,
-        password = EXCLUDED.password;
+    const existingEmp = await sql`
+      SELECT id FROM employees WHERE matricule = ${cleanMatricule} OR id = ${cleanMatricule} LIMIT 1;
     `;
+
+    if (existingEmp && existingEmp.length > 0) {
+      await sql`
+        UPDATE employees
+        SET
+          first_name = ${emp.prenom || ''},
+          last_name = ${emp.nom || ''},
+          email = ${cleanEmail},
+          phone = ${emp.telephone3CX || emp.telephonePerso || cleanMatricule},
+          role = ${roleDb},
+          position = ${emp.poste || 'Employé'},
+          department = ${emp.departement || 'Support'},
+          status = ${statutDb},
+          base_salary = ${emp.salaireBase || 350000},
+          emergency_contact = ${emp.contactUrgence || ''},
+          password = ${emp.motDePasse || 'voomnet2026'},
+          avatar_url = COALESCE(${emp.avatar || null}, avatar_url)
+        WHERE matricule = ${cleanMatricule} OR id = ${cleanMatricule};
+      `;
+    } else {
+      await sql`
+        INSERT INTO employees (matricule, first_name, last_name, email, phone, role, position, department, status, base_salary, hire_date, avatar_url, emergency_contact, password)
+        VALUES (
+          ${cleanMatricule},
+          ${emp.prenom || ''},
+          ${emp.nom || ''},
+          ${cleanEmail},
+          ${emp.telephone3CX || emp.telephonePerso || cleanMatricule},
+          ${roleDb},
+          ${emp.poste || 'Employé'},
+          ${emp.departement || 'Support'},
+          ${statutDb},
+          ${emp.salaireBase || 350000},
+          ${emp.dateEmbauche || new Date().toISOString().split('T')[0]},
+          ${emp.avatar || ''},
+          ${emp.contactUrgence || ''},
+          ${emp.motDePasse || 'voomnet2026'}
+        );
+      `;
+    }
 
     return NextResponse.json({ success: true, email: cleanEmail }, { status: 200 });
   } catch (err: any) {

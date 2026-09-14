@@ -526,6 +526,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return { success: false, message: 'Veuillez saisir votre numéro de matricule (Poste 3CX), adresse email ou nom.' };
     }
 
+    // Password is strictly mandatory
+    const passTrimmed = (passwordInput || '').trim();
+    if (!passTrimmed) {
+      return {
+        success: false,
+        message: 'Veuillez saisir votre mot de passe pour vous connecter.',
+      };
+    }
+
     // Flexible matcher (matricule, email, phone, prenom, nom, full name)
     const matchesEmp = (e: Employee) => {
       const m = String(e.matricule || '').trim().toLowerCase();
@@ -568,16 +577,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
     }
 
-    // Check password
-    if (passwordInput && passwordInput.trim() !== '') {
-      const inputPass = passwordInput.trim();
-      const validPassword = String(found.motDePasse || 'voomnet2026').trim();
-      if (inputPass !== validPassword && inputPass !== 'voomnet2026') {
-        return {
-          success: false,
-          message: `Mot de passe incorrect pour ${found.prenom} ${found.nom} (Matricule ${found.matricule}). Le mot de passe par défaut est "voomnet2026".`,
-        };
-      }
+    // Check password strictly against user's stored password or default
+    const validPassword = String(found.motDePasse || 'voomnet2026').trim();
+    if (passTrimmed !== validPassword && passTrimmed !== 'voomnet2026') {
+      return {
+        success: false,
+        message: `Mot de passe incorrect pour ${found.prenom} ${found.nom} (Matricule ${found.matricule}).`,
+      };
     }
 
     const normalizedFound = {

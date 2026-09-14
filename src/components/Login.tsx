@@ -13,13 +13,17 @@ export const Login: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!matricule) {
+    if (!matricule.trim()) {
       setError('Veuillez saisir votre numéro de matricule (Poste 3CX) ou votre email.');
+      return;
+    }
+    if (!password.trim()) {
+      setError('Veuillez saisir votre mot de passe.');
       return;
     }
     setLoading(true);
     setError('');
-    const res = await login(matricule, password);
+    const res = await login(matricule.trim(), password.trim());
     setLoading(false);
     if (!res.success) {
       setError(res.message || 'Identifiant ou mot de passe incorrect. Vérifiez vos identifiants.');
