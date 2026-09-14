@@ -584,9 +584,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
     }
 
-    // Check password strictly against user's stored password or default
+    // Check password strictly against user's stored password
     const validPassword = String(found.motDePasse || 'voomnet2026').trim();
-    if (passTrimmed !== validPassword && passTrimmed !== 'voomnet2026') {
+    if (passTrimmed !== validPassword) {
       return {
         success: false,
         message: `Mot de passe incorrect pour ${found.prenom} ${found.nom} (Matricule ${found.matricule}).`,
