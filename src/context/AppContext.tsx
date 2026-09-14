@@ -442,15 +442,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     type: AlertNotification['type'] = 'INFO',
     recipientMatricule?: string
   ) => {
-    const soundType =
-      type === 'ALERT'
-        ? 'alert'
-        : type === 'CHAT'
-        ? 'chat'
-        : type === 'SUCCESS'
-        ? 'success'
-        : 'info';
-    playNotificationSound(soundType);
+    // Only play sound and trigger active toast if recipient matches logged in user or if global
+    const isForCurrentUser = !recipientMatricule || (user && recipientMatricule === user.matricule);
+
+    if (isForCurrentUser) {
+      const soundType =
+        type === 'ALERT'
+          ? 'alert'
+          : type === 'CHAT'
+          ? 'chat'
+          : type === 'SUCCESS'
+          ? 'success'
+          : 'info';
+      playNotificationSound(soundType);
+    }
 
     const newNotif: AlertNotification = {
       id: `notif-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
@@ -470,11 +475,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return updated;
     });
 
-    setActiveToast(newNotif);
+    if (isForCurrentUser) {
+      setActiveToast(newNotif);
 
-    setTimeout(() => {
-      setActiveToast((current) => (current?.id === newNotif.id ? null : current));
-    }, 5000);
+      setTimeout(() => {
+        setActiveToast((current) => (current?.id === newNotif.id ? null : current));
+      }, 5000);
+    }
   };
 
   const dismissToast = () => setActiveToast(null);

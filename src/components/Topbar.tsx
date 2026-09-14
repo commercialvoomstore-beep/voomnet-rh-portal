@@ -32,13 +32,19 @@ export const Topbar: React.FC = () => {
   const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
   const [showDatabaseModal, setShowDatabaseModal] = useState(false);
 
-  const userNotifications = notifications.filter(
-    (n) =>
-      !n.recipientMatricule ||
-      n.recipientMatricule === user?.matricule ||
-      user?.role === 'SuperAdmin' ||
-      user?.role === 'Admin'
-  );
+  // Strict user-level notification filter: only show notifications addressed to THIS logged in user
+  const userNotifications = notifications.filter((n) => {
+    if (!user) return false;
+    if (n.recipientMatricule) {
+      return n.recipientMatricule === user.matricule;
+    }
+    return true;
+  });
+
+  const isToastForCurrentUser =
+    activeToast &&
+    user &&
+    (!activeToast.recipientMatricule || activeToast.recipientMatricule === user.matricule);
   const unreadCount = userNotifications.filter((n) => !n.read).length;
   const activeDbProvider = getActiveProvider();
 
@@ -96,7 +102,7 @@ export const Topbar: React.FC = () => {
   return (
     <header className="bg-white border-b border-slate-200 px-6 py-4 flex flex-col gap-3 relative z-30 shadow-sm">
       {/* Animated Floating Toast Alert Banner */}
-      {activeToast && (
+      {isToastForCurrentUser && activeToast && (
         <div className="fixed top-4 right-4 z-50 max-w-md bg-white border-2 border-rose-400 text-slate-800 p-4 rounded-2xl shadow-2xl flex items-start justify-between gap-3 animate-slideDown">
           <div className="flex items-start gap-3">
             <div className="mt-0.5 p-2 rounded-xl bg-rose-50 border border-rose-200">
