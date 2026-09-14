@@ -29,7 +29,7 @@ export const fetchNeonEmployees = async (): Promise<Employee[] | null> => {
       const res = await fetch(url, { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
-        if (data && data.success && Array.isArray(data.employees) && data.employees.length > 0) {
+        if (data && data.success && Array.isArray(data.employees)) {
           return data.employees;
         }
       }
@@ -138,6 +138,18 @@ export const insertNeonEmployee = async (emp: Employee) => {
 };
 
 export const deleteNeonEmployee = async (id: string) => {
+  if (typeof window !== 'undefined') {
+    try {
+      const customUrl = localStorage.getItem('VOOMNET_NEON_DATABASE_URL') || '';
+      const url = customUrl
+        ? `/api/employees?id=${encodeURIComponent(id)}&customUrl=${encodeURIComponent(customUrl)}`
+        : `/api/employees?id=${encodeURIComponent(id)}`;
+      await fetch(url, { method: 'DELETE' });
+    } catch (err) {
+      console.warn('API delete employee failed:', err);
+    }
+  }
+
   return executeNeonQuery(async (sql) => {
     await sql`DELETE FROM employees WHERE id = ${id} OR matricule = ${id};`;
   });
@@ -147,6 +159,23 @@ export const deleteNeonEmployee = async (id: string) => {
 // 2. CHAT MESSAGES
 // ==========================================
 export const fetchNeonChatMessages = async (): Promise<ChatMessage[] | null> => {
+  if (typeof window !== 'undefined') {
+    try {
+      const customUrl = localStorage.getItem('VOOMNET_NEON_DATABASE_URL') || '';
+      const t = Date.now();
+      const url = customUrl ? `/api/chat?customUrl=${encodeURIComponent(customUrl)}&t=${t}` : `/api/chat?t=${t}`;
+      const res = await fetch(url, { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.success && Array.isArray(data.messages)) {
+          return data.messages;
+        }
+      }
+    } catch (err) {
+      console.warn('API fetch chat messages failed:', err);
+    }
+  }
+
   return executeNeonQuery(async (sql) => {
     const rows = await sql`
       SELECT id, sender_id, sender_name, recipient_id, recipient_name, text, delivered, delivery_status, created_at
@@ -167,6 +196,19 @@ export const fetchNeonChatMessages = async (): Promise<ChatMessage[] | null> => 
 };
 
 export const insertNeonChatMessage = async (msg: ChatMessage) => {
+  if (typeof window !== 'undefined') {
+    try {
+      const customUrl = localStorage.getItem('VOOMNET_NEON_DATABASE_URL') || '';
+      await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...msg, customUrl }),
+      });
+    } catch (err) {
+      console.warn('API insert chat message failed:', err);
+    }
+  }
+
   return executeNeonQuery(async (sql) => {
     await sql`
       INSERT INTO chat_messages (sender_id, sender_name, recipient_id, recipient_name, text, delivered, delivery_status)
@@ -269,6 +311,25 @@ export const fetchNeonLeaveRequests = async (): Promise<AbsenceRequest[] | null>
 };
 
 export const insertNeonLeaveRequest = async (req: any) => {
+  if (typeof window !== 'undefined') {
+    try {
+      const customUrl = localStorage.getItem('VOOMNET_NEON_DATABASE_URL') || '';
+      const res = await fetch('/api/leave-requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...req, customUrl }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.success && data.row) {
+          return data.row;
+        }
+      }
+    } catch (err) {
+      console.warn('API insert leave request failed:', err);
+    }
+  }
+
   return executeNeonQuery(async (sql) => {
     const typeDb = req.typeAbsence || req.type || 'Permission d\'absence';
     const statusDb = req.statut === 'Approuvé' ? 'APPROUVE' : req.statut === 'Refusé' ? 'REFUSE' : 'EN_ATTENTE';
@@ -362,6 +423,19 @@ export const insertNeonLeaveRequest = async (req: any) => {
 };
 
 export const updateNeonLeaveRequestStatus = async (id: string, statut: string, notes?: string) => {
+  if (typeof window !== 'undefined') {
+    try {
+      const customUrl = localStorage.getItem('VOOMNET_NEON_DATABASE_URL') || '';
+      await fetch('/api/leave-requests', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, statut, notes, customUrl }),
+      });
+    } catch (err) {
+      console.warn('API update leave status failed:', err);
+    }
+  }
+
   return executeNeonQuery(async (sql) => {
     const statusDb = statut === 'Approuvé' ? 'APPROUVE' : statut === 'Refusé' ? 'REFUSE' : 'EN_ATTENTE';
     await sql`

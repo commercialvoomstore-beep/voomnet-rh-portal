@@ -180,3 +180,27 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+    const customUrl = searchParams.get('customUrl') || undefined;
+
+    if (!id) {
+      return NextResponse.json({ success: false, error: 'Missing employee ID or matricule' }, { status: 400 });
+    }
+
+    const sql = getDbConnection(customUrl);
+    if (!sql) {
+      return NextResponse.json({ success: false, error: 'Database connection URL not configured' }, { status: 200 });
+    }
+
+    await sql`DELETE FROM employees WHERE id = ${id} OR matricule = ${id};`;
+
+    return NextResponse.json({ success: true }, { status: 200 });
+  } catch (err: any) {
+    console.error('API DELETE /api/employees error:', err);
+    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+  }
+}
