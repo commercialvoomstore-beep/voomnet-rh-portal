@@ -45,11 +45,13 @@ export const PrimesManagement: React.FC = () => {
     action: 'Accordée' | 'En attente' | 'Refusée';
     employee: any | null;
     motif: string;
+    montant: number;
   }>({
     isOpen: false,
     action: 'Accordée',
     employee: null,
     motif: '',
+    montant: 0,
   });
 
   if (!user) return null;
@@ -64,11 +66,19 @@ export const PrimesManagement: React.FC = () => {
         ? 'Dossier de prime en cours d\'évaluation par la Direction RH.'
         : 'Prime non attribuée pour ce trimestre.');
 
+    const initialMontant =
+      existingPrime?.montant !== undefined && existingPrime?.montant !== null && existingPrime?.montant > 0
+        ? existingPrime.montant
+        : action === 'Accordée' || action === 'En attente'
+        ? primeConfig.montantReference
+        : 0;
+
     setModalState({
       isOpen: true,
       action,
       employee: emp,
       motif: defaultMotif,
+      montant: initialMontant,
     });
   };
 
@@ -79,7 +89,12 @@ export const PrimesManagement: React.FC = () => {
   const handleConfirmDecision = (e: React.FormEvent) => {
     e.preventDefault();
     if (!modalState.employee) return;
-    attributePrime(modalState.employee.matricule, modalState.action, modalState.motif);
+    attributePrime(
+      modalState.employee.matricule,
+      modalState.action,
+      modalState.motif,
+      modalState.montant
+    );
     closeModal();
   };
 
@@ -436,7 +451,11 @@ export const PrimesManagement: React.FC = () => {
                     <td className="py-3.5 px-4 font-mono font-bold">
                       {isGranted ? (
                         <span className="text-emerald-600">
-                          {prime?.montant?.toLocaleString('fr-FR')} FCFA
+                          {(prime?.montant ?? 0).toLocaleString('fr-FR')} FCFA
+                        </span>
+                      ) : !isRefused && (prime?.montant ?? 0) > 0 ? (
+                        <span className="text-amber-600">
+                          {(prime?.montant ?? 0).toLocaleString('fr-FR')} FCFA
                         </span>
                       ) : (
                         <span className="text-slate-400">0 FCFA</span>
@@ -572,24 +591,28 @@ export const PrimesManagement: React.FC = () => {
                 </div>
               </div>
 
-              {/* Amount Display Card */}
-              <div className="p-4 rounded-2xl border flex items-center justify-between bg-slate-50 border-slate-200">
-                <span className="text-xs font-bold text-slate-600">
-                  Montant concerné par la décision :
-                </span>
-                <span
-                  className={`text-lg font-extrabold font-mono ${
-                    modalState.action === 'Accordée'
-                      ? 'text-emerald-600'
-                      : modalState.action === 'En attente'
-                      ? 'text-amber-600'
-                      : 'text-rose-600'
-                  }`}
-                >
-                  {modalState.action === 'Accordée'
-                    ? `${primeConfig.montantReference.toLocaleString('fr-FR')} FCFA`
-                    : '0 FCFA'}
-                </span>
+              {/* Editable Amount Field */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-slate-700">
+                  Montant Alloué de la Prime (FCFA)
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    min={0}
+                    required
+                    value={modalState.montant}
+                    onChange={(e) => setModalState((prev) => ({ ...prev, montant: Number(e.target.value) }))}
+                    placeholder="Saisissez le montant alloué..."
+                    className="w-full pl-3.5 pr-14 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono font-extrabold text-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  />
+                  <span className="absolute right-3.5 top-2.5 text-xs font-bold font-mono text-slate-400">
+                    FCFA
+                  </span>
+                </div>
+                <p className="text-[10px] text-slate-500 font-medium">
+                  Montant de référence global : <strong>{primeConfig.montantReference.toLocaleString('fr-FR')} FCFA</strong> (librement modifiable pour ce collaborateur).
+                </p>
               </div>
 
               {/* Motive / Remarks Input */}

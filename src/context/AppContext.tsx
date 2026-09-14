@@ -158,7 +158,12 @@ interface AppContextType {
     motif: string;
     masquee?: boolean;
   })[];
-  attributePrime: (matricule: string, statut: 'Accordée' | 'Refusée' | 'En attente', motif: string) => void;
+  attributePrime: (
+    matricule: string,
+    statut: 'Accordée' | 'Refusée' | 'En attente',
+    motif: string,
+    customMontant?: number
+  ) => void;
   toggleMaskPrime: (matricule: string) => void;
   activeToast: AlertNotification | null;
   dismissToast: () => void;
@@ -364,14 +369,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           if (latestConfig && latestConfig.montantReference) {
             setPrimeConfig((prev) => {
               if (prev.montantReference !== latestConfig.montantReference || prev.periodeNom !== latestConfig.periodeNom) {
-                const newRef = latestConfig.montantReference;
-                setPrimes((pPrev) =>
-                  pPrev.map((p) => ({
-                    ...p,
-                    periodeNom: latestConfig.periodeNom || p.periodeNom,
-                    montantCalcule: p.eligible ? newRef : 0,
-                  }))
-                );
                 return { ...prev, ...latestConfig };
               }
               return prev;
@@ -395,6 +392,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                   const existing = primeMap.get(mKey);
                   const isAccordee = attr.statut === 'Accordée';
                   const isRefused = attr.statut === 'Refusée';
+                  const resolvedMontant = typeof attr.montant === 'number' && !isNaN(attr.montant)
+                    ? attr.montant
+                    : (isAccordee ? primeConfig.montantReference : 0);
 
                   const updatedItem: EmployeePrimeStatus = {
                     matricule: mKey,
@@ -404,11 +404,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                     roleCollaborateur: existing?.roleCollaborateur || 'Employé',
                     periodeNom: attr.periodeNom || existing?.periodeNom || primeConfig.periodeNom,
                     eligible: isAccordee,
-                    montantCalcule: isAccordee ? attr.montant || primeConfig.montantReference : 0,
+                    montantCalcule: resolvedMontant,
                     statut: (isAccordee ? 'Accordée' : isRefused ? 'Refusée' : 'En attente') as 'Accordée' | 'Refusée' | 'En attente',
-                    montant: isAccordee ? attr.montant || primeConfig.montantReference : 0,
+                    montant: resolvedMontant,
                     motif: attr.motif || existing?.motif || '',
                     motifStatus: `${attr.statut.toUpperCase()} — ${attr.motif || 'Décision RH'}`,
+                    masquee: existing?.masquee,
                   };
 
                   primeMap.set(mKey, updatedItem);
@@ -705,9 +706,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       statutCollaborateur: newEmp.statut,
       roleCollaborateur: newEmp.role,
       periodeNom: primeConfig.periodeNom,
-      eligible: true,
+      eligible: false,
       montantCalcule: primeConfig.montantReference,
-      motifStatus: 'Nouveau collaborateur — Assiduité conforme',
+      statut: 'En attente',
+      montant: primeConfig.montantReference,
+      motif: 'Nouveau collaborateur — Dossier en cours d\'étude RH',
+      motifStatus: 'EN ATTENTE — Nouveau collaborateur',
     };
     setPrimes((prev) => [...prev, newPrime]);
 
@@ -717,6 +721,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (res && res.email) {
         newEmp.email = res.email;
       }
+      // Save initial prime attribution to Neon DB as well
+      await insertNeonPrimeAttribution({
+        matricule: newEmp.matricule,
+        nomPrenom: `${newEmp.prenom} ${newEmp.nom}`,
+        periodeNom: primeConfig.periodeNom,
+        statut: 'En attente',
+        montant: primeConfig.montantReference,
+        motif: 'Nouveau collaborateur — Dossier en cours d\'étude RH',
+        approvedBy: user ? `${user.prenom} ${user.nom} (${user.role})` : 'Administration RH',
+      });
     } catch (err) {
       console.error('Neon DB Employee insert error:', err);
     }
@@ -1075,10 +1089,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   };
 
-  const attributePrime = (matricule: string, statut: 'Accordée' | 'Refusée' | 'En attente', motif: string) => {
+  const attributePrime = (
+    matricule: string,
+    statut: 'Accordée' | 'Refusée' | 'En attente',
+    motif: string,
+    customMontant?: number
+  ) => {
     const cleanMatricule = String(matricule).trim();
     const isAccordee = statut === 'Accordée';
-    const montantVal = isAccordee ? primeConfig.montantReference : 0;
+    const defaultVal = isAccordee ? primeConfig.montantReference : 0;
+    const montantVal =
+      customMontant !== undefined && customMontant !== null && !isNaN(customMontant)
+        ? customMontant
+        : defaultVal;
+
     const targetEmp = employees.find((e) => String(e.matricule).trim() === cleanMatricule);
     const empName = targetEmp ? `${targetEmp.prenom} ${targetEmp.nom}` : 'Employé';
 
@@ -1137,7 +1161,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       id: `log-${Date.now()}`,
       timestamp: new Date().toLocaleString('fr-FR'),
       type: isAccordee ? 'PRIME_RESTORE' : 'PRIME_CANCEL',
-      message: `Prime trimestrielle ${statut === 'En attente' ? 'mise en attente' : statut.toLowerCase()} pour ${empName} (Matricule ${cleanMatricule}). Motif : "${motif}".`,
+      message: `Prime trimestrielle ${statut === 'En attente' ? 'mise en attente' : statut.toLowerCase()} pour ${empName} (Matricule ${cleanMatricule}) avec montant alloué ${montantVal.toLocaleString('fr-FR')} FCFA. Motif : "${motif}".`,
       auteur: user ? `${user.prenom} ${user.nom}` : 'Administration RH',
     };
     setAuditLogs((prev) => [newLog, ...prev]);
@@ -1205,10 +1229,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       resolvedStatut = 'Refusée';
     }
 
+    const resolvedMontant =
+      typeof p.montant === 'number' && !isNaN(p.montant)
+        ? p.montant
+        : typeof p.montantCalcule === 'number' && !isNaN(p.montantCalcule)
+        ? p.montantCalcule
+        : resolvedStatut === 'Accordée'
+        ? primeConfig.montantReference
+        : 0;
+
     return {
       ...p,
       statut: resolvedStatut,
-      montant: resolvedStatut === 'Accordée' ? p.montantCalcule || p.montant || primeConfig.montantReference : 0,
+      montant: resolvedMontant,
       motif: p.motif || (p.motifStatus ? p.motifStatus.replace(/^(ACCORDÉE|REFUSÉE|ANNULÉE)\s*—\s*/i, '') : ''),
       masquee: !!p.masquee,
     };
