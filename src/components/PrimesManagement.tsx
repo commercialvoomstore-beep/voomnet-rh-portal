@@ -290,13 +290,13 @@ export const PrimesManagement: React.FC = () => {
 
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                Montant de Référence (FCFA)
+                Montant de Référence Librement Saisi (FCFA)
               </label>
               <input
                 type="number"
                 required
                 min={0}
-                step={5000}
+                placeholder="Saisissez librement votre montant (ex: 200000)..."
                 value={montantRefInput}
                 onChange={(e) => setMontantRefInput(Number(e.target.value))}
                 className="w-full px-3.5 py-2.5 bg-slate-50 border border-amber-400 rounded-xl text-amber-800 font-mono font-bold text-xs"

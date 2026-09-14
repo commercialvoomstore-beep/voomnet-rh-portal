@@ -18,6 +18,7 @@ import {
   ShieldAlert,
   Lock,
   Trash2,
+  X,
 } from 'lucide-react';
 
 export const Conges: React.FC = () => {
@@ -25,7 +26,63 @@ export const Conges: React.FC = () => {
   const [showNewForm, setShowShowNewForm] = useState(false);
   const [filterStatut, setFilterStatut] = useState<string>('Tous');
 
+  // Custom Decision Modal State (Replaces native JS prompts & confirms)
+  const [decisionModal, setDecisionModal] = useState<{
+    isOpen: boolean;
+    action: 'Approuvé' | 'Refusé' | 'Supprimer' | null;
+    request: AbsenceRequest | null;
+    notes: string;
+  }>({
+    isOpen: false,
+    action: null,
+    request: null,
+    notes: '',
+  });
+
   if (!user) return null;
+
+  const openDecisionModal = (req: AbsenceRequest, action: 'Approuvé' | 'Refusé' | 'Supprimer') => {
+    const defaultNotes =
+      req.cadreAdminNotes ||
+      (action === 'Approuvé'
+        ? 'Permission d\'absence validée par l\'Administration RH.'
+        : action === 'Refusé'
+        ? 'Demande d\'absence non accordée pour impératif de service.'
+        : '');
+
+    setDecisionModal({
+      isOpen: true,
+      action,
+      request: req,
+      notes: defaultNotes,
+    });
+  };
+
+  const closeDecisionModal = () => {
+    setDecisionModal({
+      isOpen: false,
+      action: null,
+      request: null,
+      notes: '',
+    });
+  };
+
+  const handleConfirmDecision = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!decisionModal.request || !decisionModal.action) return;
+
+    if (decisionModal.action === 'Supprimer') {
+      deleteAbsenceRequest(decisionModal.request.id);
+    } else {
+      updateAbsenceStatus(
+        decisionModal.request.id,
+        decisionModal.action,
+        decisionModal.action === 'Approuvé' ? decisionModal.request.justifiee : false,
+        decisionModal.notes || (decisionModal.action === 'Approuvé' ? 'Validé par l\'Administration RH' : 'Refusé par l\'Administration RH')
+      );
+    }
+    closeDecisionModal();
+  };
 
   const isEmploye = user.role === 'Employé';
 
@@ -435,20 +492,7 @@ export const Conges: React.FC = () => {
                         {req.statut === 'En attente' ? (
                           <div className="flex items-center justify-end gap-1.5">
                             <button
-                              onClick={() => {
-                                const note = prompt(
-                                  `Valider la demande de ${req.nomPrenom} (${req.codeSuivi}) ?\nRemarque / motif de validation :`,
-                                  req.cadreAdminNotes || 'Validé par l\'Administration RH'
-                                );
-                                if (note !== null) {
-                                  updateAbsenceStatus(
-                                    req.id,
-                                    'Approuvé',
-                                    req.justifiee,
-                                    note || 'Validé par l\'Administration RH'
-                                  );
-                                }
-                              }}
+                              onClick={() => openDecisionModal(req, 'Approuvé')}
                               className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center gap-1.5"
                             >
                               <CheckCircle2 className="w-3.5 h-3.5" />
@@ -456,20 +500,7 @@ export const Conges: React.FC = () => {
                             </button>
 
                             <button
-                              onClick={() => {
-                                const note = prompt(
-                                  `Refuser la demande de ${req.nomPrenom} (${req.codeSuivi}) ?\nMotif du refus :`,
-                                  'Refusé par l\'Administration RH'
-                                );
-                                if (note !== null) {
-                                  updateAbsenceStatus(
-                                    req.id,
-                                    'Refusé',
-                                    false,
-                                    note || 'Refusé par l\'Administration RH'
-                                  );
-                                }
-                              }}
+                              onClick={() => openDecisionModal(req, 'Refusé')}
                               className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center gap-1.5"
                             >
                               <XCircle className="w-3.5 h-3.5" />
@@ -511,15 +542,7 @@ export const Conges: React.FC = () => {
 
                         {/* Bouton de Suppression pour Admin & SuperAdmin */}
                         <button
-                          onClick={() => {
-                            if (
-                              confirm(
-                                `Êtes-vous sûr de vouloir supprimer définitivement la demande ${req.codeSuivi} de ${req.nomPrenom} ?`
-                              )
-                            ) {
-                              deleteAbsenceRequest(req.id);
-                            }
-                          }}
+                          onClick={() => openDecisionModal(req, 'Supprimer')}
                           className="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-[11px] rounded-xl shadow-sm transition-all flex items-center gap-1 mt-1 ml-auto"
                           title="Supprimer définitivement la demande (Admin & SuperAdmin)"
                         >
@@ -560,6 +583,139 @@ export const Conges: React.FC = () => {
           </table>
         </div>
       </div>
+      {/* Custom Leave Decision Modal (Replaces native JS prompts) */}
+      {decisionModal.isOpen && decisionModal.request && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-lg w-full overflow-hidden transition-all text-slate-900">
+            {/* Header according to action */}
+            <div
+              className={`p-6 text-white flex items-center justify-between ${
+                decisionModal.action === 'Approuvé'
+                  ? 'bg-gradient-to-r from-emerald-600 to-teal-600'
+                  : decisionModal.action === 'Refusé'
+                  ? 'bg-gradient-to-r from-rose-600 to-red-600'
+                  : 'bg-gradient-to-r from-slate-700 to-slate-900'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-white/20 rounded-2xl backdrop-blur-md">
+                  {decisionModal.action === 'Approuvé' && <CheckCircle2 className="w-6 h-6 text-white" />}
+                  {decisionModal.action === 'Refusé' && <XCircle className="w-6 h-6 text-white" />}
+                  {decisionModal.action === 'Supprimer' && <Trash2 className="w-6 h-6 text-white" />}
+                </div>
+                <div>
+                  <h4 className="text-lg font-extrabold tracking-tight">
+                    {decisionModal.action === 'Approuvé' && 'Validation de la Demande d\'Absence'}
+                    {decisionModal.action === 'Refusé' && 'Refus de la Demande d\'Absence'}
+                    {decisionModal.action === 'Supprimer' && 'Supprimer la Demande d\'Absence'}
+                  </h4>
+                  <p className="text-xs text-white/80 font-mono font-bold mt-0.5">
+                    Code Suivi : {decisionModal.request.codeSuivi}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={closeDecisionModal}
+                className="p-1.5 rounded-full hover:bg-white/20 transition-colors text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body / Form */}
+            <form onSubmit={handleConfirmDecision} className="p-6 space-y-4">
+              {/* Summary Card */}
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-extrabold text-slate-900 text-sm">
+                    {decisionModal.request.nomPrenom}
+                  </span>
+                  <span className="px-2 py-0.5 bg-blue-50 text-blue-700 font-mono font-bold text-[10px] rounded border border-blue-200">
+                    Poste 3CX #{decisionModal.request.matricule}
+                  </span>
+                </div>
+
+                <div className="text-xs text-slate-600 flex items-center justify-between font-medium pt-1 border-t border-slate-200/60">
+                  <span>Type : <strong>{decisionModal.request.typeAbsence}</strong></span>
+                  <span className="font-mono text-blue-600 font-bold">
+                    {decisionModal.request.dateDebut} au {decisionModal.request.dateFin} ({decisionModal.request.dureeJours} J)
+                  </span>
+                </div>
+
+                <div className="text-xs text-slate-500 italic bg-white p-2.5 rounded-xl border border-slate-200 mt-1">
+                  &quot;{decisionModal.request.motif}&quot;
+                </div>
+              </div>
+
+              {decisionModal.action !== 'Supprimer' ? (
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-700">
+                    Remarque & Motif RH Officiel <span className="text-rose-500">*</span>
+                  </label>
+                  <textarea
+                    rows={3}
+                    required
+                    value={decisionModal.notes}
+                    onChange={(e) => setDecisionModal((prev) => ({ ...prev, notes: e.target.value }))}
+                    placeholder={
+                      decisionModal.action === 'Approuvé'
+                        ? 'Remarque pour l\'employé (ex: Permission accordée par la direction RH)...'
+                        : 'Motif obligatoire du refus (ex: Refusé pour impératif de service)...'
+                    }
+                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              ) : (
+                <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl text-rose-800 text-xs font-medium">
+                  ⚠️ Êtes-vous sûr de vouloir supprimer définitivement la demande <strong className="font-mono">{decisionModal.request.codeSuivi}</strong> ? Cette action retirera la demande de la base de données.
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={closeDecisionModal}
+                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all"
+                >
+                  Annuler
+                </button>
+
+                <button
+                  type="submit"
+                  className={`px-5 py-2.5 text-white font-extrabold text-xs rounded-xl shadow-md flex items-center gap-2 transition-all ${
+                    decisionModal.action === 'Approuvé'
+                      ? 'bg-emerald-600 hover:bg-emerald-700'
+                      : decisionModal.action === 'Refusé'
+                      ? 'bg-rose-600 hover:bg-rose-700'
+                      : 'bg-slate-800 hover:bg-slate-900'
+                  }`}
+                >
+                  {decisionModal.action === 'Approuvé' && (
+                    <>
+                      <CheckCircle2 className="w-4 h-4" />
+                      Confirmer la Validation
+                    </>
+                  )}
+                  {decisionModal.action === 'Refusé' && (
+                    <>
+                      <XCircle className="w-4 h-4" />
+                      Confirmer le Refus
+                    </>
+                  )}
+                  {decisionModal.action === 'Supprimer' && (
+                    <>
+                      <Trash2 className="w-4 h-4" />
+                      Confirmer la Suppression
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
