@@ -1,4 +1,27 @@
 export type RoleType = 'SuperAdmin' | 'Admin' | 'Employé';
+
+export const isSuperAdminRole = (role?: string) => {
+  if (!role) return false;
+  const r = role.toLowerCase();
+  return r.includes('super');
+};
+
+export const isAdminRole = (role?: string) => {
+  if (!role) return false;
+  const r = role.toLowerCase();
+  return r.includes('admin') && !r.includes('super');
+};
+
+export const isEmployeRole = (role?: string) => {
+  if (!role) return true;
+  return !isSuperAdminRole(role) && !isAdminRole(role);
+};
+
+export const normalizeRole = (role?: string): RoleType => {
+  if (isSuperAdminRole(role)) return 'SuperAdmin';
+  if (isAdminRole(role)) return 'Admin';
+  return 'Employé';
+};
 export type StatutContrat = 'CDI' | 'CDD' | 'STAGIAIRE';
 
 export interface Employee {

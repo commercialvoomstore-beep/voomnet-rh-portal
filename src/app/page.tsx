@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useApp } from '@/context/AppContext';
+import { isEmployeRole } from '@/data/mockData';
 import { Splash } from '@/components/Splash';
 import { Login } from '@/components/Login';
 import { Sidebar } from '@/components/Sidebar';
@@ -30,13 +31,15 @@ export default function Home() {
   };
 
   const renderTabContent = () => {
+    const isEmp = isEmployeRole(user.role);
+
     switch (activeTab) {
       case 'dashboard':
-        return <Dashboard />;
+        return isEmp ? <MonPoste /> : <Dashboard />;
       case 'monposte':
         return <MonPoste />;
       case 'personnel':
-        return <Personnel />;
+        return isEmp ? <MonPoste /> : <Personnel />;
       case 'chat':
         return <ChatRH />;
       case 'conges':
@@ -46,7 +49,7 @@ export default function Home() {
       case 'parametres':
         return <Parametres />;
       default:
-        return user.role === 'Employé' ? <MonPoste /> : <Dashboard />;
+        return isEmp ? <MonPoste /> : <Dashboard />;
     }
   };
 

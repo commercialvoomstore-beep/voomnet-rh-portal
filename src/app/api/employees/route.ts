@@ -89,7 +89,13 @@ export async function GET(request: Request) {
         prenom: String(r.first_name || ''),
         email: String(r.email || ''),
         telephone3CX: String(r.phone || r.matricule || ''),
-        role: r.role === 'SUPERADMIN' ? 'SuperAdmin' : r.role === 'ADMIN' ? 'Admin' : 'Employé',
+        role: r.role
+          ? r.role.toUpperCase().includes('SUPER')
+            ? 'SuperAdmin'
+            : r.role.toUpperCase().includes('ADMIN')
+            ? 'Admin'
+            : 'Employé'
+          : 'Employé',
         poste: String(r.position || 'Poste VOOMNET'),
         departement: String(r.department || 'Général'),
         statut: mappedStatut,

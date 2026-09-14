@@ -17,6 +17,10 @@ import {
   INITIAL_NOTIFICATIONS,
   INITIAL_AUDIT_LOGS,
   DEFAULT_FALLBACK_AVATAR,
+  normalizeRole,
+  isEmployeRole,
+  isSuperAdminRole,
+  isAdminRole,
 } from '@/data/mockData';
 import {
   fetchNeonEmployees,
@@ -518,16 +522,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     }
 
-    setUser(found);
+    const normalizedFound = {
+      ...found,
+      role: normalizeRole(found.role),
+    };
+
+    setUser(normalizedFound);
     if (typeof window !== 'undefined') {
       try {
-        sessionStorage.setItem('VOOMNET_USER_SESSION', JSON.stringify(found));
+        sessionStorage.setItem('VOOMNET_USER_SESSION', JSON.stringify(normalizedFound));
       } catch (e) {
         // Ignore quota limits
       }
     }
 
-    if (found.role === 'Employé') {
+    if (isEmployeRole(normalizedFound.role)) {
       setActiveTab('monposte');
     } else {
       setActiveTab('dashboard');
