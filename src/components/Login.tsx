@@ -50,7 +50,7 @@ export const Login: React.FC = () => {
           <Shield className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
           <div>
             <span className="font-bold block text-slate-900">Connexion Matricule (Poste 3CX) ou Email</span>
-            Entrez votre numéro de poste interne (ex: 9999, 1000, 1009, 1015) ou votre email.
+            Entrez votre numéro de poste interne (ex: 9999 ou matricule créé) ou votre adresse email.
           </div>
         </div>
 
@@ -69,7 +69,7 @@ export const Login: React.FC = () => {
               <PhoneCall className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
               <input
                 type="text"
-                placeholder="Ex: 9999 ou m.kouassi@voomnet.com"
+                placeholder="Ex: 9999 ou votre.email@voomnet.com"
                 value={matricule}
                 onChange={(e) => setMatricule(e.target.value)}
                 className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-2xl text-slate-900 text-sm focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200 font-mono font-bold"
@@ -92,7 +92,7 @@ export const Login: React.FC = () => {
               />
             </div>
             <p className="text-[10px] text-slate-500 mt-1">
-              Mot de passe démo : <code className="text-blue-600 font-extrabold">voomnet2026</code>
+              Mot de passe par défaut : <code className="text-blue-600 font-extrabold">voomnet2026</code>
             </p>
           </div>
 
