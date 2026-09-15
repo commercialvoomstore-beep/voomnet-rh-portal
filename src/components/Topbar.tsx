@@ -127,11 +127,18 @@ export const Topbar: React.FC = () => {
       )}
 
       <div className="flex items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-[10px] font-extrabold text-blue-600 uppercase tracking-wider">
-            <span>VOOMNET TECHNOLOGY</span>
+        <div className="flex items-center gap-3">
+          <img
+            src="/logo.png"
+            alt="VOOMNET TECHNOLOGY"
+            className="h-8 object-contain max-w-[150px] hidden sm:block"
+          />
+          <div>
+            <div className="flex items-center gap-2 text-[10px] font-extrabold text-[#5E1675] uppercase tracking-wider">
+              <span>VOOMNET TECHNOLOGY</span>
+            </div>
+            <h2 className="text-xl font-extrabold text-[#0E125E] tracking-tight">{getTitle()}</h2>
           </div>
-          <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">{getTitle()}</h2>
         </div>
 
         {/* Right tools */}

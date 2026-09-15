@@ -52,7 +52,7 @@ export const Parametres: React.FC = () => {
     }
 
     const currentPass = user.motDePasse || 'voomnet2026';
-    if (oldPassword && oldPassword.trim() !== currentPass && oldPassword.trim() !== 'voomnet2026') {
+    if (oldPassword && oldPassword.trim() !== currentPass) {
       alert('L\'ancien mot de passe saisi est incorrect.');
       return;
     }

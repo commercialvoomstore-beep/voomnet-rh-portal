@@ -516,7 +516,7 @@ export const Personnel: React.FC = () => {
                   <input
                     type="text"
                     required
-                    placeholder="Ex: voomnet2026"
+                    placeholder="Ex: MotDePasseSecurise123"
                     value={addFormState.motDePasse}
                     onChange={(e) => setAddFormState({ ...addFormState, motDePasse: e.target.value })}
                     className="w-full px-3 py-2 bg-slate-50 border border-emerald-600 rounded-xl text-emerald-800 font-mono text-xs font-bold"

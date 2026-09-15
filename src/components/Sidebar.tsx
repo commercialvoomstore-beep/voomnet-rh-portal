@@ -8,7 +8,6 @@ import {
   CalendarCheck,
   Settings,
   LogOut,
-  Cpu,
   MessageSquare,
   Briefcase,
   Award,
@@ -59,7 +58,7 @@ export const Sidebar: React.FC = () => {
           label: 'Chat RH Direct',
           icon: MessageSquare,
           badge: unreadChatCount > 0 ? `${unreadChatCount}` : null,
-          badgeColor: 'bg-indigo-100 text-indigo-800 border-indigo-200',
+          badgeColor: 'bg-purple-100 text-purple-800 border-purple-200',
         },
         {
           id: 'conges',
@@ -82,7 +81,7 @@ export const Sidebar: React.FC = () => {
         label: 'Chat RH Direct',
         icon: MessageSquare,
         badge: unreadChatCount > 0 ? `${unreadChatCount}` : null,
-        badgeColor: 'bg-indigo-100 text-indigo-800 border-indigo-200',
+        badgeColor: 'bg-purple-100 text-purple-800 border-purple-200',
       },
       {
         id: 'conges',
@@ -100,19 +99,13 @@ export const Sidebar: React.FC = () => {
 
   return (
     <aside className="w-64 bg-white border-r border-slate-200 flex flex-col h-screen shrink-0 select-none text-slate-800 shadow-sm">
-      {/* Brand Header */}
-      <div className="p-5 border-b border-slate-200 flex items-center gap-3 bg-slate-50/50">
-        <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 shrink-0">
-          <Cpu className="w-6 h-6" />
-        </div>
-        <div className="overflow-hidden">
-          <h1 className="font-extrabold text-sm text-slate-900 tracking-wide truncate">
-            VOOMNET TECH
-          </h1>
-          <p className="text-[10px] font-bold text-blue-600 tracking-widest uppercase">
-            PORTAIL RH PRO
-          </p>
-        </div>
+      {/* Brand Header with official logo */}
+      <div className="p-4 border-b border-slate-200 flex items-center justify-center bg-white">
+        <img
+          src="/logo.png"
+          alt="VOOMNET TECHNOLOGY Logo"
+          className="h-10 object-contain max-w-[200px]"
+        />
       </div>
 
       {/* User Info Bar */}
@@ -120,14 +113,14 @@ export const Sidebar: React.FC = () => {
         <img
           src={user.avatar}
           alt={user.nom}
-          className="w-10 h-10 rounded-xl object-cover ring-2 ring-blue-500 shrink-0 shadow"
+          className="w-10 h-10 rounded-xl object-cover ring-2 ring-purple-500 shrink-0 shadow"
         />
         <div className="min-w-0 flex-1">
-          <div className="text-xs font-extrabold text-slate-900 truncate">
+          <div className="text-xs font-extrabold text-[#0E125E] truncate">
             {user.prenom} {user.nom}
           </div>
           <div className="text-[10px] text-slate-500 truncate flex items-center gap-1">
-            <span className="font-mono text-blue-700 font-bold">{user.matricule}</span>
+            <span className="font-mono text-[#5E1675] font-bold">{user.matricule}</span>
             <span>•</span>
             <span className="font-bold text-slate-700">
               {user.role} ({user.statut})
@@ -157,7 +150,7 @@ export const Sidebar: React.FC = () => {
               onClick={() => setActiveTab(item.id)}
               className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                 isActive
-                  ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+                  ? 'bg-gradient-to-r from-[#0E125E] to-[#5E1675] text-white shadow-md shadow-purple-900/10'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
               }`}
             >
@@ -181,7 +174,7 @@ export const Sidebar: React.FC = () => {
       <div className="p-3 border-t border-slate-200 bg-slate-50/50">
         <button
           onClick={logout}
-          className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 hover:text-rose-700 transition-all border border-transparent hover:border-rose-200"
+          className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 hover:text-rose-700 transition-all border border-transparent hover:border-rose-200 cursor-pointer"
         >
           <LogOut className="w-4 h-4" />
           <span>Déconnexion</span>
