@@ -24,6 +24,26 @@ function getDbConnection(customUrl?: string) {
   }
 }
 
+async function ensureChatTable(sql: any) {
+  try {
+    await sql`
+      CREATE TABLE IF NOT EXISTS chat_messages (
+        id VARCHAR(60) PRIMARY KEY DEFAULT gen_random_uuid()::text,
+        sender_id VARCHAR(50) NOT NULL,
+        sender_name VARCHAR(150) NOT NULL,
+        recipient_id VARCHAR(50) NOT NULL,
+        recipient_name VARCHAR(150) NOT NULL,
+        text TEXT NOT NULL,
+        delivered BOOLEAN NOT NULL DEFAULT true,
+        delivery_status VARCHAR(100) DEFAULT '✓✓ Envoyé & Distribué au Poste',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+    `;
+  } catch (e) {
+    // Ignore schema exists warning
+  }
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -33,6 +53,8 @@ export async function GET(request: Request) {
     if (!sql) {
       return NextResponse.json({ success: false, error: 'Database connection URL not configured', messages: [] }, { status: 200 });
     }
+
+    await ensureChatTable(sql);
 
     const rows = await sql`
       SELECT id, sender_id, sender_name, recipient_id, recipient_name, text, delivered, delivery_status, created_at
@@ -67,6 +89,8 @@ export async function POST(request: Request) {
     if (!sql) {
       return NextResponse.json({ success: false, error: 'Database connection URL not configured' }, { status: 200 });
     }
+
+    await ensureChatTable(sql);
 
     await sql`
       INSERT INTO chat_messages (sender_id, sender_name, recipient_id, recipient_name, text, delivered, delivery_status)
