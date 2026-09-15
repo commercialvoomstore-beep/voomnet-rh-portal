@@ -270,55 +270,50 @@ export const ChatRH: React.FC = () => {
               </div>
 
               {/* Message Feed */}
-              <div className="flex-1 p-5 overflow-y-auto space-y-4 bg-slate-50/40">
+              <div className="flex-1 p-5 overflow-y-auto space-y-3.5 bg-slate-50/40">
                 {conversationMessages.map((msg) => {
                   const isMe = msg.senderMatricule === user.matricule;
                   return (
                     <div
                       key={msg.id}
-                      className={`flex items-start gap-3 max-w-xl ${
-                        isMe ? 'ml-auto flex-row-reverse' : ''
+                      className={`flex flex-col max-w-md ${
+                        isMe ? 'ml-auto items-end' : 'mr-auto items-start'
                       }`}
                     >
-                      <img
-                        src={msg.senderAvatar}
-                        alt={msg.senderName}
-                        className={`w-8 h-8 rounded-xl object-cover ring-2 ${
-                          isMe ? 'ring-[#0E125E]' : 'ring-[#5E1675]'
-                        }`}
-                      />
-
                       <div
-                        className={`p-3.5 rounded-2xl text-xs space-y-1 shadow-sm ${
+                        className={`p-3.5 rounded-2xl text-xs space-y-1.5 shadow-sm w-full ${
                           isMe
                             ? 'bg-gradient-to-r from-[#0E125E] to-[#2A1175] text-white rounded-tr-none'
                             : 'bg-white border border-slate-200 text-slate-900 rounded-tl-none font-medium'
                         }`}
                       >
-                        <div className="flex items-center justify-between gap-3 text-[10px] opacity-80 border-b border-black/10 pb-1">
-                          <span className="font-extrabold">{msg.senderName} ({msg.senderRole})</span>
-                          <span className="font-mono flex items-center gap-1">
+                        {/* Header: Sender Name + Timestamp */}
+                        <div
+                          className={`flex items-center justify-between gap-4 text-[10px] pb-1 border-b ${
+                            isMe ? 'border-white/15 text-purple-200' : 'border-slate-100 text-slate-500'
+                          }`}
+                        >
+                          <span className="font-extrabold tracking-wide">{msg.senderName}</span>
+                          <span className="font-mono flex items-center gap-1 opacity-90">
                             <Clock className="w-3 h-3" />
                             {msg.timestamp}
                           </span>
                         </div>
 
-                        <p className="leading-relaxed whitespace-pre-wrap">{msg.text}</p>
+                        {/* Message Text */}
+                        <p className="leading-relaxed whitespace-pre-wrap text-xs font-normal py-0.5">
+                          {msg.text}
+                        </p>
 
-                        <div
-                          className={`pt-0.5 flex items-center justify-end text-[9px] font-mono font-semibold ${
-                            isMe ? 'text-purple-200' : 'text-slate-400'
-                          }`}
-                        >
+                        {/* WhatsApp-Style Checkmark Status */}
+                        <div className="flex items-center justify-end pt-0.5">
                           {isMe ? (
-                            <span className="flex items-center gap-1">
-                              <CheckCheck className="w-3 h-3 text-emerald-300" />
-                              <span>Envoyé au poste {selectedRecipient.matricule}</span>
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400" title="Message distribué au poste">
+                              <CheckCheck className="w-4 h-4 text-emerald-400" />
                             </span>
                           ) : (
-                            <span className="flex items-center gap-1">
-                              <Check className="w-3 h-3 text-emerald-600" />
-                              <span>Reçu sur votre poste {user.matricule}</span>
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600" title="Message reçu">
+                              <CheckCheck className="w-4 h-4 text-emerald-600" />
                             </span>
                           )}
                         </div>
