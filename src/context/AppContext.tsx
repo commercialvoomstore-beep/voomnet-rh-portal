@@ -379,6 +379,51 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             });
           }
 
+          // 5. Sync Prime Attributions from Neon DB
+          const latestAttributions = await fetchNeonPrimeAttributions();
+          if (latestAttributions && Array.isArray(latestAttributions) && latestAttributions.length > 0) {
+            setPrimes((prevPrimes) => {
+              const primeMap = new Map<string, EmployeePrimeStatus>();
+              (prevPrimes || []).forEach((p) => {
+                if (p && p.matricule) {
+                  primeMap.set(String(p.matricule).trim(), p);
+                }
+              });
+
+              latestAttributions.forEach((attr) => {
+                if (attr && attr.matricule) {
+                  const mKey = String(attr.matricule).trim();
+                  const existing = primeMap.get(mKey);
+                  const isAccordee = attr.statut === 'Accordée';
+                  const isRefused = attr.statut === 'Refusée';
+                  const resolvedMontant = typeof attr.montant === 'number' && !isNaN(attr.montant)
+                    ? attr.montant
+                    : (isAccordee ? primeConfig.montantReference : 0);
+
+                  const updatedItem: EmployeePrimeStatus = {
+                    matricule: mKey,
+                    nomPrenom: attr.nomPrenom || existing?.nomPrenom || 'Collaborateur',
+                    dateEmbauche: existing?.dateEmbauche || '2023-01-01',
+                    statutCollaborateur: existing?.statutCollaborateur || 'CDI',
+                    roleCollaborateur: existing?.roleCollaborateur || 'Employé',
+                    periodeNom: attr.periodeNom || existing?.periodeNom || primeConfig.periodeNom,
+                    eligible: isAccordee,
+                    montantCalcule: resolvedMontant,
+                    statut: (isAccordee ? 'Accordée' : isRefused ? 'Refusée' : 'En attente') as 'Accordée' | 'Refusée' | 'En attente',
+                    montant: resolvedMontant,
+                    motif: attr.motif || existing?.motif || '',
+                    motifStatus: `${attr.statut.toUpperCase()} — ${attr.motif || 'Décision RH'}`,
+                    masquee: existing?.masquee,
+                  };
+
+                  primeMap.set(mKey, updatedItem);
+                }
+              });
+
+              return Array.from(primeMap.values());
+            });
+          }
+
           // 6. Sync System Notifications from Neon DB
           if (user) {
             const latestNotifs = await fetchNeonNotifications(user.matricule, user.role);
