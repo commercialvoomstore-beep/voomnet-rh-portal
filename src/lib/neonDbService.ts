@@ -168,6 +168,7 @@ export const deleteNeonEmployee = async (id: string) => {
     } catch (err) {
       console.warn('API delete employee failed:', err);
     }
+    return;
   }
 
   return executeNeonQuery(async (sql) => {
@@ -227,6 +228,7 @@ export const insertNeonChatMessage = async (msg: ChatMessage) => {
     } catch (err) {
       console.warn('API insert chat message failed:', err);
     }
+    return;
   }
 
   return executeNeonQuery(async (sql) => {
@@ -454,6 +456,7 @@ export const updateNeonLeaveRequestStatus = async (id: string, statut: string, n
     } catch (err) {
       console.warn('API update leave status failed:', err);
     }
+    return;
   }
 
   return executeNeonQuery(async (sql) => {
@@ -478,6 +481,7 @@ export const deleteNeonLeaveRequest = async (id: string) => {
     } catch (err) {
       console.warn('API delete leave request failed:', err);
     }
+    return;
   }
 
   return executeNeonQuery(async (sql) => {
@@ -563,6 +567,7 @@ export const insertNeonPrimeAttribution = async (attr: {
     } catch (err) {
       console.warn('API insert prime attribution failed:', err);
     }
+    return;
   }
 };
 
@@ -613,6 +618,7 @@ export const insertNeonNotification = async (notif: {
     } catch (err) {
       console.warn('API insert notification failed:', err);
     }
+    return;
   }
 };
 
@@ -628,6 +634,7 @@ export const markNeonNotificationAsRead = async (id?: string, matricule?: string
     } catch (err) {
       console.warn('API mark notification read failed:', err);
     }
+    return;
   }
 };
 
@@ -642,5 +649,6 @@ export const clearNeonNotifications = async (matricule?: string) => {
     } catch (err) {
       console.warn('API clear notifications failed:', err);
     }
+    return;
   }
 };

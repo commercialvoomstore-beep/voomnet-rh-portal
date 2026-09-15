@@ -303,10 +303,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
           // 2. Sync Chat Messages
           const latestChats = await fetchNeonChatMessages();
-          if (latestChats) {
+          if (latestChats && Array.isArray(latestChats)) {
             setChatMessages((prev) => {
-              if (latestChats.length !== prev.length) {
-                return latestChats;
+              const seen = new Set<string>();
+              const unique: ChatMessage[] = [];
+
+              latestChats.forEach((m) => {
+                const key = `${m.senderMatricule}-${m.recipientMatricule}-${m.text ? m.text.trim() : ''}-${m.timestamp}`;
+                if (!seen.has(key)) {
+                  seen.add(key);
+                  unique.push(m);
+                }
+              });
+
+              if (unique.length !== prev.length || JSON.stringify(unique) !== JSON.stringify(prev)) {
+                return unique;
               }
               return prev;
             });
