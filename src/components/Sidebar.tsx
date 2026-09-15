@@ -38,6 +38,13 @@ export const Sidebar: React.FC = () => {
       return [
         { id: 'monposte', label: 'Mon Poste & Profil', icon: Briefcase },
         {
+          id: 'chat',
+          label: 'Messagerie RH',
+          icon: MessageSquare,
+          badge: unreadChatCount > 0 ? `${unreadChatCount}` : null,
+          badgeColor: 'bg-purple-100 text-purple-800 border-purple-200',
+        },
+        {
           id: 'conges',
           label: 'Mes Permissions',
           icon: CalendarCheck,

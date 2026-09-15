@@ -43,9 +43,9 @@ export const ChatRH: React.FC = () => {
 
   useEffect(() => {
     if (user?.matricule) {
-      markChatMessagesAsRead(user.matricule);
+      markChatMessagesAsRead(user.matricule, selectedMatricule || undefined);
     }
-  }, [user?.matricule, markChatMessagesAsRead]);
+  }, [user?.matricule, selectedMatricule, chatMessages.length, markChatMessagesAsRead]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });

@@ -150,7 +150,7 @@ interface AppContextType {
   markNotificationAsRead: (id: string) => void;
   clearAllNotifications: () => void;
   markPrimeNotificationsAsRead: () => void;
-  markChatMessagesAsRead: (matricule: string) => void;
+  markChatMessagesAsRead: (matricule: string, senderMatricule?: string) => void;
   createAbsenceRequest: (req: Omit<AbsenceRequest, 'id' | 'codeSuivi' | 'dateDemande'>) => string;
   updateAbsenceStatus: (id: string, statut: 'Approuvé' | 'Refusé', justifiee: boolean, notes?: string) => void;
   deleteAbsenceRequest: (id: string) => void;
@@ -304,15 +304,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           // 2. Sync Chat Messages
           const latestChats = await fetchNeonChatMessages();
           if (latestChats && Array.isArray(latestChats)) {
+            const readSet = getReadChatKeys();
             setChatMessages((prev) => {
               const seen = new Set<string>();
               const unique: ChatMessage[] = [];
 
               latestChats.forEach((m) => {
-                const key = `${m.senderMatricule}-${m.recipientMatricule}-${m.text ? m.text.trim() : ''}-${m.timestamp}`;
+                const key = m.id || `${m.senderMatricule}-${m.recipientMatricule}-${m.text ? m.text.trim() : ''}-${m.timestamp}`;
+                const isRead = readSet.has(key) || (m.id && readSet.has(m.id));
+                const finalStatus = isRead ? ('lu' as const) : m.status;
+
                 if (!seen.has(key)) {
                   seen.add(key);
-                  unique.push(m);
+                  unique.push({ ...m, status: finalStatus });
                 }
               });
 
@@ -549,12 +553,59 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   };
 
-  const markChatMessagesAsRead = (matricule: string) => {
+  const getReadChatKeys = (): Set<string> => {
+    if (typeof window === 'undefined') return new Set();
+    try {
+      const saved = localStorage.getItem('VOOMNET_READ_CHAT_KEYS');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return new Set(parsed);
+      }
+    } catch (e) {}
+    return new Set();
+  };
+
+  const saveReadChatKeys = (keysSet: Set<string>) => {
+    if (typeof window === 'undefined') return;
+    try {
+      localStorage.setItem('VOOMNET_READ_CHAT_KEYS', JSON.stringify(Array.from(keysSet)));
+    } catch (e) {}
+  };
+
+  const markChatMessagesAsRead = (matricule: string, senderMatricule?: string) => {
+    const readSet = getReadChatKeys();
+
     setChatMessages((prev) =>
-      prev.map((m) =>
-        m.recipientMatricule === matricule ? { ...m, status: 'lu' as const } : m
-      )
+      prev.map((m) => {
+        const matchesRecipient = m.recipientMatricule === matricule;
+        const matchesSender = !senderMatricule || m.senderMatricule === senderMatricule;
+        if (matchesRecipient && matchesSender) {
+          const key = m.id || `${m.senderMatricule}-${m.recipientMatricule}-${m.text ? m.text.trim() : ''}-${m.timestamp}`;
+          readSet.add(key);
+          if (m.id) readSet.add(m.id);
+          return { ...m, status: 'lu' as const };
+        }
+        return m;
+      })
     );
+
+    saveReadChatKeys(readSet);
+
+    // Also mark corresponding CHAT notifications as read
+    setNotifications((prev) => {
+      let changed = false;
+      const updated = prev.map((n) => {
+        if (!n.read && n.recipientMatricule === matricule && (n.type === 'CHAT' || (n.title && n.title.includes('Message')))) {
+          changed = true;
+          return { ...n, read: true };
+        }
+        return n;
+      });
+      if (changed && typeof window !== 'undefined') {
+        localStorage.setItem('VOOMNET_NOTIFICATIONS', JSON.stringify(updated));
+      }
+      return updated;
+    });
   };
 
   const login = async (
