@@ -44,15 +44,20 @@ export const Login: React.FC = () => {
     }
   };
 
-  const defaultQuickAccounts = [
-    { label: '👑 SuperAdmin (9999)', matricule: '9999', role: 'SuperAdmin' },
-    { label: '🛡️ Admin RH (1012)', matricule: '1012', role: 'Admin' },
-    { label: '👤 Employé (1015)', matricule: '1015', role: 'Employé' },
-    { label: '👤 Employé (1001)', matricule: '1001', role: 'Admin' },
-  ];
-
-  // Combine default accounts with any live employees in state
-  const quickAccounts = defaultQuickAccounts;
+  // Build quick accounts dynamically from live employees in state (Neon DB)
+  const quickAccounts = (
+    employees && employees.length > 0
+      ? employees
+      : [
+          { matricule: '9999', prenom: 'Alexandre', nom: 'VOHOU', role: 'SuperAdmin' },
+          { matricule: '1010', prenom: 'KOUADIO JULES', nom: 'YAO', role: 'Admin' },
+          { matricule: '1099', prenom: 'Jean', nom: 'DUPONT', role: 'Employé' },
+        ]
+  ).map((e) => ({
+    label: `${e.role === 'SuperAdmin' ? '👑' : e.role === 'Admin' ? '🛡️' : '👤'} ${e.prenom} ${e.nom}`,
+    matricule: e.matricule,
+    role: e.role,
+  }));
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-slate-50 px-4 py-8 relative overflow-hidden">

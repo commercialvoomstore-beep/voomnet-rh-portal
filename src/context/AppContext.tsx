@@ -703,28 +703,55 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
     }
 
-    // Flexible matcher (matricule, email, phone, prenom, nom, full name, reversed full name)
+    // Ultra-flexible & accent-insensitive matcher (matricule, email, phone, prenom, nom, full name, reversed full name, tokens)
     const matchesEmp = (e: Employee) => {
       if (!e) return false;
-      const m = String(e.matricule || '').trim().toLowerCase();
-      const em = String(e.email || '').trim().toLowerCase();
-      const fn = String(e.prenom || '').trim().toLowerCase();
-      const ln = String(e.nom || '').trim().toLowerCase();
+      const m = String(e.matricule || '').trim();
+      const em = String(e.email || '').trim();
+      const fn = String(e.prenom || '').trim();
+      const ln = String(e.nom || '').trim();
       const fullName = `${fn} ${ln}`.trim();
       const reverseFullName = `${ln} ${fn}`.trim();
-      const phone = String(e.telephone3CX || '').trim().toLowerCase();
+      const phone = String(e.telephone3CX || '').trim();
 
-      return (
-        m === trimmed ||
-        em === trimmed ||
-        em.includes(trimmed) ||
-        phone === trimmed ||
-        fn === trimmed ||
-        ln === trimmed ||
-        fullName === trimmed ||
-        reverseFullName === trimmed ||
-        (trimmed.length >= 3 && (fullName.includes(trimmed) || reverseFullName.includes(trimmed)))
-      );
+      const normalizeStr = (str: string) =>
+        str
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .toLowerCase()
+          .trim();
+
+      const normTrimmed = normalizeStr(trimmed);
+      const normM = normalizeStr(m);
+      const normEm = normalizeStr(em);
+      const normFn = normalizeStr(fn);
+      const normLn = normalizeStr(ln);
+      const normFull = normalizeStr(fullName);
+      const normReverse = normalizeStr(reverseFullName);
+      const normPhone = normalizeStr(phone);
+
+      if (
+        normM === normTrimmed ||
+        normEm === normTrimmed ||
+        normPhone === normTrimmed ||
+        normEm.includes(normTrimmed) ||
+        normFull === normTrimmed ||
+        normReverse === normTrimmed ||
+        normFn === normTrimmed ||
+        normLn === normTrimmed
+      ) {
+        return true;
+      }
+
+      // Check if all user-typed tokens appear anywhere in employee info
+      const tokens = normTrimmed.split(/\s+/).filter(Boolean);
+      if (tokens.length > 0) {
+        const fullSearchable = `${normM} ${normEm} ${normFn} ${normLn} ${normFull} ${normReverse} ${normPhone}`;
+        const allTokensMatch = tokens.every((token) => fullSearchable.includes(token));
+        if (allTokensMatch) return true;
+      }
+
+      return false;
     };
 
     // ALWAYS fetch fresh employee records directly from Neon DB first to get live password
