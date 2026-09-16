@@ -117,6 +117,7 @@ export const Personnel: React.FC = () => {
       role: emp.role,
       dateEmbauche: emp.dateEmbauche,
       avatar: emp.avatar,
+      motDePasse: emp.motDePasse || 'voomnet2026',
       adresse: emp.adresse || '',
       telephonePerso: emp.telephonePerso || '',
       contactUrgence: emp.contactUrgence || '',
@@ -690,15 +691,28 @@ export const Personnel: React.FC = () => {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Contact Urgence</label>
-                <input
-                  type="text"
-                  placeholder="Ex: Frère (+225 01 22 33 44 55)"
-                  value={editFormState.contactUrgence || ''}
-                  onChange={(e) => setEditFormState({ ...editFormState, contactUrgence: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs"
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Contact Urgence</label>
+                  <input
+                    type="text"
+                    placeholder="Ex: Frère (+225 01 22 33 44 55)"
+                    value={editFormState.contactUrgence || ''}
+                    onChange={(e) => setEditFormState({ ...editFormState, contactUrgence: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Mot de passe de Connexion</label>
+                  <input
+                    type="text"
+                    placeholder="voomnet2026"
+                    value={editFormState.motDePasse || ''}
+                    onChange={(e) => setEditFormState({ ...editFormState, motDePasse: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-50 border border-emerald-600 rounded-xl text-emerald-800 font-mono text-xs font-bold"
+                  />
+                </div>
               </div>
 
               <div>

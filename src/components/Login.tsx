@@ -17,10 +17,13 @@ export const Login: React.FC = () => {
       setError('Veuillez saisir votre numéro de matricule (Poste 3CX) ou votre email.');
       return;
     }
-    const pwd = password.trim() || 'voomnet2026';
+    if (!password.trim()) {
+      setError('Veuillez saisir votre mot de passe pour vous connecter.');
+      return;
+    }
     setLoading(true);
     setError('');
-    const res = await login(matricule.trim(), pwd);
+    const res = await login(matricule.trim(), password.trim());
     setLoading(false);
     if (!res.success) {
       setError(res.message || 'Identifiant ou mot de passe incorrect. Vérifiez vos identifiants.');
@@ -29,10 +32,12 @@ export const Login: React.FC = () => {
 
   const handleQuickLogin = async (targetMatricule: string) => {
     setMatricule(targetMatricule);
-    setPassword('voomnet2026');
+    const emp = employees.find((e) => e.matricule === targetMatricule);
+    const pwd = emp?.motDePasse || 'voomnet2026';
+    setPassword(pwd);
     setLoading(true);
     setError('');
-    const res = await login(targetMatricule, 'voomnet2026');
+    const res = await login(targetMatricule, pwd);
     setLoading(false);
     if (!res.success) {
       setError(res.message || 'Connexion échouée.');

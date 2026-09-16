@@ -694,8 +694,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return { success: false, message: 'Veuillez saisir votre numéro de matricule (Poste 3CX), adresse email ou nom.' };
     }
 
-    // Default password to 'voomnet2026' if empty/omitted
-    const passTrimmed = (passwordInput || '').trim() || 'voomnet2026';
+    // Require password input strictly
+    const passTrimmed = (passwordInput || '').trim();
+    if (!passTrimmed) {
+      return {
+        success: false,
+        message: 'Veuillez saisir votre mot de passe pour vous connecter.',
+      };
+    }
 
     // Flexible matcher (matricule, email, phone, prenom, nom, full name, reversed full name)
     const matchesEmp = (e: Employee) => {
@@ -768,9 +774,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
     }
 
-    // Password verification against stored password or default voomnet2026
+    // Strict Password verification against stored password in database/state
     const validPassword = String(found.motDePasse || 'voomnet2026').trim();
-    if (passTrimmed !== validPassword && passTrimmed !== 'voomnet2026') {
+    if (passTrimmed !== validPassword) {
       return {
         success: false,
         message: `Mot de passe incorrect pour ${found.prenom} ${found.nom} (Matricule ${found.matricule}).`,
@@ -896,6 +902,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
     setEmployees((prev) => [newEmp, ...prev]);
 
+    // Save to extra employees localStorage cache for instant fallback
+    if (typeof window !== 'undefined') {
+      try {
+        const extraSaved = localStorage.getItem('VOOMNET_EXTRA_EMPLOYEES');
+        const parsed = extraSaved ? JSON.parse(extraSaved) : [];
+        const filtered = Array.isArray(parsed) ? parsed.filter((e) => e.matricule !== newEmp.matricule) : [];
+        filtered.push(newEmp);
+        localStorage.setItem('VOOMNET_EXTRA_EMPLOYEES', JSON.stringify(filtered));
+      } catch (e) {}
+    }
+
     const newPrime: EmployeePrimeStatus = {
       matricule: newEmp.matricule,
       nomPrenom: `${newEmp.prenom} ${newEmp.nom}`,
@@ -976,6 +993,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               } catch (e) {}
             }
           }
+
+          // Also update localStorage VOOMNET_EXTRA_EMPLOYEES if present
+          if (typeof window !== 'undefined') {
+            try {
+              const extraSaved = localStorage.getItem('VOOMNET_EXTRA_EMPLOYEES');
+              if (extraSaved) {
+                const parsed = JSON.parse(extraSaved);
+                if (Array.isArray(parsed)) {
+                  const updatedExtra = parsed.map((e) =>
+                    e.id === id || e.matricule === id ? { ...e, ...empData } : e
+                  );
+                  localStorage.setItem('VOOMNET_EXTRA_EMPLOYEES', JSON.stringify(updatedExtra));
+                }
+              }
+            } catch (e) {}
+          }
+
           // Sync update to Neon
           insertNeonEmployee(updated).catch(console.error);
           return updated;
