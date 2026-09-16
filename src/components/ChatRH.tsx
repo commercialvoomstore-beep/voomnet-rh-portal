@@ -211,12 +211,12 @@ export const ChatRH: React.FC = () => {
               const isSelected = emp.matricule === selectedMatricule;
 
               // Unread badge counter for this specific sender
-              const unreadForThisContact = chatMessages.filter(
-                (m) =>
-                  m.senderMatricule === emp.matricule &&
-                  m.recipientMatricule === user.matricule &&
-                  m.status !== 'lu'
-              ).length;
+              const unreadForThisContact = chatMessages.filter((m) => {
+                const isForUser = m.recipientMatricule === user.matricule;
+                const isForSuperAdminRH =
+                  user.role === 'SuperAdmin' && (m.recipientMatricule === '9999' || m.recipientMatricule === '1000');
+                return m.senderMatricule === emp.matricule && (isForUser || isForSuperAdminRH) && m.status !== 'lu';
+              }).length;
 
               // Last message exchanged with this contact
               const lastMsg = (chatMessages || []).filter(

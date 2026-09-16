@@ -574,10 +574,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const markChatMessagesAsRead = (matricule: string, senderMatricule?: string) => {
     const readSet = getReadChatKeys();
+    const isSuper = user && isSuperAdminRole(user.role);
 
     setChatMessages((prev) =>
       prev.map((m) => {
-        const matchesRecipient = m.recipientMatricule === matricule;
+        const matchesRecipient =
+          m.recipientMatricule === matricule ||
+          (isSuper && (m.recipientMatricule === '9999' || m.recipientMatricule === '1000'));
         const matchesSender = !senderMatricule || m.senderMatricule === senderMatricule;
         if (matchesRecipient && matchesSender) {
           const key = m.id || `${m.senderMatricule}-${m.recipientMatricule}-${m.text ? m.text.trim() : ''}-${m.timestamp}`;
@@ -595,7 +598,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setNotifications((prev) => {
       let changed = false;
       const updated = prev.map((n) => {
-        if (!n.read && n.recipientMatricule === matricule && (n.type === 'CHAT' || (n.title && n.title.includes('Message')))) {
+        const matchesRecipient =
+          n.recipientMatricule === matricule ||
+          (isSuper && (n.recipientMatricule === '9999' || n.recipientMatricule === '1000'));
+        if (!n.read && matchesRecipient && (n.type === 'CHAT' || (n.title && n.title.includes('Message')))) {
           changed = true;
           return { ...n, read: true };
         }
@@ -946,9 +952,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     playNotificationSound('chat');
 
     showNotificationAlert(
-      '💬 Message Envoyé & Enregistré',
-      `Message sauvegardé dans la base Neon et transmis à ${recipientName} (Poste 3CX ${recipientMatricule}).`,
-      'SUCCESS',
+      `💬 Message de ${user.prenom} ${user.nom}`,
+      `${text.length > 70 ? text.substring(0, 70) + '...' : text}`,
+      'CHAT',
       recipientMatricule
     );
   };

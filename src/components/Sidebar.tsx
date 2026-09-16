@@ -29,9 +29,11 @@ export const Sidebar: React.FC = () => {
     (r) => r.matricule === user.matricule && r.statut === 'En attente'
   ).length;
 
-  const unreadChatCount = chatMessages.filter(
-    (m) => m.recipientMatricule === user.matricule && m.status !== 'lu'
-  ).length;
+  const unreadChatCount = chatMessages.filter((m) => {
+    const isForUser = m.recipientMatricule === user.matricule;
+    const isForSuperAdminRH = isSuperAdmin && (m.recipientMatricule === '9999' || m.recipientMatricule === '1000');
+    return (isForUser || isForSuperAdminRH) && m.status !== 'lu';
+  }).length;
 
   const getNavItems = () => {
     if (isEmploye) {
