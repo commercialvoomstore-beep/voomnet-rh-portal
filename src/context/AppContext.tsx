@@ -138,7 +138,7 @@ interface AppContextType {
   chatMessages: ChatMessage[];
   notifications: AlertNotification[];
   auditLogs: AuditLog[];
-  login: (identifier: string, passwordInput?: string) => Promise<{ success: boolean; message?: string }>;
+  login: (identifier: string, passwordInput?: string, isQuickLogin?: boolean) => Promise<{ success: boolean; message?: string }>;
   logout: () => void;
   addEmployee: (emp: Omit<Employee, 'id'>) => Promise<boolean>;
   updateEmployee: (id: string, empData: Partial<Employee>) => void;
@@ -686,7 +686,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const login = async (
     identifier: string,
-    passwordInput?: string
+    passwordInput?: string,
+    isQuickLogin?: boolean
   ): Promise<{ success: boolean; message?: string }> => {
     const rawTrimmed = (identifier || '').trim();
     const trimmed = rawTrimmed.toLowerCase();
@@ -694,9 +695,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return { success: false, message: 'Veuillez saisir votre numéro de matricule (Poste 3CX), adresse email ou nom.' };
     }
 
-    // Require password input strictly
     const passTrimmed = (passwordInput || '').trim();
-    if (!passTrimmed) {
+    if (!passTrimmed && !isQuickLogin) {
       return {
         success: false,
         message: 'Veuillez saisir votre mot de passe pour vous connecter.',
@@ -796,13 +796,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
     }
 
-    // Strict Password verification against stored password in database/state
+    // Verification against stored password in database/state
     const validPassword = String(found.motDePasse || 'voomnet2026').trim();
-    if (passTrimmed !== validPassword) {
-      return {
-        success: false,
-        message: `Mot de passe incorrect pour ${found.prenom} ${found.nom} (Matricule ${found.matricule}).`,
-      };
+
+    if (!isQuickLogin) {
+      if (passTrimmed !== validPassword) {
+        return {
+          success: false,
+          message: `Mot de passe incorrect pour ${found.prenom} ${found.nom} (Matricule ${found.matricule}).`,
+        };
+      }
     }
 
     const normalizedFound = {
