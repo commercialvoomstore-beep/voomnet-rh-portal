@@ -270,7 +270,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     const timer = setTimeout(() => {
       setSplashVisible(false);
-    }, 800);
+    }, 1500);
     return () => clearTimeout(timer);
   }, []);
 
