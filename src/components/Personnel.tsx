@@ -102,6 +102,25 @@ export const Personnel: React.FC = () => {
     });
     setIsSubmittingAdd(false);
 
+    setAddFormState({
+      matricule: '',
+      nom: '',
+      prenom: '',
+      email: '',
+      telephone3CX: '',
+      departement: 'Développement Logiciel',
+      poste: 'Ingénieur Informatique',
+      statut: 'CDI',
+      role: 'Employé',
+      dateEmbauche: new Date().toISOString().split('T')[0],
+      avatar: DEFAULT_FALLBACK_AVATAR,
+      motDePasse: 'voomnet2026',
+      adresse: '',
+      telephonePerso: '',
+      contactUrgence: '',
+      notesAdministratives: '',
+    });
+
     setIsAddModalOpen(false);
   };
 
@@ -213,7 +232,7 @@ export const Personnel: React.FC = () => {
           </p>
         </div>
 
-        {isSuperAdmin && (
+        {(isSuperAdmin || isAdminRH) && (
           <button
             onClick={() => setIsAddModalOpen(true)}
             className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-2 shrink-0 transition-all"
@@ -367,8 +386,8 @@ export const Personnel: React.FC = () => {
         </div>
       </div>
 
-      {/* SuperAdmin Add Modal */}
-      {isAddModalOpen && isSuperAdmin && (
+      {/* SuperAdmin / Admin Add Modal */}
+      {isAddModalOpen && (isSuperAdmin || isAdminRH) && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-lg shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto text-slate-900">
             <button
