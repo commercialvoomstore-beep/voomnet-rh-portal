@@ -278,28 +278,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     const syncAllNeonData = async () => {
       try {
-        const dbProvider = getActiveProvider();
-        if (
-          dbProvider === 'NEON_POSTGRES' ||
-          (typeof window !== 'undefined' &&
-            (localStorage.getItem('VOOMNET_NEON_DATABASE_URL') || process.env.POSTGRES_URL))
-        ) {
-          // 1. Sync Employees
-          const neonEmps = await fetchNeonEmployees();
-          if (neonEmps && Array.isArray(neonEmps) && neonEmps.length > 0) {
-            setEmployees(neonEmps);
-            setUser((currentUser) => {
-              if (!currentUser) return null;
-              const fresh = neonEmps.find(
-                (e) => e.matricule === currentUser.matricule || e.id === currentUser.id
-              );
-              return fresh ? { ...currentUser, ...fresh } : currentUser;
-            });
-          } else {
-            for (const emp of INITIAL_EMPLOYEES) {
-              await insertNeonEmployee(emp);
-            }
+        // 1. Sync Employees
+        const neonEmps = await fetchNeonEmployees();
+        if (neonEmps && Array.isArray(neonEmps) && neonEmps.length > 0) {
+          setEmployees(neonEmps);
+          setUser((currentUser) => {
+            if (!currentUser) return null;
+            const fresh = neonEmps.find(
+              (e) => e.matricule === currentUser.matricule || e.id === currentUser.id
+            );
+            return fresh ? { ...currentUser, ...fresh } : currentUser;
+          });
+        } else {
+          for (const emp of INITIAL_EMPLOYEES) {
+            await insertNeonEmployee(emp);
           }
+        }
 
           // 2. Sync Chat Messages
           const latestChats = await fetchNeonChatMessages();
@@ -458,7 +452,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               });
             }
           }
-        }
       } catch (err) {
         // Silent polling catch
       }
