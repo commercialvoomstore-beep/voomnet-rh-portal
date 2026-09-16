@@ -46,7 +46,7 @@ export const Login: React.FC = () => {
             />
           </div>
           <h2 className="text-xl font-extrabold text-[#0E125E] tracking-tight">
-            Espace de Connexion RH
+            Espace de Connexion
           </h2>
         </div>
 
