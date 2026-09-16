@@ -697,34 +697,63 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // Default password to 'voomnet2026' if empty/omitted
     const passTrimmed = (passwordInput || '').trim() || 'voomnet2026';
 
-    // Flexible matcher (matricule, email, phone, prenom, nom, full name)
+    // Flexible matcher (matricule, email, phone, prenom, nom, full name, reversed full name)
     const matchesEmp = (e: Employee) => {
+      if (!e) return false;
       const m = String(e.matricule || '').trim().toLowerCase();
       const em = String(e.email || '').trim().toLowerCase();
       const fn = String(e.prenom || '').trim().toLowerCase();
       const ln = String(e.nom || '').trim().toLowerCase();
       const fullName = `${fn} ${ln}`.trim();
+      const reverseFullName = `${ln} ${fn}`.trim();
       const phone = String(e.telephone3CX || '').trim().toLowerCase();
 
       return (
         m === trimmed ||
         em === trimmed ||
+        em.includes(trimmed) ||
         phone === trimmed ||
         fn === trimmed ||
         ln === trimmed ||
-        fullName === trimmed
+        fullName === trimmed ||
+        reverseFullName === trimmed ||
+        (trimmed.length >= 3 && (fullName.includes(trimmed) || reverseFullName.includes(trimmed)))
       );
     };
 
     // 1. Check in-memory employees state first
     let found = employees.find(matchesEmp);
 
-    // 2. Always fetch fresh employees from Neon DB if not found in local state
+    // 2. Check localStorage extra employees fallback if any
+    if (!found && typeof window !== 'undefined') {
+      try {
+        const extraSaved = localStorage.getItem('VOOMNET_EXTRA_EMPLOYEES');
+        if (extraSaved) {
+          const parsed = JSON.parse(extraSaved);
+          if (Array.isArray(parsed)) {
+            found = parsed.find(matchesEmp);
+          }
+        }
+      } catch (e) {}
+    }
+
+    // 3. Always fetch fresh employees from Neon DB API endpoint
     if (!found) {
       try {
         const liveEmps = await fetchNeonEmployees();
-        if (liveEmps && liveEmps.length > 0) {
-          setEmployees(liveEmps);
+        if (liveEmps && Array.isArray(liveEmps) && liveEmps.length > 0) {
+          setEmployees((prev) => {
+            const map = new Map<string, Employee>();
+            liveEmps.forEach((e) => {
+              if (e && e.matricule) map.set(e.matricule, e);
+            });
+            (prev || []).forEach((e) => {
+              if (e && e.matricule && !map.has(e.matricule)) {
+                map.set(e.matricule, e);
+              }
+            });
+            return Array.from(map.values());
+          });
           found = liveEmps.find(matchesEmp);
         }
       } catch (err) {
@@ -739,7 +768,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
     }
 
-    // Check password against stored password or default voomnet2026
+    // Password verification against stored password or default voomnet2026
     const validPassword = String(found.motDePasse || 'voomnet2026').trim();
     if (passTrimmed !== validPassword && passTrimmed !== 'voomnet2026') {
       return {
