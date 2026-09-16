@@ -281,7 +281,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         // 1. Sync Employees
         const neonEmps = await fetchNeonEmployees();
         if (neonEmps && Array.isArray(neonEmps) && neonEmps.length > 0) {
-          setEmployees(neonEmps);
+          setEmployees((prev) => {
+            const map = new Map<string, Employee>();
+            neonEmps.forEach((e) => {
+              if (e && e.matricule) map.set(e.matricule, e);
+            });
+            (prev || []).forEach((e) => {
+              if (e && e.matricule && !map.has(e.matricule)) {
+                map.set(e.matricule, e);
+              }
+            });
+            const merged = Array.from(map.values());
+            if (JSON.stringify(merged) !== JSON.stringify(prev)) {
+              return merged;
+            }
+            return prev;
+          });
           setUser((currentUser) => {
             if (!currentUser) return null;
             const fresh = neonEmps.find(
@@ -898,7 +913,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const freshEmps = await fetchNeonEmployees();
       if (freshEmps && freshEmps.length > 0) {
-        setEmployees(freshEmps);
+        setEmployees((prev) => {
+          const map = new Map<string, Employee>();
+          freshEmps.forEach((e) => {
+            if (e && e.matricule) map.set(e.matricule, e);
+          });
+          (prev || []).forEach((e) => {
+            if (e && e.matricule && !map.has(e.matricule)) {
+              map.set(e.matricule, e);
+            }
+          });
+          return Array.from(map.values());
+        });
       }
     } catch (e) {
       // Ignore
