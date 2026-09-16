@@ -40,8 +40,9 @@ export const MonPoste: React.FC = () => {
             className="w-16 h-16 rounded-2xl object-cover ring-4 ring-blue-100 shadow-sm"
           />
           <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-mono font-bold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded border border-blue-200">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-mono font-bold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded border border-blue-200 flex items-center gap-1">
+                <PhoneCall className="w-3 h-3 text-blue-600" />
                 Poste 3CX : {user.matricule}
               </span>
               <span
@@ -54,6 +55,10 @@ export const MonPoste: React.FC = () => {
                 }`}
               >
                 Contrat {user.statut}
+              </span>
+              <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                Neon DB Sync
               </span>
             </div>
             <h2 className="text-2xl font-bold text-slate-900 mt-1">
