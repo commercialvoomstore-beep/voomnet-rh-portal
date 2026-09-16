@@ -10,10 +10,9 @@ import {
   Check,
   CheckCheck,
   PhoneCall,
-  User,
-  Shield,
   Briefcase,
   Users,
+  Zap,
 } from 'lucide-react';
 
 export const ChatRH: React.FC = () => {
@@ -22,6 +21,7 @@ export const ChatRH: React.FC = () => {
   const [searchContact, setSearchContact] = useState<string>('');
   const [text, setText] = useState('');
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Exclude current user from candidate contacts
   const otherEmployees = (employees || []).filter(
@@ -31,7 +31,6 @@ export const ChatRH: React.FC = () => {
   // Default selected recipient
   useEffect(() => {
     if (!selectedMatricule && otherEmployees.length > 0) {
-      // Default to SuperAdmin (9999) or Admin (1000) or first available contact
       const defaultContact =
         otherEmployees.find((e) => e.matricule === '9999' || e.matricule === '1000') ||
         otherEmployees[0];
@@ -41,15 +40,24 @@ export const ChatRH: React.FC = () => {
     }
   }, [otherEmployees, selectedMatricule]);
 
+  // Mark chat messages as read when active contact is open or updated
   useEffect(() => {
-    if (user?.matricule) {
-      markChatMessagesAsRead(user.matricule, selectedMatricule || undefined);
+    if (user?.matricule && selectedMatricule) {
+      markChatMessagesAsRead(user.matricule, selectedMatricule);
     }
   }, [user?.matricule, selectedMatricule, chatMessages.length, markChatMessagesAsRead]);
 
+  // Auto scroll to latest message
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages, selectedMatricule]);
+
+  // Focus input when selected contact changes
+  useEffect(() => {
+    if (selectedMatricule) {
+      inputRef.current?.focus();
+    }
+  }, [selectedMatricule]);
 
   if (!user) return null;
 
@@ -81,6 +89,18 @@ export const ChatRH: React.FC = () => {
     setText('');
   };
 
+  const handleQuickReply = (suggestion: string) => {
+    if (!selectedMatricule) return;
+    sendChatMessage(suggestion, selectedMatricule);
+  };
+
+  const quickSuggestions = [
+    "Bonjour !",
+    "Bien reçu, merci !",
+    "Pouvez-vous valider ma demande ?",
+    "Message urgent poste 3CX",
+  ];
+
   return (
     <div className="space-y-4 max-w-6xl mx-auto">
       {/* Top Banner Header */}
@@ -103,7 +123,7 @@ export const ChatRH: React.FC = () => {
               Espace de Discussion Directe
             </h2>
             <p className="text-xs text-purple-200 mt-0.5 font-medium">
-              Sélectionnez un collaborateur pour ouvrir un canal de discussion sécurisé.
+              Canal de communication chiffré et synchronisé en temps réel avec le serveur Neon.
             </p>
           </div>
         </div>
@@ -127,7 +147,7 @@ export const ChatRH: React.FC = () => {
       </div>
 
       {/* Main 2-Column Chat Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-[620px]">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-[630px]">
         {/* Left Column: Contact Selector Directory */}
         <div className="lg:col-span-4 bg-white border border-slate-200 rounded-3xl shadow-sm flex flex-col overflow-hidden h-full">
           {/* Contacts Header & Search */}
@@ -138,7 +158,7 @@ export const ChatRH: React.FC = () => {
                 <span>Contacts ({otherEmployees.length})</span>
               </div>
               <span className="text-[10px] text-slate-500 font-bold bg-white px-2 py-0.5 rounded-full border border-slate-200">
-                Choix Libre
+                Ligne Directe
               </span>
             </div>
 
@@ -167,6 +187,13 @@ export const ChatRH: React.FC = () => {
                   m.status !== 'lu'
               ).length;
 
+              // Last message exchanged with this contact
+              const lastMsg = (chatMessages || []).filter(
+                (m) =>
+                  (m.senderMatricule === emp.matricule && m.recipientMatricule === user.matricule) ||
+                  (m.senderMatricule === user.matricule && m.recipientMatricule === emp.matricule)
+              ).slice(-1)[0];
+
               return (
                 <button
                   key={emp.id || emp.matricule}
@@ -177,7 +204,7 @@ export const ChatRH: React.FC = () => {
                       : 'hover:bg-slate-50 border border-transparent'
                   }`}
                 >
-                  <div className="flex items-center gap-3 min-w-0">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
                     <div className="relative shrink-0">
                       <img
                         src={emp.avatar}
@@ -190,16 +217,25 @@ export const ChatRH: React.FC = () => {
                     </div>
 
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center justify-between gap-1">
                         <span className={`text-xs font-extrabold truncate ${isSelected ? 'text-[#0E125E]' : 'text-slate-900'}`}>
                           {emp.prenom} {emp.nom}
                         </span>
+                        {lastMsg && (
+                          <span className="text-[9px] font-mono text-slate-400 shrink-0">
+                            {lastMsg.timestamp}
+                          </span>
+                        )}
                       </div>
 
-                      <div className="text-[10px] text-slate-500 truncate flex items-center gap-1">
-                        <span className="font-mono font-bold text-[#5E1675]">Poste {emp.matricule}</span>
-                        <span>•</span>
-                        <span>{emp.poste}</span>
+                      <div className="text-[10px] text-slate-500 truncate flex items-center gap-1 mt-0.5">
+                        {lastMsg ? (
+                          <span className="truncate italic text-slate-600">
+                            {lastMsg.senderMatricule === user.matricule ? 'Vous : ' : ''}{lastMsg.text}
+                          </span>
+                        ) : (
+                          <span className="font-mono text-[#5E1675]">Poste {emp.matricule} • {emp.poste}</span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -264,7 +300,7 @@ export const ChatRH: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-mono text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 flex items-center gap-1 font-bold">
                     <CheckCheck className="w-3.5 h-3.5" />
-                    Connecté 3CX
+                    En Ligne
                   </span>
                 </div>
               </div>
@@ -273,6 +309,8 @@ export const ChatRH: React.FC = () => {
               <div className="flex-1 p-5 overflow-y-auto space-y-3.5 bg-slate-50/40">
                 {conversationMessages.map((msg) => {
                   const isMe = msg.senderMatricule === user.matricule;
+                  const isRead = msg.status === 'lu';
+
                   return (
                     <div
                       key={msg.id}
@@ -308,9 +346,15 @@ export const ChatRH: React.FC = () => {
                         {/* WhatsApp-Style Checkmark Status */}
                         <div className="flex items-center justify-end pt-0.5">
                           {isMe ? (
-                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400" title="Message distribué au poste">
-                              <CheckCheck className="w-4 h-4 text-emerald-400" />
-                            </span>
+                            isRead ? (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400" title="Message lu par le destinataire">
+                                <CheckCheck className="w-4 h-4 text-emerald-400" />
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-purple-300" title="Message distribué au poste">
+                                <Check className="w-3.5 h-3.5 text-purple-300" />
+                              </span>
+                            )
                           ) : (
                             <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600" title="Message reçu">
                               <CheckCheck className="w-4 h-4 text-emerald-600" />
@@ -329,11 +373,29 @@ export const ChatRH: React.FC = () => {
                       Aucun message échangé pour le moment avec {selectedRecipient.prenom} {selectedRecipient.nom}.
                     </p>
                     <p className="text-[11px] text-slate-400">
-                      Saisissez un message ci-dessous pour démarrer la discussion direct.
+                      Saisissez un message ci-dessous pour démarrer la discussion directe.
                     </p>
                   </div>
                 )}
                 <div ref={chatEndRef} />
+              </div>
+
+              {/* Quick Reply Suggestions */}
+              <div className="px-4 py-2 bg-slate-100/70 border-t border-slate-200/60 flex items-center gap-2 overflow-x-auto select-none">
+                <span className="text-[10px] font-bold text-[#5E1675] flex items-center gap-1 shrink-0 font-mono uppercase">
+                  <Zap className="w-3 h-3 text-amber-500" />
+                  Réponses Rapides :
+                </span>
+                {quickSuggestions.map((sug, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => handleQuickReply(sug)}
+                    className="px-2.5 py-1 rounded-full bg-white hover:bg-purple-50 border border-slate-200 hover:border-purple-300 text-slate-700 hover:text-[#0E125E] text-[10px] font-bold transition-all shrink-0 cursor-pointer shadow-none hover:shadow-sm"
+                  >
+                    {sug}
+                  </button>
+                ))}
               </div>
 
               {/* Input Bar */}
@@ -343,6 +405,7 @@ export const ChatRH: React.FC = () => {
                     À {selectedRecipient.prenom} :
                   </span>
                   <input
+                    ref={inputRef}
                     type="text"
                     placeholder={`Tapez votre message pour ${selectedRecipient.prenom} ${selectedRecipient.nom}...`}
                     value={text}
