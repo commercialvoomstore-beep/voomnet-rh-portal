@@ -443,7 +443,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           if (user) {
             const latestNotifs = await fetchNeonNotifications(user.matricule, user.role);
             if (latestNotifs && Array.isArray(latestNotifs)) {
-              setNotifications(latestNotifs);
+              const readNotifSet = getReadNotifIds();
+              setNotifications((prev) => {
+                const merged = latestNotifs.map((n) => {
+                  if (readNotifSet.has(n.id)) {
+                    return { ...n, read: true };
+                  }
+                  return n;
+                });
+                if (JSON.stringify(merged) !== JSON.stringify(prev)) {
+                  return merged;
+                }
+                return prev;
+              });
             }
           }
         }
@@ -522,7 +534,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const dismissToast = () => setActiveToast(null);
 
+  const getReadNotifIds = (): Set<string> => {
+    if (typeof window === 'undefined') return new Set();
+    try {
+      const saved = localStorage.getItem('VOOMNET_READ_NOTIF_IDS');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return new Set(parsed);
+      }
+    } catch (e) {}
+    return new Set();
+  };
+
+  const saveReadNotifIds = (idsSet: Set<string>) => {
+    if (typeof window === 'undefined') return;
+    try {
+      localStorage.setItem('VOOMNET_READ_NOTIF_IDS', JSON.stringify(Array.from(idsSet)));
+    } catch (e) {}
+  };
+
   const markNotificationAsRead = (id: string) => {
+    const readNotifSet = getReadNotifIds();
+    readNotifSet.add(id);
+    saveReadNotifIds(readNotifSet);
+
     setNotifications((prev) => {
       const updated = prev.map((n) => (n.id === id ? { ...n, read: true } : n));
       if (typeof window !== 'undefined') {
@@ -534,6 +569,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const clearAllNotifications = () => {
+    const readNotifSet = getReadNotifIds();
+    notifications.forEach((n) => readNotifSet.add(n.id));
+    saveReadNotifIds(readNotifSet);
+
     setNotifications([]);
     if (typeof window !== 'undefined') {
       localStorage.removeItem('VOOMNET_NOTIFICATIONS');
@@ -542,15 +581,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const markPrimeNotificationsAsRead = () => {
-    setNotifications((prev) =>
-      prev.map((n) =>
-        (n.title && n.title.toLowerCase().includes('prime')) ||
-        (n.message && n.message.toLowerCase().includes('prime')) ||
-        n.type === 'ALERT'
-          ? { ...n, read: true }
-          : n
-      )
-    );
+    const readNotifSet = getReadNotifIds();
+    setNotifications((prev) => {
+      let changed = false;
+      const updated = prev.map((n) => {
+        if (
+          (n.title && n.title.toLowerCase().includes('prime')) ||
+          (n.message && n.message.toLowerCase().includes('prime')) ||
+          n.type === 'ALERT'
+        ) {
+          changed = true;
+          readNotifSet.add(n.id);
+          return { ...n, read: true };
+        }
+        return n;
+      });
+      if (changed) {
+        saveReadNotifIds(readNotifSet);
+      }
+      return updated;
+    });
   };
 
   const getReadChatKeys = (): Set<string> => {
@@ -574,6 +624,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const markChatMessagesAsRead = (matricule: string, senderMatricule?: string) => {
     const readSet = getReadChatKeys();
+    const readNotifSet = getReadNotifIds();
     const isSuper = user && isSuperAdminRole(user.role);
 
     setChatMessages((prev) =>
@@ -603,15 +654,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           (isSuper && (n.recipientMatricule === '9999' || n.recipientMatricule === '1000'));
         if (!n.read && matchesRecipient && (n.type === 'CHAT' || (n.title && n.title.includes('Message')))) {
           changed = true;
+          readNotifSet.add(n.id);
           return { ...n, read: true };
         }
         return n;
       });
-      if (changed && typeof window !== 'undefined') {
-        localStorage.setItem('VOOMNET_NOTIFICATIONS', JSON.stringify(updated));
+      if (changed) {
+        saveReadNotifIds(readNotifSet);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('VOOMNET_NOTIFICATIONS', JSON.stringify(updated));
+        }
       }
       return updated;
     });
+
+    // Sync read status to Neon DB
+    markNeonNotificationAsRead(undefined, matricule).catch(console.error);
+    if (isSuper) {
+      markNeonNotificationAsRead(undefined, '9999').catch(console.error);
+      markNeonNotificationAsRead(undefined, '1000').catch(console.error);
+    }
   };
 
   const login = async (
