@@ -20,8 +20,10 @@ export const ChatRH: React.FC = () => {
   const [selectedMatricule, setSelectedMatricule] = useState<string>('');
   const [searchContact, setSearchContact] = useState<string>('');
   const [text, setText] = useState('');
-  const chatEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const prevMessagesCountRef = useRef<number>(0);
+  const selectedMatriculeRef = useRef<string>(selectedMatricule);
 
   // Exclude current user from candidate contacts
   const otherEmployees = (employees || []).filter(
@@ -47,18 +49,6 @@ export const ChatRH: React.FC = () => {
     }
   }, [user?.matricule, selectedMatricule, chatMessages.length, markChatMessagesAsRead]);
 
-  // Auto scroll to latest message
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [chatMessages, selectedMatricule]);
-
-  // Focus input when selected contact changes
-  useEffect(() => {
-    if (selectedMatricule) {
-      inputRef.current?.focus();
-    }
-  }, [selectedMatricule]);
-
   if (!user) return null;
 
   const selectedRecipient = otherEmployees.find((e) => e.matricule === selectedMatricule) || otherEmployees[0];
@@ -69,6 +59,45 @@ export const ChatRH: React.FC = () => {
       (m.senderMatricule === user.matricule && m.recipientMatricule === selectedMatricule) ||
       (m.senderMatricule === selectedMatricule && m.recipientMatricule === user.matricule)
   );
+
+  // Scroll to bottom helper
+  const scrollToBottom = (smooth = true) => {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTo({
+        top: messagesContainerRef.current.scrollHeight,
+        behavior: smooth ? 'smooth' : 'auto',
+      });
+    }
+  };
+
+  // Smart Auto-scroll handling: only scroll down if contact changed or if user is already near bottom
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
+    const contactChanged = selectedMatriculeRef.current !== selectedMatricule;
+    selectedMatriculeRef.current = selectedMatricule;
+
+    const currentCount = conversationMessages.length;
+    const prevCount = prevMessagesCountRef.current;
+    prevMessagesCountRef.current = currentCount;
+
+    const isNearBottom =
+      container.scrollHeight - container.scrollTop - container.clientHeight < 150;
+
+    if (contactChanged) {
+      scrollToBottom(false);
+    } else if (currentCount > prevCount && isNearBottom) {
+      scrollToBottom(true);
+    }
+  }, [conversationMessages, selectedMatricule]);
+
+  // Focus input when selected contact changes
+  useEffect(() => {
+    if (selectedMatricule) {
+      inputRef.current?.focus();
+    }
+  }, [selectedMatricule]);
 
   // Filter contacts by search query
   const filteredContacts = otherEmployees.filter((emp) => {
@@ -87,11 +116,13 @@ export const ChatRH: React.FC = () => {
     if (!text.trim() || !selectedMatricule) return;
     sendChatMessage(text.trim(), selectedMatricule);
     setText('');
+    setTimeout(() => scrollToBottom(true), 50);
   };
 
   const handleQuickReply = (suggestion: string) => {
     if (!selectedMatricule) return;
     sendChatMessage(suggestion, selectedMatricule);
+    setTimeout(() => scrollToBottom(true), 50);
   };
 
   const quickSuggestions = [
@@ -104,7 +135,7 @@ export const ChatRH: React.FC = () => {
   return (
     <div className="space-y-4 max-w-6xl mx-auto">
       {/* Top Banner Header */}
-      <div className="bg-gradient-to-r from-[#0E125E] via-[#2A1175] to-[#5E1675] p-5 rounded-3xl shadow-lg border border-purple-900/30 text-white flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative overflow-hidden">
+      <div className="bg-gradient-to-r from-[#0E125E] via-[#2A1175] to-[#5E1675] p-5 rounded-3xl shadow-lg border border-purple-900/30 text-white flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative overflow-hidden shrink-0">
         <div className="flex items-center gap-4 relative z-10">
           <div className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-purple-200 shadow-inner shrink-0">
             <MessageSquare className="w-6 h-6 text-white" />
@@ -146,12 +177,12 @@ export const ChatRH: React.FC = () => {
         )}
       </div>
 
-      {/* Main 2-Column Chat Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-[630px]">
+      {/* Main 2-Column Chat Layout with Clean Responsive Height */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-[calc(100vh-210px)] min-h-[580px] max-h-[720px]">
         {/* Left Column: Contact Selector Directory */}
         <div className="lg:col-span-4 bg-white border border-slate-200 rounded-3xl shadow-sm flex flex-col overflow-hidden h-full">
           {/* Contacts Header & Search */}
-          <div className="p-4 bg-slate-50 border-b border-slate-200 space-y-3">
+          <div className="p-4 bg-slate-50 border-b border-slate-200 space-y-3 shrink-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-xs font-extrabold text-[#0E125E] uppercase tracking-wider">
                 <Users className="w-4 h-4 text-[#5E1675]" />
@@ -174,8 +205,8 @@ export const ChatRH: React.FC = () => {
             </div>
           </div>
 
-          {/* Contacts List */}
-          <div className="flex-1 overflow-y-auto p-2 space-y-1 divide-y divide-slate-100">
+          {/* Contacts List with Sleek Scrollbar */}
+          <div className="flex-1 overflow-y-auto p-2 space-y-1 divide-y divide-slate-100 custom-scrollbar">
             {filteredContacts.map((emp) => {
               const isSelected = emp.matricule === selectedMatricule;
 
@@ -276,7 +307,7 @@ export const ChatRH: React.FC = () => {
           {selectedRecipient ? (
             <>
               {/* Chat Header */}
-              <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+              <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-3">
                   <img
                     src={selectedRecipient.avatar}
@@ -305,8 +336,11 @@ export const ChatRH: React.FC = () => {
                 </div>
               </div>
 
-              {/* Message Feed */}
-              <div className="flex-1 p-5 overflow-y-auto space-y-3.5 bg-slate-50/40">
+              {/* Message Feed with Custom Scrollbar & Container Ref */}
+              <div
+                ref={messagesContainerRef}
+                className="flex-1 p-5 overflow-y-auto space-y-3.5 bg-slate-50/40 custom-scrollbar scroll-smooth"
+              >
                 {conversationMessages.map((msg) => {
                   const isMe = msg.senderMatricule === user.matricule;
                   const isRead = msg.status === 'lu';
@@ -377,11 +411,10 @@ export const ChatRH: React.FC = () => {
                     </p>
                   </div>
                 )}
-                <div ref={chatEndRef} />
               </div>
 
               {/* Quick Reply Suggestions */}
-              <div className="px-4 py-2 bg-slate-100/70 border-t border-slate-200/60 flex items-center gap-2 overflow-x-auto select-none">
+              <div className="px-4 py-2 bg-slate-100/70 border-t border-slate-200/60 flex items-center gap-2 overflow-x-auto select-none shrink-0 custom-scrollbar">
                 <span className="text-[10px] font-bold text-[#5E1675] flex items-center gap-1 shrink-0 font-mono uppercase">
                   <Zap className="w-3 h-3 text-amber-500" />
                   Réponses Rapides :
@@ -399,7 +432,7 @@ export const ChatRH: React.FC = () => {
               </div>
 
               {/* Input Bar */}
-              <form onSubmit={handleSend} className="p-4 bg-slate-50 border-t border-slate-200 flex items-center gap-3">
+              <form onSubmit={handleSend} className="p-4 bg-slate-50 border-t border-slate-200 flex items-center gap-3 shrink-0">
                 <div className="flex-1 flex items-center gap-2 bg-white border border-slate-300 rounded-xl px-3.5 py-1.5 focus-within:border-[#5E1675] focus-within:ring-2 focus-within:ring-purple-100 transition-all">
                   <span className="text-[10px] text-[#5E1675] font-extrabold uppercase font-mono shrink-0">
                     À {selectedRecipient.prenom} :
