@@ -132,9 +132,18 @@ export async function POST(request: Request) {
 
     const cleanMatricule = String(emp.matricule || '').trim();
     let cleanEmail = String(emp.email || '').trim().toLowerCase();
-    if (!cleanEmail) {
+    if (!cleanEmail || !cleanEmail.includes('@')) {
       cleanEmail = `${cleanMatricule}@voomnet.com`;
     }
+
+    let cleanHireDate = new Date().toISOString().split('T')[0];
+    if (emp.dateEmbauche && !isNaN(Date.parse(emp.dateEmbauche))) {
+      try {
+        cleanHireDate = new Date(emp.dateEmbauche).toISOString().split('T')[0];
+      } catch (e) {}
+    }
+
+    const cleanPassword = String(emp.motDePasse || 'voomnet2026').trim() || 'voomnet2026';
 
     // Check if another employee (different matricule) owns this email
     try {
@@ -166,7 +175,7 @@ export async function POST(request: Request) {
           status = ${statutDb},
           base_salary = ${emp.salaireBase || 350000},
           emergency_contact = ${emp.contactUrgence || ''},
-          password = ${emp.motDePasse || 'voomnet2026'},
+          password = ${cleanPassword},
           avatar_url = COALESCE(${emp.avatar || null}, avatar_url)
         WHERE matricule = ${cleanMatricule} OR id = ${cleanMatricule};
       `;
@@ -184,10 +193,10 @@ export async function POST(request: Request) {
           ${emp.departement || 'Support'},
           ${statutDb},
           ${emp.salaireBase || 350000},
-          ${emp.dateEmbauche || new Date().toISOString().split('T')[0]},
+          ${cleanHireDate},
           ${emp.avatar || ''},
           ${emp.contactUrgence || ''},
-          ${emp.motDePasse || 'voomnet2026'}
+          ${cleanPassword}
         );
       `;
     }
