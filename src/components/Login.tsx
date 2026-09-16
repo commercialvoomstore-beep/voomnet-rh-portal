@@ -7,7 +7,7 @@ import { PhoneCall, Lock, ArrowRight, ShieldCheck, UserCheck, KeyRound } from 'l
 export const Login: React.FC = () => {
   const { login, employees } = useApp();
   const [matricule, setMatricule] = useState('');
-  const [password, setPassword] = useState('voomnet2026');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 

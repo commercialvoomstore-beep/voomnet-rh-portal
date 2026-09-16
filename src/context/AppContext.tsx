@@ -727,10 +727,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       );
     };
 
-    // 1. Check in-memory employees state first
-    let found = employees.find(matchesEmp);
+    // ALWAYS fetch fresh employee records directly from Neon DB first to get live password
+    let found: Employee | undefined = undefined;
+    try {
+      const liveEmps = await fetchNeonEmployees();
+      if (liveEmps && Array.isArray(liveEmps) && liveEmps.length > 0) {
+        setEmployees(liveEmps);
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem('VOOMNET_EXTRA_EMPLOYEES', JSON.stringify(liveEmps));
+          } catch (e) {}
+        }
+        found = liveEmps.find(matchesEmp);
+      }
+    } catch (err) {
+      console.warn('Live fetch on login failed:', err);
+    }
 
-    // 2. Check localStorage extra employees fallback if any
+    // 2. Check in-memory employees state fallback if DB fetch returned empty
+    if (!found) {
+      found = employees.find(matchesEmp);
+    }
+
+    // 3. Check localStorage extra employees fallback if any
     if (!found && typeof window !== 'undefined') {
       try {
         const extraSaved = localStorage.getItem('VOOMNET_EXTRA_EMPLOYEES');
@@ -741,30 +760,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           }
         }
       } catch (e) {}
-    }
-
-    // 3. Always fetch fresh employees from Neon DB API endpoint
-    if (!found) {
-      try {
-        const liveEmps = await fetchNeonEmployees();
-        if (liveEmps && Array.isArray(liveEmps) && liveEmps.length > 0) {
-          setEmployees((prev) => {
-            const map = new Map<string, Employee>();
-            liveEmps.forEach((e) => {
-              if (e && e.matricule) map.set(e.matricule, e);
-            });
-            (prev || []).forEach((e) => {
-              if (e && e.matricule && !map.has(e.matricule)) {
-                map.set(e.matricule, e);
-              }
-            });
-            return Array.from(map.values());
-          });
-          found = liveEmps.find(matchesEmp);
-        }
-      } catch (err) {
-        console.warn('Live fetch on login failed:', err);
-      }
     }
 
     if (!found) {
