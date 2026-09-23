@@ -724,6 +724,35 @@ export const Personnel: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Poste Occupé</label>
+                  <input
+                    type="text"
+                    placeholder="Ex: Ingénieur Informatique, Commercial..."
+                    value={editFormState.poste || ''}
+                    onChange={(e) => setEditFormState({ ...editFormState, poste: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-50 border border-blue-400 rounded-xl text-slate-900 text-xs font-bold"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Département</label>
+                  <select
+                    value={editFormState.departement || 'Informatique'}
+                    onChange={(e) => setEditFormState({ ...editFormState, departement: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs font-bold"
+                  >
+                    <option value="Informatique">Informatique</option>
+                    <option value="Commercial">Commercial</option>
+                    <option value="Ressources Humaines">Ressources Humaines</option>
+                    <option value="Développement Logiciel">Développement Logiciel</option>
+                    <option value="Infrastructure & Réseau">Infrastructure & Réseau</option>
+                    <option value="Direction Générale">Direction Générale</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">Contact Urgence</label>
                   <input
                     type="text"
