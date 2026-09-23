@@ -40,8 +40,6 @@ export default function Home() {
         return <MonPoste />;
       case 'personnel':
         return isEmp ? <MonPoste /> : <Personnel />;
-      case 'chat':
-        return <ChatRH />;
       case 'conges':
         return <Conges />;
       case 'primes':

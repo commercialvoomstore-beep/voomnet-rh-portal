@@ -8,13 +8,12 @@ import {
   CalendarCheck,
   Settings,
   LogOut,
-  MessageSquare,
   Briefcase,
   Award,
 } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
-  const { activeTab, setActiveTab, logout, user, absenceRequests, chatMessages } = useApp();
+  const { activeTab, setActiveTab, logout, user, absenceRequests } = useApp();
 
   if (!user) return null;
 
@@ -29,23 +28,10 @@ export const Sidebar: React.FC = () => {
     (r) => r.matricule === user.matricule && r.statut === 'En attente'
   ).length;
 
-  const unreadChatCount = chatMessages.filter((m) => {
-    const isForUser = m.recipientMatricule === user.matricule;
-    const isForSuperAdminRH = isSuperAdmin && (m.recipientMatricule === '9999' || m.recipientMatricule === '1000');
-    return (isForUser || isForSuperAdminRH) && m.status !== 'lu';
-  }).length;
-
   const getNavItems = () => {
     if (isEmploye) {
       return [
         { id: 'monposte', label: 'Mon Poste & Profil', icon: Briefcase },
-        {
-          id: 'chat',
-          label: 'Messagerie RH',
-          icon: MessageSquare,
-          badge: unreadChatCount > 0 ? `${unreadChatCount}` : null,
-          badgeColor: 'bg-purple-100 text-purple-800 border-purple-200',
-        },
         {
           id: 'conges',
           label: 'Mes Permissions',
@@ -63,13 +49,6 @@ export const Sidebar: React.FC = () => {
         { id: 'dashboard', label: 'Tableau de bord RH', icon: LayoutDashboard },
         { id: 'personnel', label: 'Suivi des Employés', icon: Users },
         {
-          id: 'chat',
-          label: 'Chat RH Direct',
-          icon: MessageSquare,
-          badge: unreadChatCount > 0 ? `${unreadChatCount}` : null,
-          badgeColor: 'bg-purple-100 text-purple-800 border-purple-200',
-        },
-        {
           id: 'conges',
           label: 'Validation Demandes',
           icon: CalendarCheck,
@@ -85,13 +64,6 @@ export const Sidebar: React.FC = () => {
     return [
       { id: 'dashboard', label: 'Tableau de bord Master', icon: LayoutDashboard },
       { id: 'personnel', label: 'Gestion Utilisateurs', icon: Users },
-      {
-        id: 'chat',
-        label: 'Chat RH Direct',
-        icon: MessageSquare,
-        badge: unreadChatCount > 0 ? `${unreadChatCount}` : null,
-        badgeColor: 'bg-purple-100 text-purple-800 border-purple-200',
-      },
       {
         id: 'conges',
         label: 'Toutes les Demandes',

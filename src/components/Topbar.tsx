@@ -66,8 +66,6 @@ export const Topbar: React.FC = () => {
         return user?.role === 'SuperAdmin'
           ? 'Gestion des Utilisateurs (CRUD, Rôles & Contrats)'
           : 'Suivi des Employés & Fiches Administratives';
-      case 'chat':
-        return 'Chat RH Direct (SuperAdmin <--> Admin)';
       case 'conges':
         return user?.role === 'Employé'
           ? 'Mes Demandes de Permission & Congés'
