@@ -83,23 +83,39 @@ export const Personnel: React.FC = () => {
 
   const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!addFormState.matricule || !addFormState.nom || !addFormState.prenom) {
-      alert('Veuillez renseigner au moins le matricule, le nom et le prénom.');
-      return;
-    }
+
+    const resolvedNom = addFormState.nom.trim() || 'COLLABORATEUR';
+    const resolvedPrenom = addFormState.prenom.trim() || 'Nouveau';
+    const resolvedMatricule =
+      addFormState.matricule.trim() ||
+      `10${Math.floor(10 + Math.random() * 89)}`;
 
     const generatedEmail =
-      addFormState.email ||
-      `${addFormState.prenom.charAt(0).toLowerCase()}.${addFormState.nom.toLowerCase().replace(/\s+/g, '')}@voomnet.com`;
+      addFormState.email.trim() ||
+      `${resolvedPrenom.charAt(0).toLowerCase()}.${resolvedNom.toLowerCase().replace(/\s+/g, '')}.${resolvedMatricule}@voomnet.com`;
+
+    const finalEmpData = {
+      matricule: resolvedMatricule,
+      nom: resolvedNom,
+      prenom: resolvedPrenom,
+      email: generatedEmail,
+      telephone3CX: addFormState.telephone3CX.trim() || resolvedMatricule,
+      departement: addFormState.departement || 'Développement Logiciel',
+      poste: addFormState.poste.trim() || 'Employé VOOMNET',
+      statut: addFormState.statut || ('CDI' as StatutContrat),
+      role: addFormState.role || ('Employé' as RoleType),
+      dateEmbauche: addFormState.dateEmbauche || new Date().toISOString().split('T')[0],
+      avatar: addFormState.avatar.trim() || DEFAULT_FALLBACK_AVATAR,
+      motDePasse: addFormState.motDePasse.trim() || 'voomnet2026',
+      adresse: addFormState.adresse.trim() || '',
+      telephonePerso: addFormState.telephonePerso.trim() || '',
+      contactUrgence: addFormState.contactUrgence.trim() || '',
+      notesAdministratives: addFormState.notesAdministratives.trim() || '',
+      soldeConges: addFormState.statut === 'STAGIAIRE' ? 5 : 24,
+    };
 
     setIsSubmittingAdd(true);
-    await addEmployee({
-      ...addFormState,
-      email: generatedEmail,
-      telephone3CX: addFormState.telephone3CX || addFormState.matricule,
-      soldeConges: addFormState.statut === 'STAGIAIRE' ? 5 : 24,
-      avatar: addFormState.avatar || DEFAULT_FALLBACK_AVATAR,
-    });
+    await addEmployee(finalEmpData);
     setIsSubmittingAdd(false);
 
     setAddFormState({
@@ -402,19 +418,18 @@ export const Personnel: React.FC = () => {
               Créer un Nouvel Utilisateur (SuperAdmin)
             </h3>
             <p className="text-xs text-slate-500 mb-5">
-              Fixez la date d&apos;embauche, le rôle et le statut contractuel.
+              Tous les champs sont facultatifs. Des valeurs par défaut seront attribuées automatiquement.
             </p>
 
             <form onSubmit={handleAddSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Matricule (Poste 3CX) *
+                    Matricule (Poste 3CX)
                   </label>
                   <input
                     type="text"
-                    required
-                    placeholder="Ex: 1030"
+                    placeholder="Ex: 1030 (Auto si vide)"
                     value={addFormState.matricule}
                     onChange={(e) => setAddFormState({ ...addFormState, matricule: e.target.value })}
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs font-mono"
@@ -422,7 +437,7 @@ export const Personnel: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Rôle Système *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Rôle Système</label>
                   <select
                     value={addFormState.role}
                     onChange={(e) =>
@@ -439,10 +454,9 @@ export const Personnel: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Nom *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Nom</label>
                   <input
                     type="text"
-                    required
                     placeholder="Ex: TANOH"
                     value={addFormState.nom}
                     onChange={(e) => setAddFormState({ ...addFormState, nom: e.target.value })}
@@ -451,10 +465,9 @@ export const Personnel: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Prénom *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Prénom</label>
                   <input
                     type="text"
-                    required
                     placeholder="Ex: Clarisse"
                     value={addFormState.prenom}
                     onChange={(e) => setAddFormState({ ...addFormState, prenom: e.target.value })}
@@ -465,10 +478,9 @@ export const Personnel: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Poste Occupé *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Poste Occupé</label>
                   <input
                     type="text"
-                    required
                     placeholder="Ex: Ingénieure Réseau"
                     value={addFormState.poste}
                     onChange={(e) => setAddFormState({ ...addFormState, poste: e.target.value })}
@@ -477,7 +489,7 @@ export const Personnel: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Département *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Département</label>
                   <select
                     value={addFormState.departement}
                     onChange={(e) => setAddFormState({ ...addFormState, departement: e.target.value })}
@@ -493,7 +505,7 @@ export const Personnel: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Statut Contractuel *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Statut Contractuel</label>
                   <select
                     value={addFormState.statut}
                     onChange={(e) =>
@@ -508,10 +520,9 @@ export const Personnel: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Date d&apos;Embauche *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Date d&apos;Embauche</label>
                   <input
                     type="date"
-                    required
                     value={addFormState.dateEmbauche}
                     onChange={(e) => setAddFormState({ ...addFormState, dateEmbauche: e.target.value })}
                     className="w-full px-3 py-2 bg-slate-50 border border-blue-600 rounded-xl text-slate-900 font-mono font-bold text-xs"
@@ -521,7 +532,7 @@ export const Personnel: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Adresse Email *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Adresse Email</label>
                   <input
                     type="email"
                     placeholder="c.tanoh@voomnet.com"
@@ -532,11 +543,10 @@ export const Personnel: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Mot de passe de Connexion *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Mot de passe de Connexion</label>
                   <input
                     type="text"
-                    required
-                    placeholder="Ex: MotDePasseSecurise123"
+                    placeholder="Defaut: voomnet2026"
                     value={addFormState.motDePasse}
                     onChange={(e) => setAddFormState({ ...addFormState, motDePasse: e.target.value })}
                     className="w-full px-3 py-2 bg-slate-50 border border-emerald-600 rounded-xl text-emerald-800 font-mono text-xs font-bold"
