@@ -218,7 +218,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       'INFO'
     );
   };
-  const [employees, setEmployees] = useState<Employee[]>(INITIAL_EMPLOYEES);
+  const [employees, setEmployees] = useState<Employee[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('VOOMNET_EXTRA_EMPLOYEES');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const map = new Map<string, Employee>();
+            INITIAL_EMPLOYEES.forEach((e) => map.set(e.matricule, e));
+            parsed.forEach((e) => {
+              if (e && e.matricule) map.set(e.matricule, e);
+            });
+            return Array.from(map.values());
+          }
+        }
+      } catch (e) {}
+    }
+    return INITIAL_EMPLOYEES;
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && Array.isArray(employees) && employees.length > 0) {
+      try {
+        localStorage.setItem('VOOMNET_EXTRA_EMPLOYEES', JSON.stringify(employees));
+      } catch (e) {}
+    }
+  }, [employees]);
   const [absenceRequests, setAbsenceRequests] = useState<AbsenceRequest[]>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('VOOMNET_ABSENCE_REQUESTS');
@@ -293,6 +319,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             });
             const merged = Array.from(map.values());
             if (JSON.stringify(merged) !== JSON.stringify(prev)) {
+              if (typeof window !== 'undefined') {
+                try {
+                  localStorage.setItem('VOOMNET_EXTRA_EMPLOYEES', JSON.stringify(merged));
+                } catch (e) {}
+              }
               return merged;
             }
             return prev;
@@ -304,10 +335,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             );
             return fresh ? { ...currentUser, ...fresh } : currentUser;
           });
-        } else {
-          for (const emp of INITIAL_EMPLOYEES) {
-            await insertNeonEmployee(emp);
-          }
         }
 
           // 2. Sync Chat Messages
@@ -475,8 +502,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // Run IMMEDIATELY on page mount (0s delay)
     syncAllNeonData();
 
-    // Re-run periodically every 5 seconds
-    const pollInterval = setInterval(syncAllNeonData, 5000);
+    // Re-run periodically every 15 seconds
+    const pollInterval = setInterval(syncAllNeonData, 15000);
 
     return () => clearInterval(pollInterval);
   }, []);
@@ -754,40 +781,60 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return false;
     };
 
-    // ALWAYS fetch fresh employee records directly from Neon DB first to get live password
-    let found: Employee | undefined = undefined;
+    // Merge all candidate sources: live Neon DB, React state, localStorage cache, initial mock data
+    const candidateList: Employee[] = [];
+    const seenMatricules = new Set<string>();
+
+    const addCandidates = (list: Employee[]) => {
+      if (Array.isArray(list)) {
+        list.forEach((e) => {
+          if (e && e.matricule && !seenMatricules.has(String(e.matricule).trim())) {
+            seenMatricules.add(String(e.matricule).trim());
+            candidateList.push(e);
+          }
+        });
+      }
+    };
+
     try {
       const liveEmps = await fetchNeonEmployees();
       if (liveEmps && Array.isArray(liveEmps) && liveEmps.length > 0) {
-        setEmployees(liveEmps);
-        if (typeof window !== 'undefined') {
-          try {
-            localStorage.setItem('VOOMNET_EXTRA_EMPLOYEES', JSON.stringify(liveEmps));
-          } catch (e) {}
-        }
-        found = liveEmps.find(matchesEmp);
+        addCandidates(liveEmps);
+        setEmployees((prev) => {
+          const map = new Map<string, Employee>();
+          liveEmps.forEach((e) => {
+            if (e && e.matricule) map.set(e.matricule, e);
+          });
+          (prev || []).forEach((e) => {
+            if (e && e.matricule && !map.has(e.matricule)) {
+              map.set(e.matricule, e);
+            }
+          });
+          return Array.from(map.values());
+        });
       }
     } catch (err) {
       console.warn('Live fetch on login failed:', err);
     }
 
-    // 2. Check in-memory employees state fallback if DB fetch returned empty
-    if (!found) {
-      found = employees.find(matchesEmp);
-    }
+    // Add React state employees
+    addCandidates(employees);
 
-    // 3. Check localStorage extra employees fallback if any
-    if (!found && typeof window !== 'undefined') {
+    // Add localStorage extra employees fallback if any
+    if (typeof window !== 'undefined') {
       try {
         const extraSaved = localStorage.getItem('VOOMNET_EXTRA_EMPLOYEES');
         if (extraSaved) {
           const parsed = JSON.parse(extraSaved);
-          if (Array.isArray(parsed)) {
-            found = parsed.find(matchesEmp);
-          }
+          addCandidates(parsed);
         }
       } catch (e) {}
     }
+
+    // Add Initial mock employees fallback
+    addCandidates(INITIAL_EMPLOYEES);
+
+    const found = candidateList.find(matchesEmp);
 
     if (!found) {
       return {
