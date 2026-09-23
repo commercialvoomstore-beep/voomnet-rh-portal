@@ -495,6 +495,8 @@ export const Personnel: React.FC = () => {
                     onChange={(e) => setAddFormState({ ...addFormState, departement: e.target.value })}
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs"
                   >
+                    <option value="Informatique">Informatique</option>
+                    <option value="Commercial">Commercial</option>
                     <option value="Ressources Humaines">Ressources Humaines</option>
                     <option value="Développement Logiciel">Développement Logiciel</option>
                     <option value="Infrastructure & Réseau">Infrastructure & Réseau</option>
