@@ -55,16 +55,10 @@ export const PrimesManagement: React.FC = () => {
 
   const openDecisionModal = (emp: any, action: 'Accordée' | 'En attente' | 'Refusée') => {
     const existingPrime = getEmployeePrime(emp.matricule);
-    const defaultMotif =
-      existingPrime?.motif ||
-      (action === 'Accordée'
-        ? 'Prime trimestrielle accordée par l\'administration.'
-        : action === 'En attente'
-        ? 'Dossier de prime en cours d\'évaluation par la Direction RH.'
-        : 'Prime non attribuée pour ce trimestre.');
+    const existingMotif = existingPrime?.motif || '';
 
     const initialMontant =
-      existingPrime?.montant !== undefined && existingPrime?.montant !== null && existingPrime?.montant > 0
+      existingPrime?.montant !== undefined && existingPrime?.montant !== null
         ? existingPrime.montant
         : action === 'Accordée' || action === 'En attente'
         ? primeConfig.montantReference
@@ -74,7 +68,7 @@ export const PrimesManagement: React.FC = () => {
       isOpen: true,
       action,
       employee: emp,
-      motif: defaultMotif,
+      motif: existingMotif,
       montant: initialMontant,
     });
   };
@@ -504,37 +498,34 @@ export const PrimesManagement: React.FC = () => {
                 </select>
               </div>
 
-              {modalState.action === 'Accordée' && (
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Montant de la Prime (FCFA)
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="1000"
-                    value={modalState.montant}
-                    onChange={(e) =>
-                      setModalState((prev) => ({ ...prev, montant: Number(e.target.value) }))
-                    }
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-900 font-mono font-bold"
-                  />
-                </div>
-              )}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Montant de la Prime (FCFA) <span className="text-slate-400 font-normal">(Saisie libre)</span>
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={modalState.montant}
+                  onChange={(e) =>
+                    setModalState((prev) => ({ ...prev, montant: Number(e.target.value) }))
+                  }
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-900 font-mono font-bold"
+                  placeholder="Saisissez le montant de la prime..."
+                />
+              </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Motif / Remarque RH
+                  Motif / Remarque RH <span className="text-slate-400 font-normal">(Facultatif)</span>
                 </label>
                 <textarea
                   rows={3}
-                  required
                   value={modalState.motif}
                   onChange={(e) =>
                     setModalState((prev) => ({ ...prev, motif: e.target.value }))
                   }
                   className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-900"
-                  placeholder="Justification ou remarque relative à l'attribution..."
+                  placeholder="Remarque ou motif RH (optionnel)..."
                 />
               </div>
 
