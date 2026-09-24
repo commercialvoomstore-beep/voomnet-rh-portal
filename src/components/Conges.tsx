@@ -40,19 +40,13 @@ export const Conges: React.FC = () => {
   if (!user) return null;
 
   const openDecisionModal = (req: AbsenceRequest, action: 'Approuvé' | 'Refusé' | 'Supprimer') => {
-    const defaultNotes =
-      req.cadreAdminNotes ||
-      (action === 'Approuvé'
-        ? 'Permission d\'absence validée par l\'Administration RH.'
-        : action === 'Refusé'
-        ? 'Demande d\'absence non accordée pour impératif de service.'
-        : '');
+    const existingNotes = req.cadreAdminNotes || '';
 
     setDecisionModal({
       isOpen: true,
       action,
       request: req,
-      notes: defaultNotes,
+      notes: existingNotes,
     });
   };
 
@@ -583,17 +577,16 @@ export const Conges: React.FC = () => {
               {decisionModal.action !== 'Supprimer' && (
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Motif / Note Administrative RH
+                    Motif / Note Administrative RH <span className="text-slate-400 font-normal">(Facultatif)</span>
                   </label>
                   <textarea
                     rows={3}
-                    required
                     value={decisionModal.notes}
                     onChange={(e) =>
                       setDecisionModal((prev) => ({ ...prev, notes: e.target.value }))
                     }
                     className="w-full p-3 bg-white border border-slate-300 rounded-xl text-xs text-slate-900"
-                    placeholder="Saisissez le motif ou la remarque RH..."
+                    placeholder="Remarque ou motif RH (optionnel)..."
                   />
                 </div>
               )}
