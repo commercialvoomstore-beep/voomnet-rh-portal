@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import {
-  Bell,
   Database,
   Calendar,
   X,
@@ -11,8 +10,6 @@ import {
   AlertTriangle,
   MessageSquare,
   Info,
-  Trash2,
-  Check,
 } from 'lucide-react';
 
 import { DatabaseConfigModal } from '@/components/DatabaseConfigModal';
@@ -22,30 +19,16 @@ export const Topbar: React.FC = () => {
   const {
     activeTab,
     user,
-    notifications,
     activeToast,
     dismissToast,
-    markNotificationAsRead,
-    clearAllNotifications,
   } = useApp();
 
-  const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
   const [showDatabaseModal, setShowDatabaseModal] = useState(false);
-
-  // Strict user-level notification filter: only show notifications addressed to THIS logged in user
-  const userNotifications = notifications.filter((n) => {
-    if (!user) return false;
-    if (n.recipientMatricule) {
-      return n.recipientMatricule === user.matricule;
-    }
-    return true;
-  });
 
   const isToastForCurrentUser =
     activeToast &&
     user &&
     (!activeToast.recipientMatricule || activeToast.recipientMatricule === user.matricule);
-  const unreadCount = userNotifications.filter((n) => !n.read).length;
   const activeDbProvider = getActiveProvider();
 
   const currentDateStr = new Date().toLocaleDateString('fr-FR', {
@@ -162,89 +145,6 @@ export const Topbar: React.FC = () => {
           <div className="hidden md:flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-amber-50 text-xs font-bold text-amber-900 border border-amber-200 shadow-sm">
             <Calendar className="w-3.5 h-3.5 text-amber-600" />
             <span>{formattedDate}</span>
-          </div>
-
-          {/* Info-Bulles & Notification Bell Button */}
-          <div className="relative">
-            <button
-              onClick={() => setShowNotificationDropdown(!showNotificationDropdown)}
-              className="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl border border-slate-300 relative transition-all"
-              title="Info-Bulles & Notifications RH"
-            >
-              <Bell className="w-4 h-4 text-slate-700" />
-              {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-purple-600 text-white font-mono font-extrabold text-[10px] px-1.5 py-0.2 rounded-full ring-2 ring-white animate-pulse">
-                  {unreadCount}
-                </span>
-              )}
-            </button>
-
-            {/* Notification & Info-Bulles Dropdown */}
-            {showNotificationDropdown && (
-              <div className="absolute right-0 mt-2 w-80 md:w-96 bg-white border-2 border-purple-500 rounded-2xl shadow-2xl z-50 p-4 animate-slideDown">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
-                  <div className="flex items-center gap-2">
-                    <Bell className="w-4 h-4 text-purple-600" />
-                    <h3 className="text-xs font-extrabold text-slate-900">
-                      Info-Bulles & Notifications RH
-                    </h3>
-                  </div>
-
-                  {userNotifications.length > 0 && (
-                    <button
-                      onClick={clearAllNotifications}
-                      className="text-[10px] font-bold text-rose-600 hover:text-rose-700 flex items-center gap-1"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                      Tout effacer
-                    </button>
-                  )}
-                </div>
-
-                <div className="space-y-2 max-h-80 overflow-y-auto">
-                  {userNotifications.map((notif, idx) => (
-                    <div
-                      key={notif.id}
-                      className={`p-3 rounded-xl border text-xs space-y-1.5 transition-all ${
-                        notif.read ? 'bg-slate-50 border-slate-200 opacity-70' : 'bg-purple-50/60 border-purple-200'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <span className="text-[10px] font-mono font-extrabold px-2 py-0.5 rounded bg-purple-100 text-purple-900 border border-purple-200 shrink-0">
-                          Info-Bulle N°{idx + 1}
-                        </span>
-                        <span className="text-[10px] text-slate-500 font-mono">{notif.timestamp}</span>
-                      </div>
-
-                      <div className="font-extrabold text-slate-900 text-xs flex items-center gap-1.5">
-                        {getNotifIcon(notif.type)}
-                        <span>{notif.title}</span>
-                      </div>
-
-                      <p className="text-[11px] text-slate-700 leading-relaxed">{notif.message}</p>
-
-                      {!notif.read && (
-                        <div className="pt-1 flex justify-end">
-                          <button
-                            onClick={() => markNotificationAsRead(notif.id)}
-                            className="text-[10px] font-bold text-purple-700 hover:text-purple-900 flex items-center gap-1 bg-white px-2 py-0.5 rounded-md border border-purple-200"
-                          >
-                            <Check className="w-3 h-3 text-emerald-600" />
-                            Compris / Lu
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-
-                  {userNotifications.length === 0 && (
-                    <div className="py-6 text-center text-slate-400 text-xs">
-                      Aucune nouvelle info-bulle ou notification enregistrée.
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Role badge */}
