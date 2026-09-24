@@ -17,7 +17,6 @@ import {
   Gift,
   Building2,
   X,
-  Info,
 } from 'lucide-react';
 
 export const PrimesManagement: React.FC = () => {
@@ -121,7 +120,6 @@ export const PrimesManagement: React.FC = () => {
     const myPrime = getEmployeePrime(user.matricule);
     const isGranted = myPrime?.statut === 'Accordée';
     const isRefused = myPrime?.statut === 'Refusée';
-    const hasDecision = isGranted || isRefused;
 
     return (
       <div className="space-y-6 max-w-4xl">
@@ -149,30 +147,6 @@ export const PrimesManagement: React.FC = () => {
             </div>
           </div>
         </div>
-
-        {/* Info-Bulle Highlight Card if decision rendered */}
-        {hasDecision && (
-          <div className="p-4 bg-gradient-to-r from-purple-900 via-indigo-900 to-slate-900 rounded-2xl text-white shadow-md border border-purple-500/30 flex items-start gap-4">
-            <div className="p-3 bg-purple-500/20 rounded-xl border border-purple-400/30 shrink-0">
-              <Info className="w-6 h-6 text-purple-300" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="px-2 py-0.5 bg-purple-500 text-white font-mono font-extrabold text-[10px] rounded uppercase shadow">
-                  Info-Bulle N°1
-                </span>
-                <span className="text-xs font-bold text-purple-200">
-                  Notification de Décision RH
-                </span>
-              </div>
-              <p className="text-xs text-slate-200 leading-relaxed">
-                {isGranted
-                  ? `Votre prime trimestrielle de ${myPrime?.montant?.toLocaleString('fr-FR')} FCFA a été accordée.`
-                  : 'Votre dossier de prime trimestrielle n\'a pas été accordé pour ce trimestre.'}
-              </p>
-            </div>
-          </div>
-        )}
 
         {/* Prime Status Card */}
         <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
@@ -456,6 +430,15 @@ export const PrimesManagement: React.FC = () => {
                         >
                           <CheckCircle2 className="w-3.5 h-3.5" />
                           Accorder
+                        </button>
+
+                        <button
+                          onClick={() => openDecisionModal(emp, 'En attente')}
+                          className="px-2.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-[11px] rounded-lg shadow-sm transition-all flex items-center gap-1"
+                          title="Mettre en attente"
+                        >
+                          <Clock className="w-3.5 h-3.5" />
+                          En attente
                         </button>
 
                         <button

@@ -16,7 +16,6 @@ import {
   User,
   Calendar,
   ShieldAlert,
-  Info,
   X,
 } from 'lucide-react';
 
@@ -101,17 +100,6 @@ export const Conges: React.FC = () => {
     return true;
   });
 
-  // Decided requests for Employee Info-Bulles
-  const decidedRequests = isEmploye
-    ? (absenceRequests || []).filter(
-        (r) =>
-          r &&
-          r.matricule &&
-          String(r.matricule).trim() === String(user.matricule).trim() &&
-          (r.statut === 'Approuvé' || r.statut === 'Refusé')
-      )
-    : [];
-
   // Form state
   const [selectedMatricule, setSelectedMatricule] = useState(user.matricule);
   const selectedEmp = employees.find((e) => e.matricule === selectedMatricule) || user;
@@ -187,54 +175,6 @@ export const Conges: React.FC = () => {
           {showNewForm ? 'Masquer le formulaire' : 'Créer une demande'}
         </button>
       </div>
-
-      {/* Info-Bulles Banner for Employees */}
-      {isEmploye && decidedRequests.length > 0 && (
-        <div className="bg-gradient-to-r from-purple-900 via-indigo-900 to-slate-900 p-4 rounded-2xl text-white shadow-md border border-purple-500/30">
-          <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-purple-300 mb-2">
-            <Info className="w-4 h-4 text-purple-400" />
-            <span>Info-Bulles RH — Notifications de Décision</span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {decidedRequests.map((req, idx) => (
-              <div
-                key={req.id}
-                className={`p-3 rounded-xl border flex items-start gap-3 transition-all ${
-                  req.statut === 'Approuvé'
-                    ? 'bg-emerald-950/60 border-emerald-500/40 text-emerald-100'
-                    : 'bg-rose-950/60 border-rose-500/40 text-rose-100'
-                }`}
-              >
-                <div className="mt-0.5">
-                  <span className="px-2 py-0.5 rounded font-mono font-extrabold text-[10px] bg-purple-500 text-white shadow">
-                    Info-Bulle N°{idx + 1}
-                  </span>
-                </div>
-
-                <div className="text-xs space-y-1">
-                  <div className="font-extrabold flex items-center gap-1.5">
-                    {req.statut === 'Approuvé' ? (
-                      <>
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                        <span>Permission Accordée ({req.typeAbsence})</span>
-                      </>
-                    ) : (
-                      <>
-                        <XCircle className="w-4 h-4 text-rose-400" />
-                        <span>Permission Non Accordée ({req.typeAbsence})</span>
-                      </>
-                    )}
-                  </div>
-                  <p className="text-[11px] opacity-90 leading-snug">
-                    {req.cadreAdminNotes || 'Décision enregistrée par la Direction RH VOOMNET.'}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Official Form Component */}
       {showNewForm && (
@@ -483,16 +423,11 @@ export const Conges: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs">
-              {displayedRequests.map((req, index) => (
+              {displayedRequests.map((req) => (
                 <tr key={req.id} className="hover:bg-slate-50/80 transition-colors">
                   <td className="py-3.5 px-4 font-mono font-bold text-blue-600">
-                    <span className="px-2 py-1 bg-slate-50 rounded border border-slate-200 flex items-center gap-1.5 w-max">
-                      <span>{req.codeSuivi}</span>
-                      {req.statut !== 'En attente' && (
-                        <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-purple-100 text-purple-800 font-extrabold border border-purple-200">
-                          Info-Bulle N°{index + 1}
-                        </span>
-                      )}
+                    <span className="px-2 py-1 bg-slate-50 rounded border border-slate-200 inline-block">
+                      {req.codeSuivi}
                     </span>
                   </td>
 
