@@ -234,6 +234,35 @@ const saveDeletedMatriculeLocally = (matricule: string) => {
   } catch (e) {}
 };
 
+const getMaskedPrimesMap = (): Map<string, boolean> => {
+  if (typeof window === 'undefined') return new Map();
+  try {
+    const saved = localStorage.getItem('VOOMNET_MASKED_PRIMES_MAP');
+    if (saved) {
+      const obj = JSON.parse(saved);
+      const map = new Map<string, boolean>();
+      Object.keys(obj).forEach((k) => map.set(k, Boolean(obj[k])));
+      return map;
+    }
+  } catch (e) {}
+  return new Map();
+};
+
+const saveMaskedPrimeLocally = (matricule: string, isMasked: boolean) => {
+  if (typeof window === 'undefined' || !matricule) return;
+  try {
+    const map = getMaskedPrimesMap();
+    if (isMasked) {
+      map.set(matricule, true);
+    } else {
+      map.delete(matricule);
+    }
+    const obj: Record<string, boolean> = {};
+    map.forEach((v, k) => (obj[k] = v));
+    localStorage.setItem('VOOMNET_MASKED_PRIMES_MAP', JSON.stringify(obj));
+  } catch (e) {}
+};
+
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -539,6 +568,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           // 5. Sync Prime Attributions from Neon DB
           const latestAttributions = await fetchNeonPrimeAttributions();
           if (latestAttributions && Array.isArray(latestAttributions) && latestAttributions.length > 0) {
+            const maskedMap = getMaskedPrimesMap();
             setPrimes((prevPrimes) => {
               const primeMap = new Map<string, EmployeePrimeStatus>();
               (prevPrimes || []).forEach((p) => {
@@ -557,6 +587,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                     ? attr.montant
                     : (isAccordee ? primeConfig.montantReference : 0);
 
+                  const isMaskedVal = maskedMap.has(mKey) ? Boolean(maskedMap.get(mKey)) : Boolean(existing?.masquee);
+
                   const updatedItem: EmployeePrimeStatus = {
                     matricule: mKey,
                     nomPrenom: attr.nomPrenom || existing?.nomPrenom || 'Collaborateur',
@@ -570,7 +602,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                     montant: resolvedMontant,
                     motif: attr.motif || existing?.motif || '',
                     motifStatus: `${attr.statut.toUpperCase()} — ${attr.motif || 'Décision RH'}`,
-                    masquee: existing?.masquee,
+                    masquee: isMaskedVal,
                   };
 
                   primeMap.set(mKey, updatedItem);
@@ -1609,22 +1641,49 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const toggleMaskPrime = (matricule: string) => {
     const cleanMatricule = String(matricule).trim();
-    let isNowMasked = false;
-    const targetEmp = employees.find((e) => String(e.matricule).trim() === cleanMatricule);
-    const empName = targetEmp ? `${targetEmp.prenom} ${targetEmp.nom}` : 'Employé';
+    if (!cleanMatricule) return;
 
-    setPrimes((prev) =>
-      prev.map((p) => {
-        if (String(p.matricule).trim() === cleanMatricule) {
-          isNowMasked = !p.masquee;
+    const maskedMap = getMaskedPrimesMap();
+    const currentlyMasked = Boolean(maskedMap.get(cleanMatricule));
+    const isNowMasked = !currentlyMasked;
+
+    saveMaskedPrimeLocally(cleanMatricule, isNowMasked);
+
+    const targetEmp = employees.find((e) => String(e.matricule).trim() === cleanMatricule);
+    const empName = targetEmp ? `${targetEmp.prenom} ${targetEmp.nom}` : `Matricule ${cleanMatricule}`;
+
+    setPrimes((prev) => {
+      let found = false;
+      const updated = (prev || []).map((p) => {
+        if (p && String(p.matricule).trim() === cleanMatricule) {
+          found = true;
           return {
             ...p,
             masquee: isNowMasked,
           };
         }
         return p;
-      })
-    );
+      });
+
+      if (!found && targetEmp) {
+        updated.push({
+          matricule: cleanMatricule,
+          nomPrenom: `${targetEmp.prenom} ${targetEmp.nom}`,
+          dateEmbauche: targetEmp.dateEmbauche,
+          statutCollaborateur: targetEmp.statut,
+          roleCollaborateur: targetEmp.role,
+          periodeNom: primeConfig.periodeNom,
+          eligible: false,
+          montantCalcule: primeConfig.montantReference,
+          statut: 'En attente',
+          montant: primeConfig.montantReference,
+          motif: 'Dossier de prime en cours d\'évaluation RH',
+          masquee: isNowMasked,
+        });
+      }
+
+      return updated;
+    });
 
     showNotificationAlert(
       isNowMasked ? '🙈 Prime Masquée' : '👁️ Prime Publiée',
@@ -1635,39 +1694,76 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   };
 
-  const primeAttributions = primes.map((p) => {
-    let resolvedStatut: 'Accordée' | 'Refusée' | 'En attente' = 'En attente';
-    if (p.statut) {
-      resolvedStatut = p.statut;
-    } else if (p.eligible) {
-      resolvedStatut = 'Accordée';
-    } else if (
-      p.motifStatus &&
-      (p.motifStatus.includes('REFUSÉE') ||
-        p.motifStatus.includes('REFUSÉ') ||
-        p.motifStatus.includes('ANNULÉE') ||
-        p.motifStatus.includes('ANNULÉ'))
-    ) {
-      resolvedStatut = 'Refusée';
-    }
+  const primeAttributions = (() => {
+    const maskedMap = getMaskedPrimesMap();
+    const primesByMatricule = new Map<string, any>();
 
-    const resolvedMontant =
-      typeof p.montant === 'number' && !isNaN(p.montant)
-        ? p.montant
-        : typeof p.montantCalcule === 'number' && !isNaN(p.montantCalcule)
-        ? p.montantCalcule
-        : resolvedStatut === 'Accordée'
-        ? primeConfig.montantReference
-        : 0;
+    (primes || []).forEach((p) => {
+      if (p && p.matricule) {
+        primesByMatricule.set(String(p.matricule).trim(), p);
+      }
+    });
 
-    return {
-      ...p,
-      statut: resolvedStatut,
-      montant: resolvedMontant,
-      motif: p.motif || (p.motifStatus ? p.motifStatus.replace(/^(ACCORDÉE|REFUSÉE|ANNULÉE)\s*—\s*/i, '') : ''),
-      masquee: !!p.masquee,
-    };
-  });
+    // Ensure EVERY employee in employees list has an entry
+    (employees || []).forEach((emp) => {
+      if (emp && emp.matricule) {
+        const mKey = String(emp.matricule).trim();
+        if (!primesByMatricule.has(mKey)) {
+          primesByMatricule.set(mKey, {
+            matricule: mKey,
+            nomPrenom: `${emp.prenom} ${emp.nom}`,
+            dateEmbauche: emp.dateEmbauche,
+            statutCollaborateur: emp.statut,
+            roleCollaborateur: emp.role,
+            periodeNom: primeConfig.periodeNom,
+            eligible: false,
+            montantCalcule: primeConfig.montantReference,
+            statut: 'En attente',
+            montant: primeConfig.montantReference,
+            motif: 'Dossier de prime en cours d\'évaluation RH',
+            masquee: Boolean(maskedMap.get(mKey)),
+          });
+        }
+      }
+    });
+
+    return Array.from(primesByMatricule.values()).map((p) => {
+      const cleanM = String(p.matricule || '').trim();
+      const isMaskedVal = maskedMap.has(cleanM) ? Boolean(maskedMap.get(cleanM)) : Boolean(p.masquee);
+
+      let resolvedStatut: 'Accordée' | 'Refusée' | 'En attente' = 'En attente';
+      if (p.statut) {
+        resolvedStatut = p.statut;
+      } else if (p.eligible) {
+        resolvedStatut = 'Accordée';
+      } else if (
+        p.motifStatus &&
+        (p.motifStatus.includes('REFUSÉE') ||
+          p.motifStatus.includes('REFUSÉ') ||
+          p.motifStatus.includes('ANNULÉE') ||
+          p.motifStatus.includes('ANNULÉ'))
+      ) {
+        resolvedStatut = 'Refusée';
+      }
+
+      const resolvedMontant =
+        typeof p.montant === 'number' && !isNaN(p.montant)
+          ? p.montant
+          : typeof p.montantCalcule === 'number' && !isNaN(p.montantCalcule)
+          ? p.montantCalcule
+          : resolvedStatut === 'Accordée'
+          ? primeConfig.montantReference
+          : 0;
+
+      return {
+        ...p,
+        statut: resolvedStatut,
+        montant: resolvedMontant,
+        motif: p.motif || (p.motifStatus ? p.motifStatus.replace(/^(ACCORDÉE|REFUSÉE|ANNULÉE)\s*—\s*/i, '') : ''),
+        masquee: isMaskedVal,
+      };
+    });
+  })();
 
   return (
     <AppContext.Provider
