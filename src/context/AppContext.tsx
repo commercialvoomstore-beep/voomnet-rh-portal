@@ -169,7 +169,6 @@ interface AppContextType {
     motif: string,
     customMontant?: number
   ) => void;
-  toggleMaskPrime: (matricule: string) => void;
   activeToast: AlertNotification | null;
   dismissToast: () => void;
   showNotificationAlert: (title: string, message: string, type?: AlertNotification['type'], recipientMatricule?: string) => void;
@@ -1635,64 +1634,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   };
 
-  const toggleMaskPrime = (matricule: string) => {
-    const cleanMatricule = String(matricule).trim();
-    if (!cleanMatricule) return;
-
-    // Check currently masked state from the rendered primeAttributions list
-    const targetPrime = primeAttributions.find(
-      (p) => String(p.matricule).trim() === cleanMatricule
-    );
-    const currentlyMasked = Boolean(targetPrime?.masquee);
-    const isNowMasked = !currentlyMasked;
-
-    saveMaskedPrimeLocally(cleanMatricule, isNowMasked);
-
-    const targetEmp = employees.find((e) => String(e.matricule).trim() === cleanMatricule);
-    const empName = targetEmp ? `${targetEmp.prenom} ${targetEmp.nom}` : `Matricule ${cleanMatricule}`;
-
-    setPrimes((prev) => {
-      let found = false;
-      const updated = (prev || []).map((p) => {
-        if (p && String(p.matricule).trim() === cleanMatricule) {
-          found = true;
-          return {
-            ...p,
-            masquee: isNowMasked,
-          };
-        }
-        return p;
-      });
-
-      if (!found && targetEmp) {
-        updated.push({
-          matricule: cleanMatricule,
-          nomPrenom: `${targetEmp.prenom} ${targetEmp.nom}`,
-          dateEmbauche: targetEmp.dateEmbauche,
-          statutCollaborateur: targetEmp.statut,
-          roleCollaborateur: targetEmp.role,
-          periodeNom: primeConfig.periodeNom,
-          eligible: false,
-          montantCalcule: primeConfig.montantReference,
-          statut: 'En attente',
-          montant: primeConfig.montantReference,
-          motif: 'Dossier de prime en cours d\'évaluation RH',
-          masquee: isNowMasked,
-        });
-      }
-
-      return updated;
-    });
-
-    showNotificationAlert(
-      isNowMasked ? '🙈 Prime Masquée' : '👁️ Prime Publiée',
-      isNowMasked
-        ? `La prime de ${empName} (Matricule ${cleanMatricule}) est désormais masquée pour l'employé.`
-        : `La prime de ${empName} (Matricule ${cleanMatricule}) est à nouveau visible par l'employé.`,
-      isNowMasked ? 'WARNING' : 'SUCCESS'
-    );
-  };
-
   const primeAttributions = (() => {
     const maskedMap = getMaskedPrimesMap();
     const primesByMatricule = new Map<string, any>();
@@ -1801,7 +1742,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         restorePrime,
         primeAttributions,
         attributePrime,
-        toggleMaskPrime,
         activeToast,
         dismissToast,
         showNotificationAlert,
