@@ -252,11 +252,7 @@ const saveMaskedPrimeLocally = (matricule: string, isMasked: boolean) => {
   if (typeof window === 'undefined' || !matricule) return;
   try {
     const map = getMaskedPrimesMap();
-    if (isMasked) {
-      map.set(matricule, true);
-    } else {
-      map.delete(matricule);
-    }
+    map.set(matricule, isMasked);
     const obj: Record<string, boolean> = {};
     map.forEach((v, k) => (obj[k] = v));
     localStorage.setItem('VOOMNET_MASKED_PRIMES_MAP', JSON.stringify(obj));
@@ -1643,8 +1639,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const cleanMatricule = String(matricule).trim();
     if (!cleanMatricule) return;
 
-    const maskedMap = getMaskedPrimesMap();
-    const currentlyMasked = Boolean(maskedMap.get(cleanMatricule));
+    // Check currently masked state from the rendered primeAttributions list
+    const targetPrime = primeAttributions.find(
+      (p) => String(p.matricule).trim() === cleanMatricule
+    );
+    const currentlyMasked = Boolean(targetPrime?.masquee);
     const isNowMasked = !currentlyMasked;
 
     saveMaskedPrimeLocally(cleanMatricule, isNowMasked);
