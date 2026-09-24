@@ -115,6 +115,7 @@ export const insertNeonEmployee = async (emp: Employee) => {
     `;
 
     if (existing && existing.length > 0) {
+      const cleanHireDate = emp.dateEmbauche || new Date().toISOString().split('T')[0];
       await sql`
         UPDATE employees
         SET
@@ -126,6 +127,7 @@ export const insertNeonEmployee = async (emp: Employee) => {
           position = ${emp.poste || 'Employé'},
           department = ${emp.departement || 'Support'},
           status = ${statutDb},
+          hire_date = ${cleanHireDate},
           base_salary = ${emp.salaireBase || 350000},
           emergency_contact = ${emp.contactUrgence || ''},
           password = ${emp.motDePasse || 'voomnet2026'},

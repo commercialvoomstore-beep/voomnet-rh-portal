@@ -173,6 +173,7 @@ export async function POST(request: Request) {
           position = ${emp.poste || 'Employé'},
           department = ${emp.departement || 'Support'},
           status = ${statutDb},
+          hire_date = ${cleanHireDate},
           base_salary = ${emp.salaireBase || 350000},
           emergency_contact = ${emp.contactUrgence || ''},
           password = ${cleanPassword},
