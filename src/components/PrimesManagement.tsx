@@ -17,6 +17,7 @@ import {
   Gift,
   Building2,
   X,
+  Info,
 } from 'lucide-react';
 
 export const PrimesManagement: React.FC = () => {
@@ -120,6 +121,7 @@ export const PrimesManagement: React.FC = () => {
     const myPrime = getEmployeePrime(user.matricule);
     const isGranted = myPrime?.statut === 'Accordée';
     const isRefused = myPrime?.statut === 'Refusée';
+    const hasDecision = isGranted || isRefused;
 
     return (
       <div className="space-y-6 max-w-4xl">
@@ -148,6 +150,30 @@ export const PrimesManagement: React.FC = () => {
           </div>
         </div>
 
+        {/* Info-Bulle Highlight Card if decision rendered */}
+        {hasDecision && (
+          <div className="p-4 bg-gradient-to-r from-purple-900 via-indigo-900 to-slate-900 rounded-2xl text-white shadow-md border border-purple-500/30 flex items-start gap-4">
+            <div className="p-3 bg-purple-500/20 rounded-xl border border-purple-400/30 shrink-0">
+              <Info className="w-6 h-6 text-purple-300" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="px-2 py-0.5 bg-purple-500 text-white font-mono font-extrabold text-[10px] rounded uppercase shadow">
+                  Info-Bulle N°1
+                </span>
+                <span className="text-xs font-bold text-purple-200">
+                  Notification de Décision RH
+                </span>
+              </div>
+              <p className="text-xs text-slate-200 leading-relaxed">
+                {isGranted
+                  ? `Votre prime trimestrielle de ${myPrime?.montant?.toLocaleString('fr-FR')} FCFA a été accordée.`
+                  : 'Votre dossier de prime trimestrielle n\'a pas été accordé pour ce trimestre.'}
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Prime Status Card */}
         <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-4">
@@ -159,52 +185,52 @@ export const PrimesManagement: React.FC = () => {
                 <h4 className="text-base font-extrabold text-slate-900">
                   Décision RH pour le {primeConfig.periodeNom}
                 </h4>
-                  <p className="text-xs text-slate-500">
-                    Collaborateur : {user.prenom} {user.nom} ({user.statut})
-                  </p>
-                </div>
+                <p className="text-xs text-slate-500">
+                  Collaborateur : {user.prenom} {user.nom} ({user.statut})
+                </p>
               </div>
-
-              {isGranted && (
-                <span className="px-3.5 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-extrabold flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4" />
-                  ACCORDÉE
-                </span>
-              )}
-              {isRefused && (
-                <span className="px-3.5 py-1.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 text-xs font-extrabold flex items-center gap-1.5">
-                  <XCircle className="w-4 h-4" />
-                  NON ATTRIBUÉE
-                </span>
-              )}
-              {!isGranted && !isRefused && (
-                <span className="px-3.5 py-1.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-xs font-extrabold flex items-center gap-1.5">
-                  <Clock className="w-4 h-4" />
-                  EN ATTENTE D&apos;ATTRIBUTION
-                </span>
-              )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
-                  Montant attribué
-                </span>
-                <span className="text-2xl font-mono font-extrabold text-slate-900 block">
-                  {isGranted ? `${myPrime?.montant?.toLocaleString('fr-FR')} FCFA` : '0 FCFA'}
-                </span>
-              </div>
+            {isGranted && (
+              <span className="px-3.5 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-extrabold flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4" />
+                ACCORDÉE
+              </span>
+            )}
+            {isRefused && (
+              <span className="px-3.5 py-1.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 text-xs font-extrabold flex items-center gap-1.5">
+                <XCircle className="w-4 h-4" />
+                NON ATTRIBUÉE
+              </span>
+            )}
+            {!isGranted && !isRefused && (
+              <span className="px-3.5 py-1.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-xs font-extrabold flex items-center gap-1.5">
+                <Clock className="w-4 h-4" />
+                EN ATTENTE D&apos;ATTRIBUTION
+              </span>
+            )}
+          </div>
 
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
-                  Remarque & Motif RH
-                </span>
-                <span className="text-xs font-semibold text-slate-800 block leading-relaxed">
-                  {myPrime?.motif || 'Décision en cours d\'étude par la Direction des Ressources Humaines.'}
-                </span>
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                Montant attribué
+              </span>
+              <span className="text-2xl font-mono font-extrabold text-slate-900 block">
+                {isGranted ? `${myPrime?.montant?.toLocaleString('fr-FR')} FCFA` : '0 FCFA'}
+              </span>
+            </div>
+
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                Remarque & Motif RH
+              </span>
+              <span className="text-xs font-semibold text-slate-800 block leading-relaxed">
+                {myPrime?.motif || 'Décision en cours d\'étude par la Direction des Ressources Humaines.'}
+              </span>
             </div>
           </div>
+        </div>
       </div>
     );
   }
@@ -219,86 +245,66 @@ export const PrimesManagement: React.FC = () => {
       emp.matricule.toLowerCase().includes(search) ||
       emp.poste.toLowerCase().includes(search);
 
-    const prime = getEmployeePrime(emp.matricule);
-    const matchStatut =
-      filterStatut === 'Tous'
-        ? true
-        : filterStatut === 'Accordée'
-        ? prime?.statut === 'Accordée'
-        : filterStatut === 'Refusée'
-        ? prime?.statut === 'Refusée'
-        : !prime || prime?.statut === 'En attente';
+    if (!matchSearch) return false;
 
-    return matchSearch && matchStatut;
+    const prime = getEmployeePrime(emp.matricule);
+    const status = prime?.statut || 'En attente';
+
+    if (filterStatut === 'Tous') return true;
+    if (filterStatut === 'Accordée') return status === 'Accordée';
+    if (filterStatut === 'En attente') return status === 'En attente';
+    if (filterStatut === 'Refusée') return status === 'Refusée';
+
+    return true;
   });
 
   return (
     <div className="space-y-6">
-      {/* Top Banner */}
-      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-semibold mb-2 border border-amber-200">
-            <Award className="w-3.5 h-3.5 text-amber-600" />
-            Espace {isSuperAdmin ? 'Superadministrateur' : 'Administrateur RH'}
-          </div>
-          <h3 className="text-2xl font-bold text-slate-900">
-            Attribution des Primes Trimestrielles
-          </h3>
-          <p className="text-sm text-slate-600 mt-1 max-w-2xl">
-            Attribution manuelle au cas par cas pour tous les collaborateurs (CDI, CDD, Stagiaires) pour la période <strong className="text-amber-700">{primeConfig.periodeNom}</strong>.
-          </p>
-        </div>
-
-        <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-right shrink-0">
-          <div className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">
-            Montant de Référence
-          </div>
-          <div className="text-2xl font-extrabold text-amber-600 font-mono mt-0.5">
-            {primeConfig.montantReference.toLocaleString('fr-FR')} FCFA
-          </div>
-        </div>
-      </div>
-
-      {/* SuperAdmin Configuration Panel */}
+      {/* SuperAdmin Global Configuration Box */}
       {isSuperAdmin && (
-        <div className="bg-white border-2 border-purple-200 rounded-2xl p-6 shadow-sm space-y-4">
-          <div className="flex items-center gap-2 border-b border-slate-100 pb-3 text-sm font-bold text-slate-900">
-            <Settings className="w-5 h-5 text-purple-600" />
-            <span>Configuration du Montant de Référence & Période (SuperAdmin)</span>
+        <div className="bg-slate-900 text-white rounded-2xl p-6 shadow-xl border border-purple-500/30 space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div className="flex items-center gap-2">
+              <Settings className="w-5 h-5 text-purple-400" />
+              <h3 className="text-sm font-extrabold tracking-wider uppercase text-purple-200">
+                Configuration Générale des Primes (Privilège SuperAdmin)
+              </h3>
+            </div>
+            <span className="text-[10px] bg-purple-500/20 border border-purple-400/30 text-purple-300 font-mono font-extrabold px-2.5 py-1 rounded-full">
+              Paramètres Globaux RH
+            </span>
           </div>
 
           <form onSubmit={handleSaveConfig} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                Nom de la Période Trimestrielle
+              <label className="block text-xs font-semibold text-slate-300 mb-1">
+                Montant de Référence (FCFA)
               </label>
               <input
-                type="text"
-                required
-                value={periodeNomInput}
-                onChange={(e) => setPeriodeNomInput(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs font-bold"
+                type="number"
+                min="0"
+                step="5000"
+                value={montantRefInput}
+                onChange={(e) => setMontantRefInput(Number(e.target.value))}
+                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white font-mono font-bold text-xs"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                Montant de Référence Librement Saisi (FCFA)
+              <label className="block text-xs font-semibold text-slate-300 mb-1">
+                Libellé du Trimestre / Période
               </label>
               <input
-                type="number"
-                required
-                min={0}
-                placeholder="Saisissez librement votre montant (ex: 200000)..."
-                value={montantRefInput}
-                onChange={(e) => setMontantRefInput(Number(e.target.value))}
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-amber-400 rounded-xl text-amber-800 font-mono font-bold text-xs"
+                type="text"
+                value={periodeNomInput}
+                onChange={(e) => setPeriodeNomInput(e.target.value)}
+                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white text-xs font-semibold"
               />
             </div>
 
             <button
               type="submit"
-              className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs rounded-xl shadow-sm flex items-center justify-center gap-2"
+              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all"
             >
               <Save className="w-4 h-4" />
               Enregistrer la Configuration
@@ -307,55 +313,81 @@ export const PrimesManagement: React.FC = () => {
         </div>
       )}
 
-      {/* Filter and Search Bar */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-        <div className="relative flex-1 max-w-md w-full">
-          <Search className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Rechercher un employé par nom, matricule..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs focus:outline-none focus:border-amber-500"
-          />
+      {/* Main Admin RH Table Banner */}
+      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-semibold mb-1 border border-indigo-200">
+            <Building2 className="w-3.5 h-3.5 text-indigo-600" />
+            Gestion Administrative VOOMNET
+          </div>
+          <h3 className="text-xl font-bold text-slate-900">
+            Attribution des Primes Trimestrielles — {primeConfig.periodeNom}
+          </h3>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Attribuez ou refusez la prime trimestrielle des employés. Montant de référence :{' '}
+            <strong className="text-amber-700">{primeConfig.montantReference.toLocaleString('fr-FR')} FCFA</strong>
+          </p>
         </div>
 
-        <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600">
-          <span className="px-2 text-[10px] uppercase font-bold text-slate-400">Statut Prime :</span>
-          {['Tous', 'En attente', 'Accordée', 'Refusée'].map((st) => (
-            <button
-              key={st}
-              onClick={() => setFilterStatut(st)}
-              className={`px-3 py-1 rounded-lg transition-all ${
-                filterStatut === st ? 'bg-amber-500 text-white font-bold' : 'hover:text-slate-900 hover:bg-slate-200'
-              }`}
-            >
-              {st}
-            </button>
-          ))}
+        {/* Search & Filter tools */}
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          <div className="relative flex-1 md:w-64">
+            <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Rechercher nom, matricule..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900"
+            />
+          </div>
         </div>
       </div>
 
-      {/* Employee Attribution Table */}
+      {/* List Table */}
       <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+        <div className="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Users className="w-4 h-4 text-purple-600" />
+            <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+              Liste des Collaborateurs ({filteredEmployees.length})
+            </h4>
+          </div>
+
+          <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200 text-[11px] font-semibold text-slate-600">
+            <span className="px-1.5 text-[10px] uppercase font-bold text-slate-400">Filtrer par :</span>
+            {['Tous', 'Accordée', 'En attente', 'Refusée'].map((st) => (
+              <button
+                key={st}
+                onClick={() => setFilterStatut(st)}
+                className={`px-2 py-0.5 rounded-lg transition-all ${
+                  filterStatut === st
+                    ? 'bg-purple-600 text-white'
+                    : 'hover:text-slate-900 hover:bg-slate-100'
+                }`}
+              >
+                {st}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-[11px] font-bold uppercase tracking-wider">
-                <th className="py-3.5 px-4">Collaborateur</th>
-                <th className="py-3.5 px-4">Matricule 3CX</th>
-                <th className="py-3.5 px-4">Contrat & Service</th>
-                <th className="py-3.5 px-4">Statut Décision RH</th>
-                <th className="py-3.5 px-4">Montant Alloué</th>
-                <th className="py-3.5 px-4">Motif / Remarque RH</th>
-                <th className="py-3.5 px-4 text-right">Action Attribution</th>
+                <th className="py-3.5 px-4">Matricule & Employé</th>
+                <th className="py-3.5 px-4">Poste & Contrat</th>
+                <th className="py-3.5 px-4">Montant Attribué</th>
+                <th className="py-3.5 px-4">Statut Décision</th>
+                <th className="py-3.5 px-4">Remarque / Motif RH</th>
+                <th className="py-3.5 px-4 text-right">Actions Décision RH</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs">
               {filteredEmployees.map((emp) => {
                 const prime = getEmployeePrime(emp.matricule);
-                const isGranted = prime?.statut === 'Accordée';
-                const isRefused = prime?.statut === 'Refusée';
+                const status = prime?.statut || 'En attente';
 
                 return (
                   <tr key={emp.id} className="hover:bg-slate-50/80 transition-colors">
@@ -364,258 +396,178 @@ export const PrimesManagement: React.FC = () => {
                         <img
                           src={emp.avatar}
                           alt={emp.nom}
-                          className="w-10 h-10 rounded-xl object-cover ring-2 ring-slate-200"
+                          className="w-9 h-9 rounded-xl object-cover ring-2 ring-slate-100 shrink-0"
                         />
                         <div>
-                          <div className="font-bold text-slate-900 text-sm">
+                          <div className="font-extrabold text-slate-900">
                             {emp.prenom} {emp.nom}
                           </div>
-                          <div className="text-[10px] text-slate-500">{emp.poste}</div>
+                          <div className="text-[10px] font-mono text-purple-700 font-bold">
+                            Matricule: {emp.matricule}
+                          </div>
                         </div>
                       </div>
                     </td>
 
-                    <td className="py-3.5 px-4 font-mono font-bold text-blue-600">
-                      <span className="px-2.5 py-1 bg-slate-50 rounded border border-slate-200">
-                        {emp.matricule}
-                      </span>
-                    </td>
-
                     <td className="py-3.5 px-4">
-                      <span
-                        className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
-                          emp.statut === 'CDI'
-                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                            : emp.statut === 'CDD'
-                            ? 'bg-cyan-50 text-cyan-700 border-cyan-200'
-                            : 'bg-purple-50 text-purple-700 border-purple-200'
-                        }`}
-                      >
-                        {emp.statut}
-                      </span>
-                      <div className="text-[10px] text-slate-500 mt-0.5">{emp.departement}</div>
-                    </td>
-
-                    <td className="py-3.5 px-4">
-                      <div className="flex flex-col gap-1">
-                        {isGranted && (
-                          <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-bold flex items-center gap-1 w-max">
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                            Accordée
-                          </span>
-                        )}
-                        {isRefused && (
-                          <span className="px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-200 text-[11px] font-bold flex items-center gap-1 w-max">
-                            <XCircle className="w-3.5 h-3.5" />
-                            Refusée
-                          </span>
-                        )}
-                        {!isGranted && !isRefused && (
-                          <span className="px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[11px] font-bold flex items-center gap-1 w-max">
-                            <Clock className="w-3.5 h-3.5" />
-                            En attente
-                          </span>
-                        )}
+                      <div className="font-semibold text-slate-800">{emp.poste}</div>
+                      <div className="text-[10px] text-slate-500">
+                        {emp.departement} • <strong className="text-slate-700">{emp.statut}</strong>
                       </div>
                     </td>
 
-                    <td className="py-3.5 px-4 font-mono font-bold">
-                      {isGranted ? (
-                        <span className="text-emerald-600">
-                          {(prime?.montant ?? 0).toLocaleString('fr-FR')} FCFA
+                    <td className="py-3.5 px-4 font-mono font-extrabold text-slate-900 text-sm">
+                      {status === 'Accordée'
+                        ? `${(prime?.montant ?? primeConfig.montantReference).toLocaleString('fr-FR')} FCFA`
+                        : '0 FCFA'}
+                    </td>
+
+                    <td className="py-3.5 px-4">
+                      {status === 'Accordée' && (
+                        <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-extrabold flex items-center gap-1 w-max">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          Accordée
                         </span>
-                      ) : !isRefused && (prime?.montant ?? 0) > 0 ? (
-                        <span className="text-amber-600">
-                          {(prime?.montant ?? 0).toLocaleString('fr-FR')} FCFA
+                      )}
+                      {status === 'Refusée' && (
+                        <span className="px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-200 text-[11px] font-extrabold flex items-center gap-1 w-max">
+                          <XCircle className="w-3.5 h-3.5" />
+                          Refusée
                         </span>
-                      ) : (
-                        <span className="text-slate-400">0 FCFA</span>
+                      )}
+                      {status === 'En attente' && (
+                        <span className="px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[11px] font-extrabold flex items-center gap-1 w-max">
+                          <Clock className="w-3.5 h-3.5" />
+                          En attente
+                        </span>
                       )}
                     </td>
 
-                    <td className="py-3.5 px-4 max-w-xs">
-                      <div className="text-slate-600 text-[11px] truncate">
-                        {prime?.motif || 'Aucune remarque saisie.'}
-                      </div>
+                    <td className="py-3.5 px-4 max-w-xs text-[11px] text-slate-600 truncate">
+                      {prime?.motif || 'Aucune note'}
                     </td>
 
                     <td className="py-3.5 px-4 text-right">
-                      <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                      <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => openDecisionModal(emp, 'Accordée')}
-                          className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-sm flex items-center gap-1 transition-all shrink-0"
+                          className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] rounded-lg shadow-sm transition-all flex items-center gap-1"
                           title="Accorder la prime"
                         >
                           <CheckCircle2 className="w-3.5 h-3.5" />
-                          <span>Accorder</span>
-                        </button>
-
-                        <button
-                          onClick={() => openDecisionModal(emp, 'En attente')}
-                          className="px-2.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl shadow-sm flex items-center gap-1 transition-all shrink-0"
-                          title="Mettre la prime en attente"
-                        >
-                          <Clock className="w-3.5 h-3.5" />
-                          <span>En attente</span>
+                          Accorder
                         </button>
 
                         <button
                           onClick={() => openDecisionModal(emp, 'Refusée')}
-                          className="px-2.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-sm flex items-center gap-1 transition-all shrink-0"
+                          className="px-2.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-[11px] rounded-lg shadow-sm transition-all flex items-center gap-1"
                           title="Refuser la prime"
                         >
                           <XCircle className="w-3.5 h-3.5" />
-                          <span>Refuser</span>
+                          Refuser
                         </button>
                       </div>
                     </td>
                   </tr>
                 );
               })}
+
+              {filteredEmployees.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="py-8 text-center text-slate-400 text-xs">
+                    Aucun collaborateur ne correspond aux critères de recherche.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
       </div>
-      {/* Custom Prime Decision Modal */}
-      {modalState.isOpen && modalState.employee && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-lg w-full overflow-hidden transition-all transform">
-            {/* Modal Header according to Action */}
-            <div
-              className={`p-6 text-white flex items-center justify-between ${
-                modalState.action === 'Accordée'
-                  ? 'bg-gradient-to-r from-emerald-600 to-teal-600'
-                  : modalState.action === 'En attente'
-                  ? 'bg-gradient-to-r from-amber-500 to-orange-500'
-                  : 'bg-gradient-to-r from-rose-600 to-red-600'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-white/20 rounded-2xl backdrop-blur-md">
-                  {modalState.action === 'Accordée' && <CheckCircle2 className="w-6 h-6 text-white" />}
-                  {modalState.action === 'En attente' && <Clock className="w-6 h-6 text-white" />}
-                  {modalState.action === 'Refusée' && <XCircle className="w-6 h-6 text-white" />}
-                </div>
-                <div>
-                  <h4 className="text-lg font-extrabold tracking-tight">
-                    {modalState.action === 'Accordée' && 'Accorder la Prime Trimestrielle'}
-                    {modalState.action === 'En attente' && 'Mise en Attente de la Prime'}
-                    {modalState.action === 'Refusée' && 'Refuser la Prime Trimestrielle'}
-                  </h4>
-                  <p className="text-xs text-white/80 font-medium">
-                    {primeConfig.periodeNom}
-                  </p>
-                </div>
-              </div>
 
+      {/* Decision Modal */}
+      {modalState.isOpen && modalState.employee && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-6 animate-scaleUp space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-base font-extrabold text-slate-900">
+                Attribution de Prime — {modalState.employee.prenom} {modalState.employee.nom}
+              </h3>
               <button
                 onClick={closeModal}
-                className="p-1.5 rounded-full hover:bg-white/20 transition-colors text-white"
+                className="text-slate-400 hover:text-slate-700 p-1 rounded-lg"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Modal Form */}
-            <form onSubmit={handleConfirmDecision} className="p-6 space-y-5">
-              {/* Employee Summary Card */}
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex items-center gap-3.5">
-                <img
-                  src={modalState.employee.avatar}
-                  alt={modalState.employee.nom}
-                  className="w-12 h-12 rounded-2xl object-cover ring-2 ring-slate-200"
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <h5 className="font-extrabold text-slate-900 text-sm truncate">
-                      {modalState.employee.prenom} {modalState.employee.nom}
-                    </h5>
-                    <span className="px-2 py-0.5 bg-blue-50 text-blue-700 font-mono font-bold text-[10px] rounded border border-blue-200">
-                      3CX #{modalState.employee.matricule}
-                    </span>
-                  </div>
-                  <div className="text-xs text-slate-500 font-medium mt-0.5">
-                    {modalState.employee.poste} ({modalState.employee.statut})
-                  </div>
-                </div>
+            <form onSubmit={handleConfirmDecision} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Décision d&apos;Attribution
+                </label>
+                <select
+                  value={modalState.action}
+                  onChange={(e) =>
+                    setModalState((prev) => ({
+                      ...prev,
+                      action: e.target.value as 'Accordée' | 'En attente' | 'Refusée',
+                    }))
+                  }
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-900 font-bold"
+                >
+                  <option value="Accordée">Accordée</option>
+                  <option value="En attente">En attente</option>
+                  <option value="Refusée">Refusée</option>
+                </select>
               </div>
 
-              {/* Editable Amount Field */}
-              <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-700">
-                  Montant Alloué de la Prime (FCFA)
-                </label>
-                <div className="relative">
+              {modalState.action === 'Accordée' && (
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Montant de la Prime (FCFA)
+                  </label>
                   <input
                     type="number"
-                    min={0}
-                    required
+                    min="0"
+                    step="1000"
                     value={modalState.montant}
-                    onChange={(e) => setModalState((prev) => ({ ...prev, montant: Number(e.target.value) }))}
-                    placeholder="Saisissez le montant alloué..."
-                    className="w-full pl-3.5 pr-14 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono font-extrabold text-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    onChange={(e) =>
+                      setModalState((prev) => ({ ...prev, montant: Number(e.target.value) }))
+                    }
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-900 font-mono font-bold"
                   />
-                  <span className="absolute right-3.5 top-2.5 text-xs font-bold font-mono text-slate-400">
-                    FCFA
-                  </span>
                 </div>
-                <p className="text-[10px] text-slate-500 font-medium">
-                  Montant de référence global : <strong>{primeConfig.montantReference.toLocaleString('fr-FR')} FCFA</strong> (librement modifiable pour ce collaborateur).
-                </p>
-              </div>
+              )}
 
-              {/* Motive / Remarks Input */}
-              <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-700">
-                  Motif & Remarque RH pour le collaborateur <span className="text-slate-400 font-normal">(Facultatif)</span>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Motif / Remarque RH
                 </label>
                 <textarea
                   rows={3}
+                  required
                   value={modalState.motif}
-                  onChange={(e) => setModalState((prev) => ({ ...prev, motif: e.target.value }))}
-                  placeholder="Saisissez ici des remarques RH facultatives..."
-                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-amber-500 transition-all"
+                  onChange={(e) =>
+                    setModalState((prev) => ({ ...prev, motif: e.target.value }))
+                  }
+                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-900"
+                  placeholder="Justification ou remarque relative à l'attribution..."
                 />
               </div>
 
-              {/* Footer Action Buttons */}
-              <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-100">
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all"
+                  className="px-4 py-2 bg-slate-100 text-slate-700 text-xs font-semibold rounded-xl"
                 >
                   Annuler
                 </button>
-
                 <button
                   type="submit"
-                  className={`px-5 py-2.5 text-white font-extrabold text-xs rounded-xl shadow-md flex items-center gap-2 transition-all ${
-                    modalState.action === 'Accordée'
-                      ? 'bg-emerald-600 hover:bg-emerald-700'
-                      : modalState.action === 'En attente'
-                      ? 'bg-amber-500 hover:bg-amber-600'
-                      : 'bg-rose-600 hover:bg-rose-700'
-                  }`}
+                  className="px-5 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl shadow-sm"
                 >
-                  {modalState.action === 'Accordée' && (
-                    <>
-                      <CheckCircle2 className="w-4 h-4" />
-                      Confirmer l&apos;Attribution
-                    </>
-                  )}
-                  {modalState.action === 'En attente' && (
-                    <>
-                      <Clock className="w-4 h-4" />
-                      Confirmer la Mise en Attente
-                    </>
-                  )}
-                  {modalState.action === 'Refusée' && (
-                    <>
-                      <XCircle className="w-4 h-4" />
-                      Confirmer le Refus
-                    </>
-                  )}
+                  Enregistrer la Décision
                 </button>
               </div>
             </form>

@@ -16,8 +16,7 @@ import {
   User,
   Calendar,
   ShieldAlert,
-  Lock,
-  Trash2,
+  Info,
   X,
 } from 'lucide-react';
 
@@ -102,6 +101,17 @@ export const Conges: React.FC = () => {
     return true;
   });
 
+  // Decided requests for Employee Info-Bulles
+  const decidedRequests = isEmploye
+    ? (absenceRequests || []).filter(
+        (r) =>
+          r &&
+          r.matricule &&
+          String(r.matricule).trim() === String(user.matricule).trim() &&
+          (r.statut === 'Approuvé' || r.statut === 'Refusé')
+      )
+    : [];
+
   // Form state
   const [selectedMatricule, setSelectedMatricule] = useState(user.matricule);
   const selectedEmp = employees.find((e) => e.matricule === selectedMatricule) || user;
@@ -129,7 +139,7 @@ export const Conges: React.FC = () => {
 
     const targetEmp = isEmploye ? user : selectedEmp;
 
-    const code = createAbsenceRequest({
+    createAbsenceRequest({
       matricule: targetEmp.matricule,
       nomPrenom: `${targetEmp.prenom} ${targetEmp.nom}`,
       fonctionService: `${targetEmp.poste} (${targetEmp.departement}) - ${targetEmp.statut}`,
@@ -177,6 +187,54 @@ export const Conges: React.FC = () => {
           {showNewForm ? 'Masquer le formulaire' : 'Créer une demande'}
         </button>
       </div>
+
+      {/* Info-Bulles Banner for Employees */}
+      {isEmploye && decidedRequests.length > 0 && (
+        <div className="bg-gradient-to-r from-purple-900 via-indigo-900 to-slate-900 p-4 rounded-2xl text-white shadow-md border border-purple-500/30">
+          <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-purple-300 mb-2">
+            <Info className="w-4 h-4 text-purple-400" />
+            <span>Info-Bulles RH — Notifications de Décision</span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {decidedRequests.map((req, idx) => (
+              <div
+                key={req.id}
+                className={`p-3 rounded-xl border flex items-start gap-3 transition-all ${
+                  req.statut === 'Approuvé'
+                    ? 'bg-emerald-950/60 border-emerald-500/40 text-emerald-100'
+                    : 'bg-rose-950/60 border-rose-500/40 text-rose-100'
+                }`}
+              >
+                <div className="mt-0.5">
+                  <span className="px-2 py-0.5 rounded font-mono font-extrabold text-[10px] bg-purple-500 text-white shadow">
+                    Info-Bulle N°{idx + 1}
+                  </span>
+                </div>
+
+                <div className="text-xs space-y-1">
+                  <div className="font-extrabold flex items-center gap-1.5">
+                    {req.statut === 'Approuvé' ? (
+                      <>
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                        <span>Permission Accordée ({req.typeAbsence})</span>
+                      </>
+                    ) : (
+                      <>
+                        <XCircle className="w-4 h-4 text-rose-400" />
+                        <span>Permission Non Accordée ({req.typeAbsence})</span>
+                      </>
+                    )}
+                  </div>
+                  <p className="text-[11px] opacity-90 leading-snug">
+                    {req.cadreAdminNotes || 'Décision enregistrée par la Direction RH VOOMNET.'}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Official Form Component */}
       {showNewForm && (
@@ -425,11 +483,16 @@ export const Conges: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs">
-              {displayedRequests.map((req) => (
+              {displayedRequests.map((req, index) => (
                 <tr key={req.id} className="hover:bg-slate-50/80 transition-colors">
                   <td className="py-3.5 px-4 font-mono font-bold text-blue-600">
-                    <span className="px-2 py-1 bg-slate-50 rounded border border-slate-200">
-                      {req.codeSuivi}
+                    <span className="px-2 py-1 bg-slate-50 rounded border border-slate-200 flex items-center gap-1.5 w-max">
+                      <span>{req.codeSuivi}</span>
+                      {req.statut !== 'En attente' && (
+                        <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-purple-100 text-purple-800 font-extrabold border border-purple-200">
+                          Info-Bulle N°{index + 1}
+                        </span>
+                      )}
                     </span>
                   </td>
 
@@ -508,61 +571,47 @@ export const Conges: React.FC = () => {
                             </button>
                           </div>
                         ) : (
-                          <span
-                            className={`px-3 py-1 rounded-xl text-xs font-bold border flex items-center gap-1.5 ${
-                              req.statut === 'Approuvé'
-                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                : 'bg-rose-50 text-rose-700 border-rose-200'
-                            }`}
-                          >
-                            {req.statut === 'Approuvé' ? (
-                              <>
-                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                                Décision Finale : Validée
-                              </>
-                            ) : (
-                              <>
-                                <XCircle className="w-3.5 h-3.5 text-rose-600" />
-                                Décision Finale : Refusée
-                              </>
-                            )}
-                          </span>
-                        )}
-
-                        {req.cadreAdminNotes && (
-                          <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-800 text-left max-w-xs shadow-sm mt-1">
-                            <span className="text-[10px] uppercase font-bold text-blue-600 block tracking-wider mb-0.5">
-                              Remarque RH Officielle :
+                          <div className="flex items-center justify-end gap-2">
+                            <span
+                              className={`px-3 py-1 rounded-xl text-xs font-bold border flex items-center gap-1.5 ${
+                                req.statut === 'Approuvé'
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                  : 'bg-rose-50 text-rose-700 border-rose-200'
+                              }`}
+                            >
+                              {req.statut === 'Approuvé' ? (
+                                <>
+                                  <CheckCircle2 className="w-3.5 h-3.5" />
+                                  Validé
+                                </>
+                              ) : (
+                                <>
+                                  <XCircle className="w-3.5 h-3.5" />
+                                  Refusé
+                                </>
+                              )}
                             </span>
-                            <span className="text-slate-800 text-xs leading-relaxed block">
-                              {req.cadreAdminNotes}
-                            </span>
+                            <button
+                              onClick={() => openDecisionModal(req, 'Supprimer')}
+                              className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
+                              title="Supprimer la demande"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
                           </div>
                         )}
-
-                        {/* Bouton de Suppression pour Admin & SuperAdmin */}
-                        <button
-                          onClick={() => openDecisionModal(req, 'Supprimer')}
-                          className="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-[11px] rounded-xl shadow-sm transition-all flex items-center gap-1 mt-1 ml-auto"
-                          title="Supprimer définitivement la demande (Admin & SuperAdmin)"
-                        >
-                          <Trash2 className="w-3.5 h-3.5 text-rose-600" />
-                          Supprimer
-                        </button>
                       </div>
                     ) : (
-                      <div className="space-y-1 text-right">
+                      <div className="text-right">
                         {req.cadreAdminNotes ? (
-                          <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-left max-w-xs ml-auto shadow-sm">
-                            <span className="text-[10px] uppercase font-bold text-blue-600 block tracking-wider mb-0.5">
-                              Remarque Administrateur :
+                          <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 font-medium text-[11px] max-w-xs text-left">
+                            <span className="font-extrabold text-[10px] text-purple-700 uppercase block">
+                              Remarque RH :
                             </span>
-                            <span className="text-slate-800 font-semibold text-xs leading-relaxed block">
-                              {req.cadreAdminNotes}
-                            </span>
+                            {req.cadreAdminNotes}
                           </div>
                         ) : (
-                          <span className="text-xs text-slate-400 italic">En cours de traitement par l&apos;Admin</span>
+                          <span className="text-slate-400 italic">En cours d&apos;étude</span>
                         )}
                       </div>
                     )}
@@ -573,9 +622,7 @@ export const Conges: React.FC = () => {
               {displayedRequests.length === 0 && (
                 <tr>
                   <td colSpan={7} className="py-8 text-center text-slate-400 text-xs">
-                    {isEmploye
-                      ? 'Vous n\'avez soumis aucune demande de permission pour le moment.'
-                      : 'Aucune demande enregistrée.'}
+                    Aucune demande de permission enregistrée pour le moment.
                   </td>
                 </tr>
               )}
@@ -583,132 +630,56 @@ export const Conges: React.FC = () => {
           </table>
         </div>
       </div>
-      {/* Custom Leave Decision Modal (Replaces native JS prompts) */}
+
+      {/* Decision Confirmation Modal */}
       {decisionModal.isOpen && decisionModal.request && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-lg w-full overflow-hidden transition-all text-slate-900">
-            {/* Header according to action */}
-            <div
-              className={`p-6 text-white flex items-center justify-between ${
-                decisionModal.action === 'Approuvé'
-                  ? 'bg-gradient-to-r from-emerald-600 to-teal-600'
-                  : decisionModal.action === 'Refusé'
-                  ? 'bg-gradient-to-r from-rose-600 to-red-600'
-                  : 'bg-gradient-to-r from-slate-700 to-slate-900'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-white/20 rounded-2xl backdrop-blur-md">
-                  {decisionModal.action === 'Approuvé' && <CheckCircle2 className="w-6 h-6 text-white" />}
-                  {decisionModal.action === 'Refusé' && <XCircle className="w-6 h-6 text-white" />}
-                  {decisionModal.action === 'Supprimer' && <Trash2 className="w-6 h-6 text-white" />}
-                </div>
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-6 animate-scaleUp">
+            <h3 className="text-lg font-bold text-slate-900 mb-2">
+              {decisionModal.action === 'Supprimer'
+                ? 'Confirmer la suppression'
+                : `Décision RH : ${decisionModal.action}`}
+            </h3>
+            <p className="text-xs text-slate-600 mb-4">
+              Demande pour <strong>{decisionModal.request.nomPrenom}</strong> ({decisionModal.request.typeAbsence})
+            </p>
+
+            <form onSubmit={handleConfirmDecision} className="space-y-4">
+              {decisionModal.action !== 'Supprimer' && (
                 <div>
-                  <h4 className="text-lg font-extrabold tracking-tight">
-                    {decisionModal.action === 'Approuvé' && 'Validation de la Demande d\'Absence'}
-                    {decisionModal.action === 'Refusé' && 'Refus de la Demande d\'Absence'}
-                    {decisionModal.action === 'Supprimer' && 'Supprimer la Demande d\'Absence'}
-                  </h4>
-                  <p className="text-xs text-white/80 font-mono font-bold mt-0.5">
-                    Code Suivi : {decisionModal.request.codeSuivi}
-                  </p>
-                </div>
-              </div>
-
-              <button
-                onClick={closeDecisionModal}
-                className="p-1.5 rounded-full hover:bg-white/20 transition-colors text-white"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Modal Body / Form */}
-            <form onSubmit={handleConfirmDecision} className="p-6 space-y-4">
-              {/* Summary Card */}
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="font-extrabold text-slate-900 text-sm">
-                    {decisionModal.request.nomPrenom}
-                  </span>
-                  <span className="px-2 py-0.5 bg-blue-50 text-blue-700 font-mono font-bold text-[10px] rounded border border-blue-200">
-                    Poste 3CX #{decisionModal.request.matricule}
-                  </span>
-                </div>
-
-                <div className="text-xs text-slate-600 flex items-center justify-between font-medium pt-1 border-t border-slate-200/60">
-                  <span>Type : <strong>{decisionModal.request.typeAbsence}</strong></span>
-                  <span className="font-mono text-blue-600 font-bold">
-                    {decisionModal.request.dateDebut} au {decisionModal.request.dateFin} ({decisionModal.request.dureeJours} J)
-                  </span>
-                </div>
-
-                <div className="text-xs text-slate-500 italic bg-white p-2.5 rounded-xl border border-slate-200 mt-1">
-                  &quot;{decisionModal.request.motif}&quot;
-                </div>
-              </div>
-
-              {decisionModal.action !== 'Supprimer' ? (
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-700">
-                    Remarque & Motif RH Officiel <span className="text-slate-400 font-normal">(Facultatif)</span>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Motif / Note Administrative RH
                   </label>
                   <textarea
                     rows={3}
+                    required
                     value={decisionModal.notes}
-                    onChange={(e) => setDecisionModal((prev) => ({ ...prev, notes: e.target.value }))}
-                    placeholder={
-                      decisionModal.action === 'Approuvé'
-                        ? 'Remarque facultative pour l\'employé (ex: Accordé par la direction)...'
-                        : 'Remarque ou motif facultatif du refus...'
+                    onChange={(e) =>
+                      setDecisionModal((prev) => ({ ...prev, notes: e.target.value }))
                     }
-                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-3 bg-white border border-slate-300 rounded-xl text-xs text-slate-900"
+                    placeholder="Saisissez le motif ou la remarque RH..."
                   />
-                </div>
-              ) : (
-                <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl text-rose-800 text-xs font-medium">
-                  ⚠️ Êtes-vous sûr de vouloir supprimer définitivement la demande <strong className="font-mono">{decisionModal.request.codeSuivi}</strong> ? Cette action retirera la demande de la base de données.
                 </div>
               )}
 
-              {/* Action Buttons */}
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+              <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={closeDecisionModal}
-                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all"
+                  className="px-4 py-2 bg-slate-100 text-slate-700 text-xs font-semibold rounded-xl"
                 >
                   Annuler
                 </button>
-
                 <button
                   type="submit"
-                  className={`px-5 py-2.5 text-white font-extrabold text-xs rounded-xl shadow-md flex items-center gap-2 transition-all ${
+                  className={`px-5 py-2 text-white text-xs font-bold rounded-xl shadow-sm ${
                     decisionModal.action === 'Approuvé'
                       ? 'bg-emerald-600 hover:bg-emerald-700'
-                      : decisionModal.action === 'Refusé'
-                      ? 'bg-rose-600 hover:bg-rose-700'
-                      : 'bg-slate-800 hover:bg-slate-900'
+                      : 'bg-rose-600 hover:bg-rose-700'
                   }`}
                 >
-                  {decisionModal.action === 'Approuvé' && (
-                    <>
-                      <CheckCircle2 className="w-4 h-4" />
-                      Confirmer la Validation
-                    </>
-                  )}
-                  {decisionModal.action === 'Refusé' && (
-                    <>
-                      <XCircle className="w-4 h-4" />
-                      Confirmer le Refus
-                    </>
-                  )}
-                  {decisionModal.action === 'Supprimer' && (
-                    <>
-                      <Trash2 className="w-4 h-4" />
-                      Confirmer la Suppression
-                    </>
-                  )}
+                  Confirmer
                 </button>
               </div>
             </form>
