@@ -21,6 +21,7 @@ import {
   isEmployeRole,
   isSuperAdminRole,
   isAdminRole,
+  formatDateYYYYMMDD,
 } from '@/data/mockData';
 import {
   fetchNeonEmployees,
@@ -1052,11 +1053,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const updateEmployee = (id: string, empData: Partial<Employee>) => {
     let empName = '';
+    const cleanEmpData = { ...empData };
+    if (cleanEmpData.dateEmbauche) {
+      cleanEmpData.dateEmbauche = formatDateYYYYMMDD(cleanEmpData.dateEmbauche);
+    }
+
     setEmployees((prev) =>
       prev.map((emp) => {
         if (emp.id === id || emp.matricule === id) {
           empName = `${emp.prenom} ${emp.nom}`;
-          const updated = { ...emp, ...empData };
+          const updated = { ...emp, ...cleanEmpData };
           if (user && (user.id === id || user.matricule === id)) {
             setUser(updated);
             if (typeof window !== 'undefined') {
@@ -1074,7 +1080,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 const parsed = JSON.parse(extraSaved);
                 if (Array.isArray(parsed)) {
                   const updatedExtra = parsed.map((e) =>
-                    e.id === id || e.matricule === id ? { ...e, ...empData } : e
+                    e.id === id || e.matricule === id ? { ...e, ...cleanEmpData } : e
                   );
                   localStorage.setItem('VOOMNET_EXTRA_EMPLOYEES', JSON.stringify(updatedExtra));
                 }
@@ -1093,12 +1099,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (empData.statut || empData.role || empData.nom || empData.prenom || empData.dateEmbauche) {
       setPrimes((prev) =>
         prev.map((p) => {
-          const emp = employees.find((e) => e.id === id);
+          const emp = employees.find((e) => e.id === id || e.matricule === id);
           if (emp && p.matricule === emp.matricule) {
             return {
               ...p,
               nomPrenom: empData.prenom && empData.nom ? `${empData.prenom} ${empData.nom}` : p.nomPrenom,
-              dateEmbauche: empData.dateEmbauche || p.dateEmbauche,
+              dateEmbauche: cleanEmpData.dateEmbauche || p.dateEmbauche,
               statutCollaborateur: empData.statut || p.statutCollaborateur,
               roleCollaborateur: empData.role || p.roleCollaborateur,
             };

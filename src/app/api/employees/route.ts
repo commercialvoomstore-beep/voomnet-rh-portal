@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
+import { formatDateYYYYMMDD } from '@/data/mockData';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -101,7 +102,7 @@ export async function GET(request: Request) {
         statut: mappedStatut,
         soldeConges: 24,
         salaireBase: Number(r.base_salary) || 350000,
-        dateEmbauche: r.hire_date ? new Date(r.hire_date).toISOString().substring(0, 10) : '2023-01-01',
+        dateEmbauche: r.hire_date ? formatDateYYYYMMDD(r.hire_date) : '2023-01-01',
         avatar: r.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
         motDePasse: String(r.password || 'voomnet2026'),
         contactUrgence: String(r.emergency_contact || r.contact_urgence || ''),
@@ -136,12 +137,7 @@ export async function POST(request: Request) {
       cleanEmail = `${cleanMatricule}@voomnet.com`;
     }
 
-    let cleanHireDate = new Date().toISOString().split('T')[0];
-    if (emp.dateEmbauche && !isNaN(Date.parse(emp.dateEmbauche))) {
-      try {
-        cleanHireDate = new Date(emp.dateEmbauche).toISOString().split('T')[0];
-      } catch (e) {}
-    }
+    const cleanHireDate = formatDateYYYYMMDD(emp.dateEmbauche);
 
     const cleanPassword = String(emp.motDePasse || 'voomnet2026').trim() || 'voomnet2026';
 

@@ -126,6 +126,49 @@ export interface AuditLog {
 
 export const DEFAULT_FALLBACK_AVATAR = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80';
 
+export function formatDateYYYYMMDD(input: any): string {
+  if (!input) {
+    return new Date().toISOString().split('T')[0];
+  }
+  if (input instanceof Date) {
+    if (isNaN(input.getTime())) {
+      return new Date().toISOString().split('T')[0];
+    }
+    return input.toISOString().split('T')[0];
+  }
+  const str = String(input).trim();
+  if (!str) {
+    return new Date().toISOString().split('T')[0];
+  }
+
+  // Check YYYY-MM-DD or YYYY/MM/DD or YYYY-MM-DDTHH:mm:ss
+  const ymdMatch = str.match(/^(\d{4})[/-](\d{1,2})[/-](\d{1,2})/);
+  if (ymdMatch) {
+    const y = ymdMatch[1];
+    const m = ymdMatch[2].padStart(2, '0');
+    const d = ymdMatch[3].padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  // Check DD/MM/YYYY or DD-MM-YYYY
+  const dmyMatch = str.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})/);
+  if (dmyMatch) {
+    const d = dmyMatch[1].padStart(2, '0');
+    const m = dmyMatch[2].padStart(2, '0');
+    const y = dmyMatch[3];
+    return `${y}-${m}-${d}`;
+  }
+
+  const parsed = Date.parse(str);
+  if (!isNaN(parsed)) {
+    try {
+      return new Date(parsed).toISOString().split('T')[0];
+    } catch (e) {}
+  }
+
+  return new Date().toISOString().split('T')[0];
+}
+
 export const INITIAL_PRIME_CONFIG: PrimeConfig = {
   periodeNom: 'Trimestre 3 - 2026 (1er Juil - 30 Sept)',
   dateDebut: '2026-07-01',

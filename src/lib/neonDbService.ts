@@ -1,6 +1,6 @@
 import { neon } from '@neondatabase/serverless';
 import { getNeonConnectionString } from './neonClient';
-import { Employee, ChatMessage, AbsenceRequest, StatutContrat, RoleType } from '@/data/mockData';
+import { Employee, ChatMessage, AbsenceRequest, StatutContrat, RoleType, formatDateYYYYMMDD } from '@/data/mockData';
 
 export const executeNeonQuery = async (queryFn: (sql: any) => Promise<any>) => {
   const connStr = getNeonConnectionString();
@@ -75,7 +75,7 @@ export const fetchNeonEmployees = async (): Promise<Employee[] | null> => {
         statut: mappedStatut,
         soldeConges: 24,
         salaireBase: Number(r.base_salary) || 350000,
-        dateEmbauche: r.hire_date ? new Date(r.hire_date).toISOString().substring(0, 10) : '2023-01-01',
+        dateEmbauche: r.hire_date ? formatDateYYYYMMDD(r.hire_date) : '2023-01-01',
         avatar: r.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
         motDePasse: String(r.password || 'voomnet2026'),
         contactUrgence: String(r.emergency_contact || r.contact_urgence || ''),
@@ -115,7 +115,7 @@ export const insertNeonEmployee = async (emp: Employee) => {
     `;
 
     if (existing && existing.length > 0) {
-      const cleanHireDate = emp.dateEmbauche || new Date().toISOString().split('T')[0];
+      const cleanHireDate = formatDateYYYYMMDD(emp.dateEmbauche);
       await sql`
         UPDATE employees
         SET
@@ -148,7 +148,7 @@ export const insertNeonEmployee = async (emp: Employee) => {
           ${emp.departement || 'Support'},
           ${statutDb},
           ${emp.salaireBase || 350000},
-          ${emp.dateEmbauche || '2023-01-01'},
+          ${formatDateYYYYMMDD(emp.dateEmbauche)},
           ${emp.avatar || ''},
           ${emp.contactUrgence || ''},
           ${emp.motDePasse || 'voomnet2026'}

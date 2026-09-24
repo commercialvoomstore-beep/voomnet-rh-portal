@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useApp } from '@/context/AppContext';
-import { Employee, RoleType, StatutContrat, DEFAULT_FALLBACK_AVATAR } from '@/data/mockData';
+import { Employee, RoleType, StatutContrat, DEFAULT_FALLBACK_AVATAR, formatDateYYYYMMDD } from '@/data/mockData';
 import {
   Users,
   Search,
@@ -150,7 +150,7 @@ export const Personnel: React.FC = () => {
       poste: emp.poste,
       statut: emp.statut,
       role: emp.role,
-      dateEmbauche: emp.dateEmbauche,
+      dateEmbauche: formatDateYYYYMMDD(emp.dateEmbauche),
       avatar: emp.avatar,
       motDePasse: emp.motDePasse || 'voomnet2026',
       adresse: emp.adresse || '',
@@ -646,7 +646,7 @@ export const Personnel: React.FC = () => {
                 </div>
               </div>
 
-              {isSuperAdmin ? (
+              {isSuperAdmin || isAdminRH ? (
                 <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 grid grid-cols-3 gap-2">
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1">Rôle</label>
@@ -684,7 +684,7 @@ export const Personnel: React.FC = () => {
                       type="date"
                       value={editFormState.dateEmbauche || ''}
                       onChange={(e) => setEditFormState({ ...editFormState, dateEmbauche: e.target.value })}
-                      className="w-full px-2 py-1.5 bg-white border border-slate-300 rounded-xl text-slate-900 font-mono text-xs"
+                      className="w-full px-2 py-1.5 bg-white border border-blue-600 rounded-xl text-slate-900 font-mono text-xs font-bold"
                     />
                   </div>
                 </div>
@@ -695,7 +695,7 @@ export const Personnel: React.FC = () => {
                     type="date"
                     value={editFormState.dateEmbauche || ''}
                     onChange={(e) => setEditFormState({ ...editFormState, dateEmbauche: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-mono text-xs"
+                    className="w-full px-3 py-2 bg-slate-50 border border-blue-600 rounded-xl text-slate-900 font-mono text-xs font-bold"
                   />
                 </div>
               )}
