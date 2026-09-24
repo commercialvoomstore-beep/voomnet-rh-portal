@@ -175,6 +175,65 @@ interface AppContextType {
   showNotificationAlert: (title: string, message: string, type?: AlertNotification['type'], recipientMatricule?: string) => void;
 }
 
+// Local persistence overlays to ensure modifications are immediate & permanent
+const getEditedEmployeesMap = (): Map<string, Employee> => {
+  if (typeof window === 'undefined') return new Map();
+  try {
+    const saved = localStorage.getItem('VOOMNET_EDITED_EMPLOYEES_MAP');
+    if (saved) {
+      const obj = JSON.parse(saved);
+      const map = new Map<string, Employee>();
+      Object.keys(obj).forEach((k) => map.set(k, obj[k]));
+      return map;
+    }
+  } catch (e) {}
+  return new Map();
+};
+
+const saveEditedEmployeeLocally = (emp: Employee) => {
+  if (typeof window === 'undefined' || !emp || !emp.matricule) return;
+  try {
+    const map = getEditedEmployeesMap();
+    map.set(emp.matricule, emp);
+    const obj: Record<string, Employee> = {};
+    map.forEach((v, k) => (obj[k] = v));
+    localStorage.setItem('VOOMNET_EDITED_EMPLOYEES_MAP', JSON.stringify(obj));
+  } catch (e) {}
+};
+
+const removeEditedEmployeeLocally = (matricule: string) => {
+  if (typeof window === 'undefined') return;
+  try {
+    const map = getEditedEmployeesMap();
+    map.delete(matricule);
+    const obj: Record<string, Employee> = {};
+    map.forEach((v, k) => (obj[k] = v));
+    localStorage.setItem('VOOMNET_EDITED_EMPLOYEES_MAP', JSON.stringify(obj));
+  } catch (e) {}
+};
+
+const getDeletedMatriculesSet = (): Set<string> => {
+  if (typeof window === 'undefined') return new Set();
+  try {
+    const saved = localStorage.getItem('VOOMNET_DELETED_MATRICULES');
+    if (saved) {
+      const arr = JSON.parse(saved);
+      if (Array.isArray(arr)) return new Set(arr);
+    }
+  } catch (e) {}
+  return new Set();
+};
+
+const saveDeletedMatriculeLocally = (matricule: string) => {
+  if (typeof window === 'undefined' || !matricule) return;
+  try {
+    const set = getDeletedMatriculesSet();
+    set.add(matricule);
+    localStorage.setItem('VOOMNET_DELETED_MATRICULES', JSON.stringify(Array.from(set)));
+    removeEditedEmployeeLocally(matricule);
+  } catch (e) {}
+};
+
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -222,18 +281,37 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [employees, setEmployees] = useState<Employee[]>(() => {
     if (typeof window !== 'undefined') {
       try {
+        const editedMap = getEditedEmployeesMap();
+        const deletedSet = getDeletedMatriculesSet();
         const saved = localStorage.getItem('VOOMNET_EXTRA_EMPLOYEES');
+        const map = new Map<string, Employee>();
+
+        INITIAL_EMPLOYEES.forEach((e) => {
+          if (e && e.matricule && !deletedSet.has(e.matricule)) {
+            map.set(e.matricule, e);
+          }
+        });
+
         if (saved) {
           const parsed = JSON.parse(saved);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            const map = new Map<string, Employee>();
-            INITIAL_EMPLOYEES.forEach((e) => map.set(e.matricule, e));
             parsed.forEach((e) => {
-              if (e && e.matricule) map.set(e.matricule, e);
+              if (e && e.matricule && !deletedSet.has(e.matricule)) {
+                map.set(e.matricule, e);
+              }
             });
-            return Array.from(map.values());
           }
         }
+
+        // Apply edited overlay map
+        editedMap.forEach((edited, m) => {
+          if (!deletedSet.has(m)) {
+            const existing = map.get(m);
+            map.set(m, existing ? { ...existing, ...edited } : edited);
+          }
+        });
+
+        return Array.from(map.values());
       } catch (e) {}
     }
     return INITIAL_EMPLOYEES;
@@ -308,16 +386,40 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         // 1. Sync Employees
         const neonEmps = await fetchNeonEmployees();
         if (neonEmps && Array.isArray(neonEmps) && neonEmps.length > 0) {
+          const editedMap = getEditedEmployeesMap();
+          const deletedSet = getDeletedMatriculesSet();
+
           setEmployees((prev) => {
             const map = new Map<string, Employee>();
+
+            // First: add neonEmps (overlaying local edited modifications & ignoring deleted)
             neonEmps.forEach((e) => {
-              if (e && e.matricule) map.set(e.matricule, e);
-            });
-            (prev || []).forEach((e) => {
-              if (e && e.matricule && !map.has(e.matricule)) {
-                map.set(e.matricule, e);
+              if (e && e.matricule) {
+                if (deletedSet.has(e.matricule)) return;
+                const edited = editedMap.get(e.matricule);
+                if (edited) {
+                  map.set(e.matricule, { ...e, ...edited });
+                } else {
+                  map.set(e.matricule, e);
+                }
               }
             });
+
+            // Second: add prev/local state employees not in neonEmps (if not deleted)
+            (prev || []).forEach((e) => {
+              if (e && e.matricule && !deletedSet.has(e.matricule)) {
+                if (!map.has(e.matricule)) {
+                  map.set(e.matricule, e);
+                } else {
+                  const edited = editedMap.get(e.matricule);
+                  if (edited) {
+                    const currentInMap = map.get(e.matricule)!;
+                    map.set(e.matricule, { ...currentInMap, ...edited });
+                  }
+                }
+              }
+            });
+
             const merged = Array.from(map.values());
             if (JSON.stringify(merged) !== JSON.stringify(prev)) {
               if (typeof window !== 'undefined') {
@@ -329,12 +431,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             }
             return prev;
           });
+
           setUser((currentUser) => {
             if (!currentUser) return null;
             const fresh = neonEmps.find(
               (e) => e.matricule === currentUser.matricule || e.id === currentUser.id
             );
-            return fresh ? { ...currentUser, ...fresh } : currentUser;
+            if (!fresh) return currentUser;
+            const edited = editedMap.get(currentUser.matricule);
+            return edited ? { ...fresh, ...edited } : fresh;
           });
         }
 
@@ -972,19 +1077,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       ...empData,
       id: `emp-${Date.now()}`,
       avatar: empData.avatar || DEFAULT_FALLBACK_AVATAR,
+      dateEmbauche: formatDateYYYYMMDD(empData.dateEmbauche),
     };
-    setEmployees((prev) => [newEmp, ...prev]);
 
-    // Save to extra employees localStorage cache for instant fallback
-    if (typeof window !== 'undefined') {
-      try {
-        const extraSaved = localStorage.getItem('VOOMNET_EXTRA_EMPLOYEES');
-        const parsed = extraSaved ? JSON.parse(extraSaved) : [];
-        const filtered = Array.isArray(parsed) ? parsed.filter((e) => e.matricule !== newEmp.matricule) : [];
-        filtered.push(newEmp);
-        localStorage.setItem('VOOMNET_EXTRA_EMPLOYEES', JSON.stringify(filtered));
-      } catch (e) {}
-    }
+    saveEditedEmployeeLocally(newEmp);
+
+    setEmployees((prev) => {
+      const updated = [newEmp, ...prev];
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('VOOMNET_EXTRA_EMPLOYEES', JSON.stringify(updated));
+        } catch (e) {}
+      }
+      return updated;
+    });
 
     const newPrime: EmployeePrimeStatus = {
       matricule: newEmp.matricule,
@@ -1007,6 +1113,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const res = await insertNeonEmployee(newEmp);
       if (res && res.email) {
         newEmp.email = res.email;
+        saveEditedEmployeeLocally(newEmp);
       }
       // Save initial prime attribution to Neon DB as well
       await insertNeonPrimeAttribution({
@@ -1022,30 +1129,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       console.error('Neon DB Employee insert error:', err);
     }
 
-    // Force a fresh fetch from Neon DB immediately to ensure local state is 100% in sync
-    try {
-      const freshEmps = await fetchNeonEmployees();
-      if (freshEmps && freshEmps.length > 0) {
-        setEmployees((prev) => {
-          const map = new Map<string, Employee>();
-          freshEmps.forEach((e) => {
-            if (e && e.matricule) map.set(e.matricule, e);
-          });
-          (prev || []).forEach((e) => {
-            if (e && e.matricule && !map.has(e.matricule)) {
-              map.set(e.matricule, e);
-            }
-          });
-          return Array.from(map.values());
-        });
-      }
-    } catch (e) {
-      // Ignore
-    }
-
     showNotificationAlert(
-      '👤 Utilisateur Créé & Synchronisé sur Neon',
-      `Le compte de ${newEmp.prenom} ${newEmp.nom} (Matricule ${newEmp.matricule}) a été enregistré dans Neon.tech.`,
+      '👤 Utilisateur Créé & Enregistré',
+      `Le compte de ${newEmp.prenom} ${newEmp.nom} (Matricule ${newEmp.matricule}) a été créé avec succès.`,
       'SUCCESS'
     );
     return true;
@@ -1053,16 +1139,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const updateEmployee = (id: string, empData: Partial<Employee>) => {
     let empName = '';
+    let updatedObj: Employee | null = null;
     const cleanEmpData = { ...empData };
     if (cleanEmpData.dateEmbauche) {
       cleanEmpData.dateEmbauche = formatDateYYYYMMDD(cleanEmpData.dateEmbauche);
     }
 
-    setEmployees((prev) =>
-      prev.map((emp) => {
+    setEmployees((prev) => {
+      const updatedList = prev.map((emp) => {
         if (emp.id === id || emp.matricule === id) {
-          empName = `${emp.prenom} ${emp.nom}`;
+          empName = `${cleanEmpData.prenom || emp.prenom} ${cleanEmpData.nom || emp.nom}`;
           const updated = { ...emp, ...cleanEmpData };
+          updatedObj = updated;
+
+          saveEditedEmployeeLocally(updated);
+
           if (user && (user.id === id || user.matricule === id)) {
             setUser(updated);
             if (typeof window !== 'undefined') {
@@ -1071,42 +1162,37 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               } catch (e) {}
             }
           }
-
-          // Also update localStorage VOOMNET_EXTRA_EMPLOYEES if present
-          if (typeof window !== 'undefined') {
-            try {
-              const extraSaved = localStorage.getItem('VOOMNET_EXTRA_EMPLOYEES');
-              if (extraSaved) {
-                const parsed = JSON.parse(extraSaved);
-                if (Array.isArray(parsed)) {
-                  const updatedExtra = parsed.map((e) =>
-                    e.id === id || e.matricule === id ? { ...e, ...cleanEmpData } : e
-                  );
-                  localStorage.setItem('VOOMNET_EXTRA_EMPLOYEES', JSON.stringify(updatedExtra));
-                }
-              }
-            } catch (e) {}
-          }
-
-          // Sync update to Neon
-          insertNeonEmployee(updated).catch(console.error);
           return updated;
         }
         return emp;
-      })
-    );
+      });
+
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('VOOMNET_EXTRA_EMPLOYEES', JSON.stringify(updatedList));
+        } catch (e) {}
+      }
+
+      return updatedList;
+    });
+
+    if (updatedObj) {
+      // Sync update to Neon DB directly
+      insertNeonEmployee(updatedObj).catch((err) => {
+        console.warn('Neon DB update error:', err);
+      });
+    }
 
     if (empData.statut || empData.role || empData.nom || empData.prenom || empData.dateEmbauche) {
       setPrimes((prev) =>
         prev.map((p) => {
-          const emp = employees.find((e) => e.id === id || e.matricule === id);
-          if (emp && p.matricule === emp.matricule) {
+          if (p.matricule === id || (updatedObj && p.matricule === (updatedObj as Employee).matricule)) {
             return {
               ...p,
-              nomPrenom: empData.prenom && empData.nom ? `${empData.prenom} ${empData.nom}` : p.nomPrenom,
+              nomPrenom: cleanEmpData.prenom && cleanEmpData.nom ? `${cleanEmpData.prenom} ${cleanEmpData.nom}` : p.nomPrenom,
               dateEmbauche: cleanEmpData.dateEmbauche || p.dateEmbauche,
-              statutCollaborateur: empData.statut || p.statutCollaborateur,
-              roleCollaborateur: empData.role || p.roleCollaborateur,
+              statutCollaborateur: cleanEmpData.statut || p.statutCollaborateur,
+              roleCollaborateur: cleanEmpData.role || p.roleCollaborateur,
             };
           }
           return p;
@@ -1115,17 +1201,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     showNotificationAlert(
-      '✏️ Profil Modifié & Synchronisé',
-      `Informations de ${empName} mises à jour dans la base Neon.`,
+      '✏️ Profil Modifié & Enregistré',
+      `Informations de ${empName} mises à jour avec succès.`,
       'INFO'
     );
   };
 
   const deleteEmployee = (id: string) => {
-    const target = employees.find((e) => e.id === id);
+    const target = employees.find((e) => e.id === id || e.matricule === id);
     if (!target) return;
 
-    setEmployees((prev) => prev.filter((e) => e.id !== id));
+    saveDeletedMatriculeLocally(target.matricule);
+
+    setEmployees((prev) => {
+      const updated = prev.filter((e) => e.id !== id && e.matricule !== target.matricule);
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('VOOMNET_EXTRA_EMPLOYEES', JSON.stringify(updated));
+        } catch (e) {}
+      }
+      return updated;
+    });
+
     setPrimes((prev) => prev.filter((p) => p.matricule !== target.matricule));
 
     // Delete directly from Neon PostgreSQL
@@ -1133,7 +1230,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     showNotificationAlert(
       '🗑️ Suppression Utilisateur',
-      `Le compte de ${target.prenom} ${target.nom} a été supprimé de la base Neon.`,
+      `Le compte de ${target.prenom} ${target.nom} a été supprimé.`,
       'ALERT'
     );
   };
