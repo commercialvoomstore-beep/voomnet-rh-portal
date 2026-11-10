@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { Employee, RoleType, StatutContrat, DEFAULT_FALLBACK_AVATAR, formatDateYYYYMMDD } from '@/data/mockData';
+import { exportEmployees } from '@/lib/csvExport';
 import {
   Users,
   Search,
@@ -20,6 +21,7 @@ import {
   Save,
   Camera,
   RotateCcw,
+  Download,
 } from 'lucide-react';
 
 export const Personnel: React.FC = () => {
@@ -249,13 +251,23 @@ export const Personnel: React.FC = () => {
         </div>
 
         {(isSuperAdmin || isAdminRH) && (
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-2 shrink-0 transition-all"
-          >
-            <UserPlus className="w-4 h-4" />
-            Créer un Utilisateur
-          </button>
+          <>
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-2 shrink-0 transition-all"
+            >
+              <UserPlus className="w-4 h-4" />
+              Créer un Utilisateur
+            </button>
+            <button
+              onClick={() => exportEmployees(employees || [])}
+              className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-2 shrink-0 transition-all"
+              title="Exporter la liste des employés au format CSV"
+            >
+              <Download className="w-4 h-4" />
+              Exporter (CSV)
+            </button>
+          </>
         )}
       </div>
 

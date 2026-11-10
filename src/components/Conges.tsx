@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { AbsenceRequest } from '@/data/mockData';
+import { exportAbsenceRequests } from '@/lib/csvExport';
 import {
   CalendarCheck,
   FileText,
@@ -17,6 +18,7 @@ import {
   Calendar,
   ShieldAlert,
   X,
+  Download,
 } from 'lucide-react';
 
 export const Conges: React.FC = () => {
@@ -167,6 +169,14 @@ export const Conges: React.FC = () => {
         >
           <PlusCircle className="w-4 h-4" />
           {showNewForm ? 'Masquer le formulaire' : 'Créer une demande'}
+        </button>
+        <button
+          onClick={() => exportAbsenceRequests(displayedRequests || [])}
+          className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-2 shrink-0 transition-all"
+          title="Exporter les demandes affichées au format CSV"
+        >
+          <Download className="w-4 h-4" />
+          Exporter (CSV)
         </button>
       </div>
 

@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useApp } from '@/context/AppContext';
+import { exportPrimes } from '@/lib/csvExport';
 import {
   Zap,
   CheckCircle2,
@@ -17,6 +18,7 @@ import {
   Gift,
   Building2,
   X,
+  Download,
 } from 'lucide-react';
 
 export const PrimesManagement: React.FC = () => {
@@ -198,6 +200,21 @@ export const PrimesManagement: React.FC = () => {
               </span>
             </div>
           </div>
+
+          <div className="pt-3">
+            <button
+              onClick={() =>
+                exportPrimes(
+                  (myPrime ? [myPrime] : []) as unknown as Record<string, unknown>[]
+                )
+              }
+              className="w-full px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-sm flex items-center justify-center gap-2 transition-all"
+              title="Exporter ma fiche de prime au format CSV"
+            >
+              <Download className="w-4 h-4" />
+              Exporter ma prime (CSV)
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -295,6 +312,19 @@ export const PrimesManagement: React.FC = () => {
             Attribuez ou refusez la prime trimestrielle des employés. Montant de référence :{' '}
             <strong className="text-amber-700">{primeConfig.montantReference.toLocaleString('fr-FR')} FCFA</strong>
           </p>
+
+          <button
+            onClick={() =>
+              exportPrimes(
+                (primeAttributions || []) as unknown as Record<string, unknown>[]
+              )
+            }
+            className="mt-3 md:mt-0 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-sm flex items-center gap-2 shrink-0 transition-all"
+            title="Exporter toutes les primes au format CSV"
+          >
+            <Download className="w-4 h-4" />
+            Exporter toutes les primes (CSV)
+          </button>
         </div>
 
         {/* Search & Filter tools */}

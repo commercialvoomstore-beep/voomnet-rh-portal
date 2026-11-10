@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useApp } from '@/context/AppContext';
+import { exportAuditLogs } from '@/lib/csvExport';
 import {
   Users,
   UserCheck,
@@ -11,6 +12,7 @@ import {
   Briefcase,
   Zap,
   Award,
+  Download,
 } from 'lucide-react';
 
 export const Dashboard: React.FC = () => {
@@ -305,9 +307,19 @@ export const Dashboard: React.FC = () => {
               <Clock className="w-4 h-4 text-blue-600" />
               <h4 className="text-sm font-bold text-slate-900">Journal d&apos;Activité RH</h4>
             </div>
-            <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-mono font-bold">
-              Live
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-mono font-bold">
+                Live
+              </span>
+              <button
+                onClick={() => exportAuditLogs(auditLogs || [])}
+                className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold rounded-xl shadow-sm flex items-center gap-1 shrink-0"
+                title="Exporter le journal d'activité RH au format CSV"
+              >
+                <Download className="w-3 h-3" />
+                Exporter CSV
+              </button>
+            </div>
           </div>
 
           <div className="flex-1 space-y-3 overflow-y-auto max-h-[460px] pr-1">
